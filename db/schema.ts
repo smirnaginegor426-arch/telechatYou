@@ -7,16 +7,14 @@ import {
   timestamp,
   bigint,
   boolean,
+  int,
   index,
   uniqueIndex,
 } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
   id: serial("id").primaryKey(),
-  // Legacy Kimi identity is nullable for accounts created locally.
-  unionId: varchar("unionId", { length: 255 }).unique(),
-  username: varchar("username", { length: 32 }).notNull().unique(),
-  passwordHash: varchar("passwordHash", { length: 255 }),
+  unionId: varchar("unionId", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
   avatar: text("avatar"),
@@ -31,21 +29,6 @@ export const users = mysqlTable("users", {
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
-
-/** Opaque database-backed sessions; only a hash of the browser token is stored. */
-export const sessions = mysqlTable(
-  "sessions",
-  {
-    id: serial("id").primaryKey(),
-    userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
-    tokenHash: varchar("tokenHash", { length: 64 }).notNull().unique(),
-    expiresAt: timestamp("expiresAt").notNull(),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    ip: varchar("ip", { length: 64 }),
-    userAgent: varchar("userAgent", { length: 512 }),
-  },
-  (t) => ({ userIdx: index("sessions_user_idx").on(t.userId), expiresIdx: index("sessions_expires_idx").on(t.expiresAt) }),
-);
 
 // ===================== TeleChatYou schema =====================
 
@@ -182,6 +165,7 @@ export const settings = mysqlTable("settings", {
   readReceipts: boolean("readReceipts").default(true).notNull(),
   enterToSend: boolean("enterToSend").default(false).notNull(),
   autoplayMedia: boolean("autoplayMedia").default(true).notNull(),
+  animations: boolean("animations").default(true).notNull(),
   language: varchar("language", { length: 8 }).default("ru").notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
@@ -190,3 +174,38 @@ export const settings = mysqlTable("settings", {
 });
 
 export type Settings = typeof settings.$inferSelect;
+
+/** Password credentials for username + password sign-in (set from Settings) */
+export const credentials = mysqlTable("credentials", {
+  id: serial("id").primaryKey(),
+  userId: userId().unique(),
+  /** format: scrypt$<N>$<saltB64>$<hashB64> — never store the plain password */
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  updatedAt: timestamp("updatedAt")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+export type Credential = typeof credentials.$inferSelect;
+
+/**
+ * One-time password recovery codes. Only a SHA-256 hash of the code is stored.
+ * A code is valid until expiresAt, can be consumed once (usedAt), and is
+ * locked after too many wrong attempts.
+ */
+export const recoveryCodes = mysqlTable(
+  "recovery_codes",
+  {
+    id: serial("id").primaryKey(),
+    userId: userId(),
+    codeHash: varchar("codeHash", { length: 64 }).notNull(),
+    attempts: int("attempts").default(0).notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    usedAt: timestamp("usedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({ userIdx: index("rc_user_idx").on(t.userId) }),
+);
+
+export type RecoveryCode = typeof recoveryCodes.$inferSelect;

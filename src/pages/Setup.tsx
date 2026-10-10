@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router";
 import { ArrowLeft, ArrowRight, AtSign, Camera, Check, UserRound } from "lucide-react";
 import { trpc } from "@/providers/trpc";
-import { useAuth } from "@/hooks/useAuth";
 import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 
@@ -19,11 +18,10 @@ const slide = {
 
 export default function Setup() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const utils = trpc.useUtils();
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
-  const [username, setUsername] = useState(user?.username ?? "");
+  const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);

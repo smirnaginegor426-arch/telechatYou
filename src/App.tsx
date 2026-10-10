@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Route, Routes, useLocation } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,6 +18,7 @@ import Settings from "@/pages/Settings";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
 import Login from "@/pages/Login";
+import PasswordRecovery from "@/pages/PasswordRecovery";
 import NotFound from "@/pages/NotFound";
 
 function Splash() {
@@ -41,9 +43,17 @@ function Splash() {
   );
 }
 
+/** Public auth pages that live outside the signed-in gate. */
+const PUBLIC_AUTH_PATHS = ["/login", "/recover"];
+
 function AuthedApp() {
   const location = useLocation();
   useHeartbeat(true);
+  const settingsQuery = trpc.settings.get.useQuery();
+  const animations = settingsQuery.data?.animations ?? true;
+  useEffect(() => {
+    document.documentElement.dataset.anim = animations ? "on" : "off";
+  }, [animations]);
   const chats = trpc.chats.list.useQuery(undefined, {
     refetchInterval: 8000,
     refetchIntervalInBackground: false,
@@ -103,9 +113,10 @@ export default function App() {
     <div className="tcy-app-shell">
       <div className="tcy-aurora" />
       <div className="relative z-10 h-full">
-        {location.pathname === "/login" ? (
+        {PUBLIC_AUTH_PATHS.includes(location.pathname) ? (
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/recover" element={<PasswordRecovery />} />
           </Routes>
         ) : (
           <Gate />

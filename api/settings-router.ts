@@ -16,6 +16,7 @@ const patchSchema = z.object({
   readReceipts: z.boolean().optional(),
   enterToSend: z.boolean().optional(),
   autoplayMedia: z.boolean().optional(),
+  animations: z.boolean().optional(),
   language: z.string().max(8).optional(),
 });
 

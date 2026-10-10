@@ -1,11 +1,11 @@
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
-import type { PublicUser } from "./lib/session";
-import { authenticateRequest } from "./lib/session";
+import type { User } from "@db/schema";
+import { authenticateRequest } from "./kimi/auth";
 
 export type TrpcContext = {
   req: Request;
   resHeaders: Headers;
-  user?: PublicUser;
+  user?: User;
 };
 
 export async function createContext(
@@ -13,9 +13,9 @@ export async function createContext(
 ): Promise<TrpcContext> {
   const ctx: TrpcContext = { req: opts.req, resHeaders: opts.resHeaders };
   try {
-    ctx.user = (await authenticateRequest(opts.req.headers)) ?? undefined;
+    ctx.user = await authenticateRequest(opts.req.headers);
   } catch {
-    // Authentication is optional for public procedures; DB errors surface on protected procedures.
+    // Authentication is optional here
   }
   return ctx;
 }

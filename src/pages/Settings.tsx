@@ -8,6 +8,7 @@ import {
   Globe,
   Image as ImageIcon,
   Info,
+  KeyRound,
   Keyboard,
   Moon,
   Palette,
@@ -22,6 +23,7 @@ import { trpc } from "@/providers/trpc";
 import { useTheme } from "@/hooks/useTheme";
 import { Avatar } from "@/components/Avatar";
 import { BottomSheet } from "@/components/BottomSheet";
+import { PasswordSheet } from "@/components/PasswordSheet";
 import { SettingsGroup, SettingsRow, Toggle } from "@/components/SettingsRow";
 import { TcButton } from "@/components/TcButton";
 import { ACCENTS } from "@/lib/accents";
@@ -35,6 +37,8 @@ export default function Settings() {
   const myFiles = trpc.storage.mine.useQuery();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const passwordStatus = trpc.auth.passwordStatus.useQuery();
 
   const update = trpc.settings.update.useMutation({
     onSuccess: (s) => utils.settings.get.setData(undefined, s),
@@ -82,6 +86,19 @@ export default function Settings() {
         </div>
         <UserRound size={18} className="tcy-faint" />
       </div>
+
+      <SettingsGroup title="Аккаунт">
+        <SettingsRow
+          icon={<KeyRound size={17} />}
+          title="Пароль"
+          subtitle={
+            passwordStatus.data?.hasPassword
+              ? "Установлен · можно войти по username"
+              : "Не задан · задайте, чтобы входить по username"
+          }
+          onClick={() => setPasswordOpen(true)}
+        />
+      </SettingsGroup>
 
       <SettingsGroup title="Внешний вид">
         <SettingsRow
@@ -132,8 +149,8 @@ export default function Settings() {
           subtitle="Фон «аврора» и микродвижения"
           right={
             <Toggle
-              checked={s?.autoplayMedia ?? true}
-              onChange={(v) => patch({ autoplayMedia: v })}
+              checked={s?.animations ?? true}
+              onChange={(v) => patch({ animations: v })}
             />
           }
         />
@@ -229,6 +246,8 @@ export default function Settings() {
       <p className="text-center text-[11px] tcy-faint pt-2">
         TeleChatYou · сделано с любовью к общению
       </p>
+
+      <PasswordSheet open={passwordOpen} onClose={() => setPasswordOpen(false)} />
 
       {/* about */}
       <BottomSheet open={aboutOpen} onClose={() => setAboutOpen(false)} title="О TeleChatYou">

@@ -1,34 +1,73 @@
-# TeleChatYou — самостоятельный запуск
+# React + TypeScript + Vite
 
-Проект представляет собой React/Vite-приложение с Hono + tRPC API, MySQL-совместимой базой данных и локальным файловым хранилищем. Вход через Kimi удалён; аккаунты создаются самим приложением.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Требования
+Currently, two official plugins are available:
 
-- Node.js 20 или новее
-- MySQL 8+ или TiDB Cloud (MySQL-compatible)
-- Для постоянного хранения файлов на облачном хостинге нужен persistent volume, смонтированный в `UPLOAD_DIR`.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Настройка
+## React Compiler
 
-1. Скопируйте `.env.example` в `.env`.
-2. Укажите `DATABASE_URL` с данными из TiDB Cloud. Используйте базу `telechatyou`. Для удалённой базы приложение включает TLS и проверку сертификата. Если пароль содержит `@`, `:`, `/`, `%` или другие специальные символы, URL-кодируйте пароль.
-3. Установите случайный `SESSION_SECRET` не короче 32 символов; не публикуйте `.env` и не добавляйте его в GitHub.
-4. Установите пакеты: `npm install`.
-5. Для пустой базы примените схему: `npm run db:push`.
-6. Запуск для разработки: `npm run dev`.
-7. Производственная сборка: `npm run check` и `npm run build`, затем `npm start`.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-`npm run db:push` синхронизирует схему Drizzle с базой. Файл `db/migrations/0001_local_auth.sql` предназначен только для уже существующей базы прежней версии с Kimi-авторизацией; не запускайте его после `db:push` на той же базе, поскольку он повторно добавит колонки.
+## Expanding the ESLint configuration
 
-## Файлы
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-После регистрации аккаунта пользователь проходит экран настройки профиля, где задаёт публичное имя и username. Имя для входа (логин) и публичный username хранятся раздельно.
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-Загруженные изображения/аудио/документы сохраняются в `UPLOAD_DIR`, по умолчанию `./data/uploads`. Если хостинг использует эфемерную файловую систему, задайте постоянный диск и направьте `UPLOAD_DIR` на его точку монтирования; иначе файлы могут исчезнуть при перезапуске или деплое.
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-## Ограничения текущей версии
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
 
-- Серверные сессии хранятся в таблице `sessions`, в БД записывается только HMAC-хеш случайного токена.
-- Ссылки `/api/files/...` доступны только пользователю с действительной сессией. Текущая проверка защищает от анонимного доступа; разграничение доступа на уровне конкретных чатов следует добавить до размещения конфиденциальных файлов в публичном сервисе.
-- Пароль для аккаунта не восстанавливается автоматически; пока нет email/телефона для сброса. Пользователь должен сохранить его в надёжном менеджере паролей.
-- Для production обязательно используйте HTTPS, надёжный `SESSION_SECRET`, TLS-подключение к базе и постоянное файловое хранилище.
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

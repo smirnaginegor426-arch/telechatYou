@@ -82,7 +82,7 @@ export default function Welcome() {
           Начать <ArrowRight size={19} />
         </TcButton>
         <p className="text-center text-[11.5px] tcy-faint mt-4">
-          Регистрация занимает меньше минуты
+          Вход через Kimi в один клик или по username и паролю
         </p>
       </motion.div>
     </div>

@@ -214,6 +214,11 @@
   from { transform: translate3d(0, 0, 0) scale(1); }
   to { transform: translate3d(6vmax, 4vmax, 0) scale(1.12); }
 }
+/* user setting "Анимации в чатах" off: keep the glow, stop the motion */
+[data-anim="off"] .tcy-aurora::before,
+[data-anim="off"] .tcy-aurora::after {
+  animation: none;
+}
 
 /* ---- chat wallpaper: subtle dot grid over aurora ---- */
 .tcy-wallpaper {

@@ -136,6 +136,8 @@ export const messagesRouter = createRouter({
       });
       if (!msg || msg.senderId !== ctx.user.id)
         throw new TRPCError({ code: "FORBIDDEN" });
+      if (msg.deletedAt)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Сообщение удалено" });
       if (msg.kind !== "text")
         throw new TRPCError({ code: "BAD_REQUEST", message: "Можно редактировать только текст" });
       await getDb()
