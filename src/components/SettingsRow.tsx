@@ -17,28 +17,56 @@ export function SettingsRow({
   onClick?: () => void;
   danger?: boolean;
 }) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-3.5 px-4 py-3.5 text-left active:bg-[color:var(--tcy-card)] transition-colors"
+  const iconElement = (
+    <span
+      className="w-9 h-9 rounded-[13px] flex items-center justify-center shrink-0"
+      style={{
+        background: danger
+          ? "color-mix(in srgb, var(--tcy-danger) 14%, transparent)"
+          : "var(--tcy-card-strong)",
+        color: danger ? "var(--tcy-danger)" : "var(--tcy-accent)",
+      }}
     >
-      <span
-        className="w-9 h-9 rounded-[13px] flex items-center justify-center shrink-0"
-        style={{
-          background: danger ? "color-mix(in srgb, var(--tcy-danger) 14%, transparent)" : "var(--tcy-card-strong)",
-          color: danger ? "var(--tcy-danger)" : "var(--tcy-accent)",
-        }}
-      >
-        {icon}
+      {icon}
+    </span>
+  );
+
+  const labelElement = (
+    <span className="flex-1 min-w-0">
+      <span className={cn("block text-[14.5px] font-semibold", danger ? "tcy-danger" : "tcy-text")}>
+        {title}
       </span>
-      <span className="flex-1 min-w-0">
-        <span className={cn("block text-[14.5px] font-semibold", danger ? "tcy-danger" : "tcy-text")}>
-          {title}
+      {subtitle && (
+        <span className="block text-[12px] tcy-faint mt-0.5 truncate">
+          {subtitle}
         </span>
-        {subtitle && <span className="block text-[12px] tcy-faint mt-0.5 truncate">{subtitle}</span>}
-      </span>
-      {right ?? (onClick && <ChevronRight size={17} style={{ color: "var(--tcy-faint)" }} />)}
-    </button>
+      )}
+    </span>
+  );
+
+  return (
+    <div className="w-full flex items-center gap-3.5 px-4 py-3.5 transition-colors">
+      {onClick ? (
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex flex-1 min-w-0 items-center gap-3.5 text-left transition-colors active:bg-[color:var(--tcy-card)]"
+        >
+          {iconElement}
+          {labelElement}
+          {!right && (
+            <ChevronRight size={17} style={{ color: "var(--tcy-faint)" }} />
+          )}
+        </button>
+      ) : (
+        <>
+          {iconElement}
+          {labelElement}
+        </>
+      )}
+
+      {right && <div className="shrink-0">{right}</div>}
+    </div>
   );
 }
 
@@ -51,6 +79,7 @@ export function Toggle({
 }) {
   return (
     <button
+      type="button"
       role="switch"
       aria-checked={checked}
       onClick={(e) => {

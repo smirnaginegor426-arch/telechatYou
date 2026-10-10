@@ -40,6 +40,7 @@ export function Composer({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const startingRef = useRef(false);
   const [levels, setLevels] = useState<number[]>([]);
   const rafRef = useRef<number>(0);
 
@@ -70,6 +71,9 @@ export function Composer({
   );
 
   const startRecording = async () => {
+    if (startingRef.current) return;
+    startingRef.current = true;
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
@@ -118,7 +122,9 @@ export function Composer({
         setRecSeconds((s) => s + 0.1);
       }, 100);
     } catch {
-      alert("Нет доступа к микрофону. Разрешите доступ в настройках браузера.");
+      alert("Не удалось получить доступ к микрофону. Проверьте разрешение микрофона в настройках Android и повторите попытку.");
+    } finally {
+      startingRef.current = false;
     }
   };
 
@@ -146,6 +152,10 @@ export function Composer({
     if (text.trim()) return;
     e.preventDefault();
     startPosRef.current = { x: e.clientX, y: e.clientY };
+
+    // Пока запрашивается микрофон, не запускаем вторую запись.
+    if (recording || startingRef.current || mediaRef.current) return;
+
     void startRecording();
   };
   const onMicMove = (e: React.PointerEvent) => {
@@ -158,9 +168,11 @@ export function Composer({
     }
   };
   const onMicUp = () => {
-    if (!recording) return;
     startPosRef.current = null;
-    stopRecording(true);
+
+    // Если разрешение ещё запрашивается, оставляем запуск в процессе.
+    // После появления записи следующее нажатие сможет остановить её.
+    if (recording) stopRecording(true);
   };
 
   const hasText = text.trim().length > 0;
