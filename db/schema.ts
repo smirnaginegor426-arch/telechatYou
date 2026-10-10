@@ -20,7 +20,7 @@ export const users = mysqlTable("users", {
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
   avatar: text("avatar"),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "official_tester"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
@@ -62,6 +62,8 @@ export const profiles = mysqlTable(
     bio: varchar("bio", { length: 280 }).default("").notNull(),
     avatarKey: varchar("avatarKey", { length: 255 }),
     accent: varchar("accent", { length: 16 }).default("mint").notNull(),
+    officialTester: boolean("officialTester").default(false).notNull(),
+    verificationBadge: varchar("verificationBadge", { length: 32 }).default("none").notNull(),
     lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt")
