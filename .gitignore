@@ -48,3 +48,5 @@ node_modules/
 dist/
 data/
 check-errors.txt
+android/.gradle/
+android/**/build/
