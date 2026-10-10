@@ -1,0 +1,65 @@
+import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
+import type { HttpBindings } from "@hono/node-server";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
+import { appRouter } from "./router";
+import { createContext } from "./context";
+import { env } from "./lib/env";
+import { storage } from "./lib/storage";
+import { getSessionToken, getSessionUser } from "./lib/session";
+
+const app = new Hono<{ Bindings: HttpBindings }>();
+
+app.use(bodyLimit({ maxSize: 32 * 1024 * 1024 }));
+app.use("/api/trpc/*", async (c) => {
+  return fetchRequestHandler({
+    endpoint: "/api/trpc",
+    req: c.req.raw,
+    router: appRouter,
+    createContext,
+  });
+});
+
+// Local disk files are private and available only to signed-in users.
+app.get("/api/files/*", async (c) => {
+  const token = getSessionToken(c.req.raw.headers);
+  const user = await getSessionUser(token);
+  if (!user) return c.json({ error: "Authentication required" }, 401);
+  let key: string;
+  try {
+    key = new URL(c.req.url).pathname.slice("/api/files/".length).split("/").map(decodeURIComponent).join("/");
+    const meta = await storage.headFile({ fileKey: key });
+    const bytes = await storage.readFile({ fileKey: key });
+    const headers = new Headers({
+      "Content-Type": meta.contentType,
+      "Content-Length": String(meta.size),
+      "Cache-Control": "private, max-age=300",
+      "X-Content-Type-Options": "nosniff",
+    });
+    if (c.req.query("download") === "1") {
+      headers.set("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(meta.fileName || "file")}`);
+    }
+    const body = new ArrayBuffer(bytes.byteLength);
+    new Uint8Array(body).set(bytes);
+    // Avoid serving uploaded HTML/SVG as an executable same-origin document.
+    if (["text/html", "application/xhtml+xml", "image/svg+xml"].includes(meta.contentType)) {
+      headers.set("Content-Disposition", `attachment; filename*=UTF-8''${encodeURIComponent(meta.fileName || "file")}`);
+    }
+    return new Response(body, { status: 200, headers });
+  } catch (error) {
+    if (env.isProduction) console.warn("File request failed", error instanceof Error ? error.message : String(error));
+    return c.json({ error: "File not found" }, 404);
+  }
+});
+
+app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
+
+if (env.isProduction) {
+  const { serve } = await import("@hono/node-server");
+  const { serveStaticFiles } = await import("./lib/vite");
+  serveStaticFiles(app);
+  const port = parseInt(process.env.PORT || "3000", 10);
+  serve({ fetch: app.fetch, port }, () => console.log(`Server running on http://localhost:${port}/`));
+}
+
+export default app;

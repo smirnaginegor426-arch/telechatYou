@@ -30,7 +30,6 @@ dist-ssr
 *.db
 *.sqlite
 *.sqlite3
-db/migrations/*.sql
 # TypeScript cache
 *.tsbuildinfo
 # Build outputs
@@ -39,3 +38,13 @@ build/
 # Test coverage
 coverage/
 .nyc_output/
+
+# User-uploaded private files
+data/uploads/
+.env
+.env.*
+!.env.example
+node_modules/
+dist/
+data/
+check-errors.txt
