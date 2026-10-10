@@ -1,87 +1,130 @@
-import * as cookie from "cookie";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { Session } from "@contracts/constants";
-import { getSessionCookieOptions } from "./lib/cookies";
-import { createRouter, authedQuery, publicQuery } from "./middleware";
-import { createSession, destroySession, getSessionToken } from "./lib/session";
-import { hashPassword, verifyPassword } from "./lib/passwords";
-import { createUser, findUserByUsername, touchLastSignIn } from "./queries/users";
+import { eq, ne } from "drizzle-orm";
+import { createRouter, authedQuery } from "./middleware";
+import { getDb } from "./queries/connection";
+import { profiles, users } from "@db/schema";
+import { normalizeUsernameInput } from "./lib/identity";
+import {
+  ensureSettings,
+  getProfileByUserId,
+  getProfilesByIds,
+  searchProfiles,
+} from "./queries/telechat";
 
-const usernameSchema = z.string().trim().regex(/^[a-zA-Z0-9_]{3,32}$/, "Имя пользователя: 3–32 символа, латиница, цифры и _");
-const passwordSchema = z.string().min(8, "Пароль должен содержать минимум 8 символов").max(128, "Пароль слишком длинный");
+const usernameRe = /^[a-zA-Z0-9_]{3,32}$/;
 
-function appendSessionCookie(ctx: { req: Request; resHeaders: Headers }, token: string) {
-  const opts = getSessionCookieOptions(ctx.req.headers);
-  ctx.resHeaders.append("set-cookie", cookie.serialize(Session.cookieName, token, {
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secure: opts.secure,
-    maxAge: Session.maxAgeMs / 1000,
-  }));
-}
+export const profileRouter = createRouter({
+  /** current user + messenger profile (null if onboarding not finished) */
+  me: authedQuery.query(async ({ ctx }) => {
+    const profile = await getProfileByUserId(ctx.user.id);
+    return { user: ctx.user, profile };
+  }),
 
-function clearSessionCookie(ctx: { req: Request; resHeaders: Headers }) {
-  const opts = getSessionCookieOptions(ctx.req.headers);
-  ctx.resHeaders.append("set-cookie", cookie.serialize(Session.cookieName, "", {
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secure: opts.secure,
-    maxAge: 0,
-    expires: new Date(0),
-  }));
-}
+  /** username availability */
+  checkUsername: authedQuery
+    .input(z.object({ username: z.string().regex(usernameRe) }))
+    .query(async ({ ctx, input }) => {
+      const normalized = normalizeUsernameInput(input.username);
+      const taken = await getDb().query.profiles.findFirst({
+        where: eq(profiles.username, normalized),
+      });
+      return { available: !taken || taken.userId === ctx.user.id };
+    }),
 
-function sessionMeta(req: Request) {
-  return {
-    ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
-    userAgent: req.headers.get("user-agent") ?? null,
-  };
-}
-
-export const authRouter = createRouter({
-  me: authedQuery.query(({ ctx }) => ctx.user),
-
-  register: publicQuery
-    .input(z.object({ username: usernameSchema, password: passwordSchema }))
+  /** finish onboarding: create profile */
+  setup: authedQuery
+    .input(
+      z.object({
+        username: z.string().regex(usernameRe),
+        displayName: z.string().min(1).max(64),
+        bio: z.string().max(280).optional(),
+        avatarKey: z.string().max(255).optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      const username = input.username.toLowerCase();
-      const existing = await findUserByUsername(username);
-      if (existing) throw new TRPCError({ code: "CONFLICT", message: "Это имя пользователя уже занято" });
-      let user: Awaited<ReturnType<typeof createUser>>;
-      try {
-        user = await createUser({ username, passwordHash: await hashPassword(input.password), name: username });
-      } catch (error) {
-        // Covers the race where two requests choose the same username simultaneously.
-        if (await findUserByUsername(username)) {
-          throw new TRPCError({ code: "CONFLICT", message: "Это имя пользователя уже занято" });
-        }
-        throw error;
+      const username = normalizeUsernameInput(input.username);
+      const existing = await getProfileByUserId(ctx.user.id);
+      if (existing) throw new TRPCError({ code: "CONFLICT", message: "Профиль уже создан" });
+      const taken = await getDb().query.profiles.findFirst({
+        where: eq(profiles.username, username),
+      });
+      if (taken) throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят" });
+      await getDb().insert(profiles).values({
+        userId: ctx.user.id,
+        username,
+        displayName: input.displayName.trim(),
+        bio: input.bio?.trim() ?? "",
+        avatarKey: input.avatarKey,
+      });
+      await getDb()
+        .update(users)
+        .set({ name: input.displayName.trim() })
+        .where(eq(users.id, ctx.user.id));
+      await ensureSettings(ctx.user.id);
+      return getProfileByUserId(ctx.user.id);
+    }),
+
+  update: authedQuery
+    .input(
+      z.object({
+        displayName: z.string().min(1).max(64).optional(),
+        bio: z.string().max(280).optional(),
+        username: z.string().regex(usernameRe).optional(),
+        avatarKey: z.string().max(255).nullable().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const profile = await getProfileByUserId(ctx.user.id);
+      if (!profile) throw new TRPCError({ code: "NOT_FOUND" });
+      const patch: Partial<typeof profiles.$inferInsert> = {};
+      if (input.displayName) patch.displayName = input.displayName.trim();
+      if (input.bio !== undefined) patch.bio = input.bio.trim();
+      if (input.avatarKey !== undefined) patch.avatarKey = input.avatarKey;
+      if (input.username) {
+        const username = normalizeUsernameInput(input.username);
+        const taken = await getDb().query.profiles.findFirst({
+          where: eq(profiles.username, username),
+        });
+        if (taken && taken.userId !== ctx.user.id)
+          throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят" });
+        patch.username = username;
       }
-      if (!user) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Не удалось создать аккаунт" });
-      const token = await createSession(user.id, sessionMeta(ctx.req));
-      appendSessionCookie(ctx, token);
-      return { success: true };
+      await getDb().update(profiles).set(patch).where(eq(profiles.userId, ctx.user.id));
+      return getProfileByUserId(ctx.user.id);
     }),
 
-  login: publicQuery
-    .input(z.object({ username: usernameSchema, password: passwordSchema }))
-    .mutation(async ({ ctx, input }) => {
-      const user = await findUserByUsername(input.username.toLowerCase());
-      const ok = user?.passwordHash ? await verifyPassword(input.password, user.passwordHash) : false;
-      if (!user || !ok) throw new TRPCError({ code: "UNAUTHORIZED", message: "Неверное имя пользователя или пароль" });
-      await destroySession(getSessionToken(ctx.req.headers));
-      await touchLastSignIn(user.id);
-      const token = await createSession(user.id, sessionMeta(ctx.req));
-      appendSessionCookie(ctx, token);
-      return { success: true };
+  /** heartbeat — keeps online status fresh */
+  heartbeat: authedQuery.mutation(async ({ ctx }) => {
+    await getDb()
+      .update(profiles)
+      .set({ lastSeenAt: new Date() })
+      .where(eq(profiles.userId, ctx.user.id));
+    return { ok: true };
+  }),
+
+  search: authedQuery
+    .input(z.object({ query: z.string().min(1).max(64) }))
+    .query(({ ctx, input }) => searchProfiles(normalizeUsernameInput(input.query.trim()), ctx.user.id)),
+
+  byId: authedQuery
+    .input(z.object({ userId: z.number() }))
+    .query(async ({ input }) => {
+      const p = await getProfileByUserId(input.userId);
+      if (!p) throw new TRPCError({ code: "NOT_FOUND" });
+      return p;
     }),
 
-  logout: publicQuery.mutation(async ({ ctx }) => {
-    await destroySession(getSessionToken(ctx.req.headers));
-    clearSessionCookie(ctx);
-    return { success: true };
+  byIds: authedQuery
+    .input(z.object({ userIds: z.array(z.number()).max(100) }))
+    .query(({ input }) => getProfilesByIds(input.userIds)),
+
+  /** all known users except me (contacts directory) */
+  directory: authedQuery.query(async ({ ctx }) => {
+    return getDb()
+      .select()
+      .from(profiles)
+      .where(ne(profiles.userId, ctx.user.id))
+      .limit(200);
   }),
 });

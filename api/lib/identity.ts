@@ -3,6 +3,8 @@
  * All role/permission checks must occur here on the server.
  */
 
+export const USER_ROLES = ["user", "admin", "official_tester"] as const;
+
 export function normalizeUsernameInput(value: string): string {
   return value
     .trim()
@@ -19,13 +21,6 @@ export function isOfficialTesterRole(role?: string | null): boolean {
   return role === "official_tester";
 }
 
-export function canManageUser(
-  adminRole: string | undefined,
-  targetUserId: number,
-  currentUserId: number
-): boolean {
-  // admins can manage anyone except themselves without care,
-  // or themselves only if explicitly allowed elsewhere
-  if (adminRole !== "admin") return false;
-  return true;
+export function hasAnyRole(userRole: string | null | undefined, allowed: readonly string[]): boolean {
+  return !!userRole && allowed.includes(userRole);
 }

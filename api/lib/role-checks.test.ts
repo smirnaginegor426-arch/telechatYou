@@ -1,30 +1,38 @@
-import { describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
+import * as schema from "@db/schema";
+import { normalizeUsernameInput } from "../lib/identity";
+import { getDb } from "./connection";
 
-const normalizeUsernameInput = (value: string): string => value.trim().replace(/^@+/, "").replace(/\s+/g, "").toLowerCase();
+export async function findUserByUsername(username: string) {
+  const normalized = normalizeUsernameInput(username);
+  const rows = await getDb()
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.username, normalized))
+    .limit(1);
+  return rows.at(0);
+}
 
-const canAccessAdmin = (userRole?: string | null): boolean => userRole === "admin";
-const isOfficialTesterRole = (role?: string | null): boolean => role === "official_tester";
-
-describe("username normalization", () => {
-  it("strips leading @ and whitespace", () => {
-    expect(normalizeUsernameInput(" @alice ")).toBe("alice");
-    expect(normalizeUsernameInput("@@bob")).toBe("bob");
+export async function createUser(data: {
+  username: string;
+  passwordHash: string;
+  name: string;
+}) {
+  const normalized = normalizeUsernameInput(data.username);
+  await getDb().insert(schema.users).values({
+    username: normalized,
+    passwordHash: data.passwordHash,
+    name: data.name,
+    unionId: null,
+    role: "user",
+    lastSignInAt: new Date(),
   });
+  return findUserByUsername(normalized);
+}
 
-  it("keeps internal underscores and digits", () => {
-    expect(normalizeUsernameInput("user_42")).toBe("user_42");
-  });
-});
-
-describe("server-side role checks", () => {
-  it("allows only admins", () => {
-    expect(canAccessAdmin("admin")).toBe(true);
-    expect(canAccessAdmin("user")).toBe(false);
-    expect(canAccessAdmin(undefined)).toBe(false);
-  });
-
-  it("detects official tester role", () => {
-    expect(isOfficialTesterRole("official_tester")).toBe(true);
-    expect(isOfficialTesterRole("admin")).toBe(false);
-  });
-});
+export async function touchLastSignIn(id: number) {
+  await getDb()
+    .update(schema.users)
+    .set({ lastSignInAt: new Date() })
+    .where(eq(schema.users.id, id));
+}

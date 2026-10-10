@@ -1,6 +1,7 @@
 import { ErrorMessages } from "@contracts/constants";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
+import { hasAnyRole } from "./lib/identity";
 import type { TrpcContext } from "./context";
 import type { PublicUser } from "./lib/session";
 
@@ -22,8 +23,6 @@ const requireAuth = t.middleware(async (opts) => {
     });
   }
 
-  // Supplying an explicitly narrowed local variable lets tRPC infer a
-  // guaranteed authenticated user in every downstream procedure.
   return next({ ctx: { ...ctx, user: user as PublicUser } });
 });
 
@@ -43,5 +42,23 @@ function requireRole(role: string) {
   });
 }
 
+function requireAnyRole(roles: readonly string[]) {
+  return t.middleware(async (opts) => {
+    const { ctx, next } = opts;
+
+    const user = ctx.user;
+    if (!user || !hasAnyRole(user.role, roles)) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: ErrorMessages.insufficientRole,
+      });
+    }
+
+    return next({ ctx: { ...ctx, user: user as PublicUser } });
+  });
+}
+
 export const authedQuery = t.procedure.use(requireAuth);
 export const adminQuery = authedQuery.use(requireRole("admin"));
+export const staffQuery = authedQuery.use(requireAnyRole(["admin", "official_tester"]));
+export const officialTesterQuery = authedQuery.use(requireRole("official_tester"));
