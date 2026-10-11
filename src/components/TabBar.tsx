@@ -1,6 +1,11 @@
 import { NavLink, useLocation } from "react-router";
 import { motion } from "framer-motion";
-import { MessageCircle, Users, UserRound, Settings2 } from "lucide-react";
+import {
+  MessageCircle,
+  Users,
+  UserRound,
+  Settings2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -10,14 +15,23 @@ const tabs = [
   { to: "/settings", label: "Настройки", icon: Settings2 },
 ];
 
-export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
+export function TabBar({
+  unreadTotal = 0,
+}: {
+  unreadTotal?: number;
+}) {
   const location = useLocation();
- const isChatScreen = /^\/chat\/\d+(?:\/info)?\/?$/.test(
-  location.pathname,
-);
 
-const hidden =
-  isChatScreen || location.pathname.startsWith("/setup");
+  // Скрываем панель только внутри существующего чата
+  // и на странице сведений о чате.
+  // Маршрут /new для создания группы остаётся доступным.
+  const isChatScreen = /^\/chat\/\d+(?:\/info)?\/?$/.test(
+    location.pathname,
+  );
+
+  const hidden =
+    isChatScreen || location.pathname.startsWith("/setup");
+
   if (hidden) return null;
 
   return (
@@ -26,7 +40,10 @@ const hidden =
         <div className="grid grid-cols-4 h-[64px]">
           {tabs.map(({ to, label, icon: Icon }) => {
             const active =
-              to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
+              to === "/"
+                ? location.pathname === "/"
+                : location.pathname.startsWith(to);
+
             return (
               <NavLink
                 key={to}
@@ -37,9 +54,14 @@ const hidden =
                   <Icon
                     size={22}
                     strokeWidth={active ? 2.4 : 1.8}
-                    style={{ color: active ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
+                    style={{
+                      color: active
+                        ? "var(--tcy-accent)"
+                        : "var(--tcy-faint)",
+                    }}
                     className="transition-all duration-200"
                   />
+
                   {to === "/" && unreadTotal > 0 && (
                     <motion.span
                       initial={{ scale: 0 }}
@@ -51,17 +73,29 @@ const hidden =
                     </motion.span>
                   )}
                 </span>
+
                 <span
-                  className={cn("text-[10.5px] font-semibold transition-colors")}
-                  style={{ color: active ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
+                  className={cn(
+                    "text-[10.5px] font-semibold transition-colors",
+                  )}
+                  style={{
+                    color: active
+                      ? "var(--tcy-accent)"
+                      : "var(--tcy-faint)",
+                  }}
                 >
                   {label}
                 </span>
+
                 {active && (
                   <motion.span
                     layoutId="tab-glow"
                     className="absolute -bottom-[1px] w-8 h-[3px] rounded-full tcy-gradient-accent"
-                    transition={{ type: "spring", stiffness: 500, damping: 36 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 36,
+                    }}
                   />
                 )}
               </NavLink>
