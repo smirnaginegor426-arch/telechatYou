@@ -114,7 +114,7 @@ export default function NewChat() {
       </div>
 
       {/* footer actions */}
-      <div className="relative z-10 px-5 pb-8 safe-bottom space-y-3">
+     <div className="relative z-10 px-5 pb-24 safe-bottom space-y-3">
         {selected.length === 1 && (
           <TcButton
             size="lg"
