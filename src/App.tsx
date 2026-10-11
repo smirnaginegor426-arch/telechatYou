@@ -132,10 +132,18 @@ function Gate() {
   return <AuthedApp />;
 }
 
+const MAINTENANCE_MODE = true;
+
 export default function App() {
   const location = useLocation();
 
+  if (MAINTENANCE_MODE) {
+    return <Maintenance />;
+  }
+
   return (
+
+  
     <div className="tcy-app-shell">
       <div className="tcy-aurora" />
 
