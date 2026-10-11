@@ -24,6 +24,24 @@ export async function createSession(userId: number, meta: SessionMeta = {}): Pro
   const expiresAt = new Date(Date.now() + Session.maxAgeMs);
   await getDb().insert(sessions).values({
     userId,
+    export async function destroyUserSessionsExcept(
+  userId: number,
+  currentToken: string | undefined,
+): Promise<void> {
+  if (!currentToken) {
+    await destroyUserSessions(userId);
+    return;
+  }
+
+  await getDb()
+    .delete(sessions)
+    .where(
+      and(
+        eq(sessions.userId, userId),
+        ne(sessions.tokenHash, tokenHash(currentToken)),
+      ),
+    );
+}
     tokenHash: tokenHash(token),
     expiresAt,
     ip: meta.ip?.slice(0, 64) ?? null,
