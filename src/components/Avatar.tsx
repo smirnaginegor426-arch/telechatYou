@@ -1,8 +1,4 @@
-import { useEffect, useState } from "react";
-import {
-  useFileUrl,
-  refreshFileUrl,
-} from "@/hooks/useFileUrl";
+import { useFileUrl, refreshFileUrl } from "@/hooks/useFileUrl";
 import { avatarGradient, initials, isOnline } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -24,33 +20,22 @@ export function Avatar({
   className,
 }: Props) {
   const url = useFileUrl(avatarKey);
-  const [failedUrl, setFailedUrl] = useState<string | null>(null);
-
   const online = showOnline && isOnline(lastSeenAt);
-
-  // Когда получена новая ссылка, снова показываем фотографию.
-  useEffect(() => {
-    setFailedUrl(null);
-  }, [url]);
 
   return (
     <div
       className={cn("relative shrink-0", className)}
       style={{ width: size, height: size }}
     >
-      {url && failedUrl !== url ? (
+      {url ? (
         <img
           src={url}
-          alt={name}
+          alt=""
           draggable={false}
           className="w-full h-full object-cover rounded-full"
           style={{ borderRadius: size >= 56 ? "30%" : "50%" }}
           onError={() => {
-            if (!avatarKey) return;
-
-            // Если ссылка устарела, запрашиваем свежую.
-            setFailedUrl(url);
-            refreshFileUrl(avatarKey);
+            if (avatarKey) refreshFileUrl(avatarKey);
           }}
         />
       ) : (
