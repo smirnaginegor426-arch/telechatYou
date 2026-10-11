@@ -5,6 +5,7 @@ import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { trpc } from "@/providers/trpc";
 import { TabBar } from "@/components/TabBar";
 import { Logo } from "@/components/Logo";
+
 import Welcome from "@/pages/Welcome";
 import Setup from "@/pages/Setup";
 import Chats from "@/pages/Chats";
@@ -14,6 +15,7 @@ import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
+import Admin from "@/pages/Admin";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
 import Login from "@/pages/Login";
@@ -24,10 +26,15 @@ function Splash() {
     <div className="h-full flex flex-col items-center justify-center gap-6">
       <motion.div
         animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+        transition={{
+          duration: 1.6,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
       >
         <Logo size={76} />
       </motion.div>
+
       <div className="flex gap-1.5">
         {[0, 1, 2].map((i) => (
           <span
@@ -43,13 +50,17 @@ function Splash() {
 
 function AuthedApp() {
   const location = useLocation();
+
   useHeartbeat(true);
+
   const chats = trpc.chats.list.useQuery(undefined, {
     refetchInterval: 8000,
     refetchIntervalInBackground: false,
   });
+
   const unreadTotal = (chats.data ?? []).reduce(
-    (sum, c) => sum + (c.membership.muted || c.membership.archived ? 0 : c.unread),
+    (sum, c) =>
+      sum + (c.membership.muted || c.membership.archived ? 0 : c.unread),
     0,
   );
 
@@ -57,11 +68,19 @@ function AuthedApp() {
     <div className="relative h-full">
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.div
-          key={location.pathname.startsWith("/chat/") ? location.pathname : location.pathname.split("/")[1] || "/"}
+          key={
+            location.pathname.startsWith("/chat/")
+              ? location.pathname
+              : location.pathname.split("/")[1] || "/"
+          }
           initial={{ opacity: 0, x: 24, scale: 0.99 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -16, scale: 0.995 }}
-          transition={{ type: "spring", stiffness: 380, damping: 38 }}
+          transition={{
+            type: "spring",
+            stiffness: 380,
+            damping: 38,
+          }}
           className="absolute inset-0"
         >
           <Routes location={location}>
@@ -72,12 +91,17 @@ function AuthedApp() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+
+            {/* Admin panel */}
+            <Route path="/admin" element={<Admin />} />
+
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </motion.div>
       </AnimatePresence>
+
       <TabBar unreadTotal={unreadTotal} />
     </div>
   );
@@ -85,23 +109,35 @@ function AuthedApp() {
 
 function Gate() {
   const { isAuthenticated, isLoading } = useAuth();
+
   const me = trpc.profile.me.useQuery(undefined, {
     enabled: isAuthenticated,
     retry: false,
     staleTime: 30_000,
   });
 
-  if (isLoading || (isAuthenticated && me.isLoading)) return <Splash />;
-  if (!isAuthenticated) return <Welcome />;
-  if (me.data && !me.data.profile) return <Setup />;
+  if (isLoading || (isAuthenticated && me.isLoading)) {
+    return <Splash />;
+  }
+
+  if (!isAuthenticated) {
+    return <Welcome />;
+  }
+
+  if (me.data && !me.data.profile) {
+    return <Setup />;
+  }
+
   return <AuthedApp />;
 }
 
 export default function App() {
   const location = useLocation();
+
   return (
     <div className="tcy-app-shell">
       <div className="tcy-aurora" />
+
       <div className="relative z-10 h-full">
         {location.pathname === "/login" ? (
           <Routes>
