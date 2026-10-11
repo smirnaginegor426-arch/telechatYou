@@ -127,14 +127,15 @@ export function useFileUrl(
     }
 
     function onRefresh(event: Event) {
-      const detail = (
-        event as CustomEvent<{ key: string }>
-      ).detail;
+  const detail = (
+    event as CustomEvent<{ key: string }>
+  ).detail;
 
-      if (detail?.key !== key) return;
+  if (detail?.key !== key) return;
 
-      void load(true);
-    }
+  setUrl(null);
+  void load(true);
+}
 
     window.addEventListener(REFRESH_EVENT, onRefresh);
     void load();
