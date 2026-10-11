@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Route, Routes, useLocation } from "react-router";
+import { Route, Routes, useLocation, useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { trpc } from "@/providers/trpc";
@@ -55,6 +56,45 @@ function Splash() {
 
 function AuthedApp() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+const adminMe = trpc.profile.me.useQuery(undefined, {
+  retry: false,
+  staleTime: 30_000,
+});
+
+useEffect(() => {
+  function handleKeyDown(event: KeyboardEvent) {
+    const isYoKey =
+      event.key.toLowerCase() === "ё" ||
+      event.code === "Backquote";
+
+    if (!isYoKey || event.repeat) return;
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
+
+    const target = event.target;
+
+    if (
+      target instanceof HTMLElement &&
+      target.closest(
+        'input, textarea, select, [contenteditable="true"]',
+      )
+    ) {
+      return;
+    }
+
+    if (adminMe.data?.user.role !== "admin") return;
+
+    event.preventDefault();
+    navigate("/admin");
+  }
+
+  window.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+}, [adminMe.data?.user.role, navigate]);
 
   useHeartbeat(true);
 
