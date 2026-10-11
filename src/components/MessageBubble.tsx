@@ -243,26 +243,24 @@ export function MessageBubble({
               className="block mb-1 p-0 border-0 bg-transparent appearance-none"
             >
               {imgUrl ? (
-                <img
-                  <img
-  src={imgUrl}
-  alt={m.attachmentName ?? "Фото"}
-  className="rounded-[16px] max-w-[240px] max-h-[300px] object-cover"
-  loading="lazy"
-  onError={(event) => {
-    const img = event.currentTarget;
+  <img
+    src={imgUrl}
+    alt={m.attachmentName ?? "Фото"}
+    className="rounded-[16px] max-w-[240px] max-h-[300px] object-cover"
+    loading="lazy"
+    onError={(event) => {
+      const img = event.currentTarget;
 
-    if (img.dataset.refreshing === "true") return;
+      if (img.dataset.refreshing === "true") return;
 
-    img.dataset.refreshing = "true";
-    refreshFileUrl(m.attachmentKey);
-  }}
-  onLoad={(event) => {
-    event.currentTarget.dataset.refreshing = "false";
-  }}
-/>
-                />
-              ) : (
+      img.dataset.refreshing = "true";
+      refreshFileUrl(m.attachmentKey);
+    }}
+    onLoad={(event) => {
+      event.currentTarget.dataset.refreshing = "false";
+    }}
+  />
+) : (
                 <div className="tcy-skeleton w-[220px] h-[160px] rounded-[16px]" />
               )}
             </button>
