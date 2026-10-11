@@ -25,7 +25,7 @@ import Maintenance from "@/pages/Maintenance";
 
 // true — технические работы для обычных пользователей.
 // Администраторы смогут пользоваться мессенджером.
-const MAINTENANCE_MODE = false;
+const MAINTENANCE_MODE = true;
 
 function Splash() {
   return (
