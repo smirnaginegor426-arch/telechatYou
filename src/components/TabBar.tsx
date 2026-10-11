@@ -12,8 +12,12 @@ const tabs = [
 
 export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const location = useLocation();
-  const hidden =
-    location.pathname.startsWith("/chat/") || location.pathname.startsWith("/setup");
+ const isChatScreen = /^\/chat\/\d+(?:\/info)?\/?$/.test(
+  location.pathname,
+);
+
+const hidden =
+  isChatScreen || location.pathname.startsWith("/setup");
   if (hidden) return null;
 
   return (
