@@ -1,6 +1,6 @@
 import { createHmac, randomBytes } from "node:crypto";
 import * as cookie from "cookie";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, ne } from "drizzle-orm";
 import { Session } from "@contracts/constants";
 import { sessions, users, type User } from "@db/schema";
 import { env } from "./env";
