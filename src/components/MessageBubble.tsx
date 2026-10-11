@@ -3,7 +3,10 @@ import { motion } from "framer-motion";
 import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
-import { useFileUrl } from "@/hooks/useFileUrl";
+import {
+  useFileUrl,
+  refreshFileUrl,
+} from "@/hooks/useFileUrl";
 import { formatFileSize, formatMessageTime } from "@/lib/format";
 import type { MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
