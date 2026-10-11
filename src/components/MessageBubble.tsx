@@ -136,7 +136,7 @@ style={
           background: "var(--tcy-bubble-in)",
           color: "var(--tcy-text)",
         }
-}
+
           }
         >
           {isGroup && !own && showSender && (
