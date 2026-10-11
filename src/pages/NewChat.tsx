@@ -69,7 +69,7 @@ export default function NewChat() {
         )}
       </header>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar px-2 pb-6 relative z-10">
+      <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-2 pb-6 relative z-10">
         <div className="px-3 py-2 text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
           Выберите собеседников
         </div>
