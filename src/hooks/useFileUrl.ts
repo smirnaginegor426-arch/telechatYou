@@ -1,72 +1,131 @@
+
 import { useEffect, useState } from "react";
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import type { AppRouter } from "../../api/router";
 
-/** vanilla (non-hook) client for imperative URL resolution */
+// Временные ссылки обновляются заранее, пока они ещё действительны.
+const REFRESH_AFTER_MS = 6 * 60 * 1000;
+
 const vanilla = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
       fetch(input, init) {
-        return globalThis.fetch(input, { ...(init ?? {}), credentials: "include" });
+        return globalThis.fetch(input, {
+          ...(init ?? {}),
+          credentials: "include",
+        });
       },
     }),
   ],
 });
 
-/** session-level cache: storage key -> presigned url */
-const cache = new Map<string, string>();
+type CachedUrl = {
+  url: string;
+  createdAt: number;
+};
+
+const cache = new Map<string, CachedUrl>();
 const pending = new Map<string, Promise<string | null>>();
 
-async function resolveKey(key: string): Promise<string | null> {
+async function resolveKey(
+  key: string,
+  forceRefresh = false,
+): Promise<string | null> {
   const hit = cache.get(key);
-  if (hit) return hit;
-  const p = pending.get(key);
-  if (p) return p;
+
+  if (
+    !forceRefresh &&
+    hit &&
+    Date.now() - hit.createdAt < REFRESH_AFTER_MS
+  ) {
+    return hit.url;
+  }
+
+  const existing = pending.get(key);
+  if (existing) return existing;
+
+  cache.delete(key);
+
   const promise = vanilla.storage.urls
     .query({ keys: [key] })
-    .then((r) => {
-      const url = r.urls[key] ?? null;
-      if (url) cache.set(key, url);
-      pending.delete(key);
+    .then((result) => {
+      const url = result.urls[key] ?? null;
+
+      if (url) {
+        cache.set(key, {
+          url,
+          createdAt: Date.now(),
+        });
+      }
+
       return url;
     })
-    .catch(() => {
+    .catch(() => null)
+    .finally(() => {
       pending.delete(key);
-      return null;
     });
+
   pending.set(key, promise);
   return promise;
 }
 
-/** Resolve an object-storage key into a renderable URL (cached, ~10 min TTL from server). */
-export function useFileUrl(key: string | null | undefined): string | null {
-  const [url, setUrl] = useState<string | null>(() => (key ? cache.get(key) ?? null : null));
+export function useFileUrl(
+  key: string | null | undefined,
+): string | null {
+  const [url, setUrl] = useState<string | null>(() => {
+    if (!key) return null;
+    return cache.get(key)?.url ?? null;
+  });
 
   useEffect(() => {
     if (!key) {
       setUrl(null);
       return;
     }
-    const hit = cache.get(key);
-    if (hit) {
-      setUrl(hit);
-      return;
-    }
+
     let alive = true;
-    resolveKey(key).then((u) => {
-      if (alive) setUrl(u);
-    });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+
+    async function load(forceRefresh = false) {
+      const nextUrl = await resolveKey(key!, forceRefresh);
+
+      if (!alive) return;
+
+      if (nextUrl) {
+        setUrl(nextUrl);
+
+        // Обновляем URL заранее, не дожидаясь ошибки загрузки.
+        timer = setTimeout(() => {
+          void load(true);
+        }, REFRESH_AFTER_MS);
+      } else {
+        setUrl(null);
+      }
+    }
+
+    void load();
+
     return () => {
       alive = false;
+
+      if (timer) {
+        clearTimeout(timer);
+      }
     };
   }, [key]);
 
   return url;
 }
 
-export function prefetchFileUrls(keys: (string | null | undefined)[]) {
-  keys.filter((k): k is string => !!k).forEach((k) => void resolveKey(k));
+export function prefetchFileUrls(
+  keys: (string | null | undefined)[],
+) {
+  keys
+    .filter((key): key is string => Boolean(key))
+    .forEach((key) => {
+      void resolveKey(key);
+    });
 }
