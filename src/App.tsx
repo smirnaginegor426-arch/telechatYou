@@ -22,6 +22,10 @@ import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import Maintenance from "@/pages/Maintenance";
 
+// true — технические работы для обычных пользователей.
+// Администраторы смогут пользоваться мессенджером.
+const MAINTENANCE_MODE = true;
+
 function Splash() {
   return (
     <div className="h-full flex flex-col items-center justify-center gap-6">
@@ -92,10 +96,7 @@ function AuthedApp() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
-
-            {/* Admin panel */}
             <Route path="/admin" element={<Admin />} />
-
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
             <Route path="*" element={<NotFound />} />
@@ -132,23 +133,35 @@ function Gate() {
   return <AuthedApp />;
 }
 
-const MAINTENANCE_MODE = true;
-
 export default function App() {
   const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  const maintenanceUser = trpc.profile.me.useQuery(undefined, {
+    enabled: isAuthenticated,
+    retry: false,
+    staleTime: 30_000,
+  });
 
   if (MAINTENANCE_MODE) {
-    return <Maintenance />;
+    if (isLoading || (isAuthenticated && maintenanceUser.isLoading)) {
+      return <Splash />;
+    }
+
+    if (
+      !isAuthenticated ||
+      maintenanceUser.data?.user.role !== "admin"
+    ) {
+      return <Maintenance />;
+    }
   }
 
   return (
-
-  
     <div className="tcy-app-shell">
       <div className="tcy-aurora" />
 
       <div className="relative z-10 h-full">
-        {location.pathname === "/login" ? (
+        {location.pathname === "/login" && !isAuthenticated ? (
           <Routes>
             <Route path="/login" element={<Login />} />
           </Routes>
