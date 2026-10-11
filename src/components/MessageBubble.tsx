@@ -165,7 +165,7 @@ style={
                 style={{ background: own ? "var(--tcy-on-accent)" : "var(--tcy-accent)" }}
               />
               <span className="min-w-0">
-                <className="block mb-1 p-0 border-0 bg-transparent appearance-none">
+               <span className="block mb-1">
                   {m.replyTo.sender?.displayName ?? "Сообщение"}
                 </span>
                 <span className="block text-[12.5px] opacity-75 truncate max-w-[200px]">
