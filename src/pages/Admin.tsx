@@ -36,6 +36,9 @@ export default function Admin() {
       <div className="flex h-full flex-col items-center justify-center gap-4 p-6">
         <h1 className="text-2xl font-bold">Доступ запрещён</h1>
         <p>У этого аккаунта нет прав администратора.</p>
+<p>Username: {me.data.user.username}</p>
+<p>ID аккаунта: {me.data.user.id}</p>
+<p>Роль, которую видит сайт: {me.data.user.role}</p>
         <button
           onClick={() => navigate("/")}
           className="rounded-xl px-5 py-3 tcy-accent-bg"
