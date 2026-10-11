@@ -133,7 +133,7 @@ export function useFileUrl(
 
   if (detail?.key !== key) return;
 
-  setUrl(null);
+  // Не убираем текущий URL, пока получаем новый.
   void load(true);
 }
 
