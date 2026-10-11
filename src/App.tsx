@@ -20,6 +20,7 @@ import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
+import Maintenance from "@/pages/Maintenance";
 
 function Splash() {
   return (
