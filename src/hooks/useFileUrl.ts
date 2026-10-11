@@ -4,8 +4,14 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import type { AppRouter } from "../../api/router";
 
-// Временные ссылки обновляются заранее, пока они ещё действительны.
-const REFRESH_AFTER_MS = 6 * 60 * 1000;
+const REFRESH_AFTER_MS = 4 * 60 * 1000;
+const RETRY_AFTER_MS = 30 * 1000;
+const REFRESH_EVENT = "tcy:refresh-file-url";
+
+type CachedUrl = {
+  url: string;
+  createdAt: number;
+};
 
 const vanilla = createTRPCClient<AppRouter>({
   links: [
@@ -21,11 +27,6 @@ const vanilla = createTRPCClient<AppRouter>({
     }),
   ],
 });
-
-type CachedUrl = {
-  url: string;
-  createdAt: number;
-};
 
 const cache = new Map<string, CachedUrl>();
 const pending = new Map<string, Promise<string | null>>();
@@ -72,13 +73,24 @@ async function resolveKey(
   return promise;
 }
 
+export function refreshFileUrl(
+  key: string | null | undefined,
+): void {
+  if (!key || typeof window === "undefined") return;
+
+  window.dispatchEvent(
+    new CustomEvent(REFRESH_EVENT, {
+      detail: { key },
+    }),
+  );
+}
+
 export function useFileUrl(
   key: string | null | undefined,
 ): string | null {
-  const [url, setUrl] = useState<string | null>(() => {
-    if (!key) return null;
-    return cache.get(key)?.url ?? null;
-  });
+  const [url, setUrl] = useState<string | null>(
+    () => (key ? cache.get(key)?.url ?? null : null),
+  );
 
   useEffect(() => {
     if (!key) {
@@ -89,6 +101,16 @@ export function useFileUrl(
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
 
+    setUrl(cache.get(key)?.url ?? null);
+
+    function schedule(delay: number) {
+      if (timer) clearTimeout(timer);
+
+      timer = setTimeout(() => {
+        void load(true);
+      }, delay);
+    }
+
     async function load(forceRefresh = false) {
       const nextUrl = await resolveKey(key!, forceRefresh);
 
@@ -96,24 +118,33 @@ export function useFileUrl(
 
       if (nextUrl) {
         setUrl(nextUrl);
-
-        // Обновляем URL заранее, не дожидаясь ошибки загрузки.
-        timer = setTimeout(() => {
-          void load(true);
-        }, REFRESH_AFTER_MS);
+        schedule(REFRESH_AFTER_MS);
       } else {
-        setUrl(null);
+        // При временной ошибке не стираем старую ссылку.
+        // Повторяем попытку через 30 секунд.
+        schedule(RETRY_AFTER_MS);
       }
     }
 
+    function onRefresh(event: Event) {
+      const detail = (
+        event as CustomEvent<{ key: string }>
+      ).detail;
+
+      if (detail?.key !== key) return;
+
+      void load(true);
+    }
+
+    window.addEventListener(REFRESH_EVENT, onRefresh);
     void load();
 
     return () => {
       alive = false;
 
-      if (timer) {
-        clearTimeout(timer);
-      }
+      if (timer) clearTimeout(timer);
+
+      window.removeEventListener(REFRESH_EVENT, onRefresh);
     };
   }, [key]);
 
@@ -125,7 +156,5 @@ export function prefetchFileUrls(
 ) {
   keys
     .filter((key): key is string => Boolean(key))
-    .forEach((key) => {
-      void resolveKey(key);
-    });
+    .forEach((key) => void resolveKey(key));
 }
