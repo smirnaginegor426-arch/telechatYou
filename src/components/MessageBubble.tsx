@@ -99,6 +99,7 @@ export function MessageBubble({
   }
 
   const reactions = groupReactions(m.reactions, myId);
+  const isImage = m.kind === "image";
 
   return (
     <motion.div
@@ -113,23 +114,29 @@ export function MessageBubble({
           {showSender && <Avatar name={m.sender?.displayName ?? "?"} avatarKey={m.sender?.avatarKey} size={28} />}
         </div>
       )}
-      <div className={cn("max-w-[78%] flex flex-col", own ? "items-end" : "items-start")}>
-        <div
-          onContextMenu={(e) => {
-            e.preventDefault();
-            onLongPress(m);
-          }}
-          onDoubleClick={() => onReaction(m, "❤️")}
-          className={cn(
-            "relative px-3.5 py-2.5 select-none cursor-default",
-            own
-              ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
-              : "rounded-[22px] rounded-bl-[8px] border tcy-line",
-          )}
-          style={
-            own
-              ? { color: "var(--tcy-on-accent)" }
-              : { background: "var(--tcy-bubble-in)", color: "var(--tcy-text)" }
+      <div className={cn(
+  "relative select-none cursor-default",
+  isImage
+    ? "p-0 border-0 bg-transparent shadow-none"
+    : "px-3.5 py-2.5",
+  !isImage &&
+    (own
+      ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
+      : "rounded-[22px] rounded-bl-[8px] border tcy-line"),
+)}
+style={
+  isImage
+    ? {
+        background: "transparent",
+        color: "var(--tcy-text)",
+      }
+    : own
+      ? { color: "var(--tcy-on-accent)" }
+      : {
+          background: "var(--tcy-bubble-in)",
+          color: "var(--tcy-text)",
+        }
+}
           }
         >
           {isGroup && !own && showSender && (
@@ -158,7 +165,7 @@ export function MessageBubble({
                 style={{ background: own ? "var(--tcy-on-accent)" : "var(--tcy-accent)" }}
               />
               <span className="min-w-0">
-                <span className="block text-[12px] font-bold opacity-90">
+                <className="block mb-1 p-0 border-0 bg-transparent appearance-none">
                   {m.replyTo.sender?.displayName ?? "Сообщение"}
                 </span>
                 <span className="block text-[12.5px] opacity-75 truncate max-w-[200px]">
