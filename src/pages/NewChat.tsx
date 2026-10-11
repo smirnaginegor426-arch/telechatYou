@@ -114,7 +114,12 @@ export default function NewChat() {
       </div>
 
       {/* footer actions */}
-     <div className="relative z-10 px-5 pb-24 safe-bottom space-y-3">
+     <div
+  className="relative z-10 shrink-0 px-5 space-y-3"
+  style={{
+    paddingBottom: "calc(120px + env(safe-area-inset-bottom))",
+  }}
+>
         {selected.length === 1 && (
           <TcButton
             size="lg"
