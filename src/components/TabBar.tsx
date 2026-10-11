@@ -26,13 +26,13 @@ export function TabBar({
   // и на странице сведений о чате.
   // Маршрут /new для создания группы остаётся доступным.
   const isChatScreen = /^\/chat\/\d+(?:\/info)?\/?$/.test(
-    location.pathname,
-  );
+  location.pathname,
+);
 
-  const hidden =
-    isChatScreen || location.pathname.startsWith("/setup");
+const hidden =
+  isChatScreen || location.pathname.startsWith("/setup");
 
-  if (hidden) return null;
+if (hidden) return null;
 
   return (
     <nav className="absolute bottom-0 left-0 right-0 z-30 safe-bottom">
