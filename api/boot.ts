@@ -7,6 +7,7 @@ import { createContext } from "./context";
 import { env } from "./lib/env";
 import { storage, StorageError } from "./lib/storage";
 import { getSessionToken, getSessionUser } from "./lib/session";
+import { ensureCommunitySchema } from "./lib/community-schema";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -65,6 +66,7 @@ app.get("/api/files/*", async (c) => {
 app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 if (env.isProduction) {
+  await ensureCommunitySchema();
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);
