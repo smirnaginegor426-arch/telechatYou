@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Camera, Check, Users } from "lucide-react";
+import { ArrowLeft, Camera, Check, Radio, Users } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
 import { TcButton } from "@/components/TcButton";
@@ -64,6 +64,13 @@ export default function NewChat() {
           <ArrowLeft size={19} />
         </button>
         <h1 className="text-[19px] font-extrabold tcy-text flex-1">Новый чат</h1>
+        <button
+          type="button"
+          onClick={() => navigate("/channels")}
+          className="tcy-press h-10 px-3 rounded-full tcy-card border tcy-line text-[12px] font-bold tcy-accent flex items-center gap-1.5"
+        >
+          <Radio size={15} /> Каналы
+        </button>
         {selected.length > 1 && (
           <span className="text-[12.5px] font-bold tcy-accent">{selected.length} выбрано</span>
         )}
