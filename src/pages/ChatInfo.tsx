@@ -363,7 +363,10 @@ export default function ChatInfo() {
 
           <button
             type="button"
-            onClick={() => wallpaperFileRef.current?.click()}
+            onClick={() => {
+              if (wallpaperImage) selectWallpaper("custom");
+              else wallpaperFileRef.current?.click();
+            }}
             aria-pressed={wallpaper === "custom"}
             className="min-w-0 text-left tcy-press"
           >
