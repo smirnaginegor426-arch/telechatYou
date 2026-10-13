@@ -18,8 +18,8 @@ function isStandaloneEmoji(text: string) {
   const value = text.trim();
   return value.length > 0
     && value.length <= 32
-    && !/\\s/u.test(value)
-    && /\\p{Extended_Pictographic}/u.test(value)
+    && !/\s/u.test(value)
+    && /\p{Extended_Pictographic}/u.test(value)
     && !/[A-Za-z0-9]/.test(value);
 }
 
@@ -184,13 +184,13 @@ export function MessageBubble({
           className={cn(
             "relative select-none cursor-default",
             isImage || isPoll || isStickerMessage ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
-            !isImage && !isPoll &&
+            !isImage && !isPoll && !isStickerMessage
               (own
                 ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
                 : "rounded-[22px] rounded-bl-[8px] border tcy-line"),
           )}
           style={
-            isImage || isPoll
+            isImage || isPoll || isStickerMessage
               ? {
                   background: "transparent",
                   color: "var(--tcy-text)",
@@ -337,7 +337,7 @@ export function MessageBubble({
               "justify-end",
             )}
             style={{
-              color: isImage
+              color: isImage || isStickerMessage
                 ? "var(--tcy-faint)"
                 : own
                   ? "color-mix(in srgb, var(--tcy-on-accent) 62%, transparent)"
