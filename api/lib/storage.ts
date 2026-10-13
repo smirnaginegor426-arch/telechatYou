@@ -67,8 +67,10 @@ function cloudinarySignature(params: Record<string, string>): string {
 
 function cloudinaryPrivateDownloadUrl(key: string): string {
   const timestamp = Math.floor(Date.now() / 1000);
+  const format = path.posix.extname(key).slice(1) || "bin";
   const signedParams = {
     expires_at: String(timestamp + 60),
+    format,
     public_id: key,
     timestamp: String(timestamp),
     type: "authenticated",
@@ -156,7 +158,7 @@ function randomKey(fileName: string) {
   const base = path.posix.basename(normalized);
   const ext = path.posix.extname(base);
   const stem = ext ? base.slice(0, -ext.length) : base;
-  const unique = `${stem}-${randomBytes(6).toString("hex")}${ext}`;
+  const unique = `${stem}-${randomBytes(6).toString("hex")}${ext || ".bin"}`;
   return dir === "." ? unique : `${dir}/${unique}`;
 }
 
