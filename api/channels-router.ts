@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, like } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { channels, chatMembers, chats, messages } from "@db/schema";
+import { channels, chatMembers, chats } from "@db/schema";
 import { getChatMembers, getMembership } from "./queries/telechat";
 
 const channelUsername = z.string().trim().toLowerCase().min(3).max(32).regex(
@@ -100,13 +100,6 @@ export const channelsRouter = createRouter({
         }
         throw error;
       }
-
-      await getDb().insert(messages).values({
-        chatId,
-        senderId: ctx.user.id,
-        kind: "system",
-        body: `Канал «${input.title}» создан`,
-      });
 
       return { chatId, username };
     }),

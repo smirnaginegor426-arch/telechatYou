@@ -189,19 +189,74 @@ export const chatsRouter = createRouter({
         await getDb()
           .insert(chatMembers)
           .values(fresh.map((u) => ({ chatId: input.chatId, userId: u, role: "member" as const })));
-        const profs = await getProfilesByIds(fresh);
-        const meProfile = (await getProfilesByIds([ctx.user.id]))[0];
-        await getDb().insert(messages).values({
-          chatId: input.chatId,
-          senderId: ctx.user.id,
-          kind: "system",
-          body: `${meProfile?.displayName ?? "Пользователь"} добавил(а): ${profs
-            .map((p) => p.displayName)
-            .join(", ")}`,
-        });
+        if (!channel) {
+          const profs = await getProfilesByIds(fresh);
+          const meProfile = (await getProfilesByIds([ctx.user.id]))[0];
+          await getDb().insert(messages).values({
+            chatId: input.chatId,
+            senderId: ctx.user.id,
+            kind: "system",
+            body: `${meProfile?.displayName ?? "Пользователь"} добавил(а): ${profs
+              .map((p) => p.displayName)
+              .join(", ")}`,
+          });
+        }
         await touchChat(input.chatId);
       }
       return { added: fresh.length };
+    }),
+
+  setChannelAdmin: authedQuery
+    .input(z.object({ chatId: z.number(), userId: z.number(), isAdmin: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const channel = await getDb().query.channels.findFirst({
+        where: eq(channels.chatId, input.chatId),
+      });
+      if (!channel) throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
+      const actor = await getMembership(input.chatId, ctx.user.id);
+      if (!actor || actor.role !== "owner") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Только владелец канала может менять администраторов" });
+      }
+      if (input.userId === ctx.user.id) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Нельзя менять собственную роль владельца" });
+      }
+      const target = await getMembership(input.chatId, input.userId);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Подписчик не найден" });
+      if (target.role === "owner") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Нельзя менять роль владельца канала" });
+      }
+      await getDb()
+        .update(chatMembers)
+        .set({ role: input.isAdmin ? "admin" : "member" })
+        .where(and(eq(chatMembers.chatId, input.chatId), eq(chatMembers.userId, input.userId)));
+      await touchChat(input.chatId);
+      return { ok: true };
+    }),
+
+  removeChannelMember: authedQuery
+    .input(z.object({ chatId: z.number(), userId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const channel = await getDb().query.channels.findFirst({
+        where: eq(channels.chatId, input.chatId),
+      });
+      if (!channel) throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
+      const actor = await getMembership(input.chatId, ctx.user.id);
+      if (!actor || (actor.role !== "owner" && actor.role !== "admin")) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Недостаточно прав для удаления подписчика" });
+      }
+      if (input.userId === ctx.user.id) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Нельзя удалить самого себя этой командой" });
+      }
+      const target = await getMembership(input.chatId, input.userId);
+      if (!target) throw new TRPCError({ code: "NOT_FOUND", message: "Подписчик не найден" });
+      if (target.role === "owner" || (actor.role === "admin" && target.role === "admin")) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Нельзя удалить владельца или администратора с такими же правами" });
+      }
+      await getDb()
+        .delete(chatMembers)
+        .where(and(eq(chatMembers.chatId, input.chatId), eq(chatMembers.userId, input.userId)));
+      await touchChat(input.chatId);
+      return { ok: true };
     }),
 
   setFlags: authedQuery

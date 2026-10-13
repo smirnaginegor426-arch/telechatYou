@@ -256,6 +256,7 @@ export default function ChatView() {
         : peer
           ? formatLastSeen(peer.lastSeenAt)
           : "";
+  const visibleMessages = isChannel ? messages.filter((message) => message.kind !== "system") : messages;
 
   const submitPoll = () => {
     setPollError("");
@@ -384,20 +385,19 @@ export default function ChatView() {
                 </div>
               ))}
             </div>
-          ) : messages.length === 0 ? (
+          ) : visibleMessages.length === 0 ? (
             <EmptyState
               icon={<Reply size={32} />}
-              title="Начните разговор"
-              hint="Напишите первое сообщение — оно появится здесь."
+              title={isChannel ? "Пока нет публикаций" : "Начните разговор"}
+              hint={isChannel ? "Новые публикации появятся здесь." : "Напишите первое сообщение — оно появится здесь."}
             />
           ) : (
-            messages.map((m, i) => {
-              const prev = messages[i - 1];
-              const next = messages[i + 1];
+            visibleMessages.map((m, i) => {
+              const prev = visibleMessages[i - 1];
               const dayBreak = !prev || !sameDay(prev.createdAt, m.createdAt);
               const own = m.senderId === myId;
               const showSender =
-                isGroup && !own && (!next || next.senderId !== m.senderId || sameDay(next.createdAt, m.createdAt) === false);
+                isGroup && !own && (isChannel || !prev || prev.senderId !== m.senderId || sameDay(prev.createdAt, m.createdAt) === false);
               return (
                 <div key={m.id}>
                   {dayBreak && (
@@ -474,7 +474,7 @@ export default function ChatView() {
       ) : (
         <div className="px-4 pb-4 pt-2 safe-bottom">
           <div className="rounded-[18px] border tcy-line tcy-card px-4 py-3 text-center text-[12.5px] tcy-dim">
-            Публиковать сообщения и опросы могут только владелец и администраторы канала.
+            Нет доступа к публикации
           </div>
         </div>
       )}
