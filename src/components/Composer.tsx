@@ -330,6 +330,7 @@ export function Composer({
                   attachOpen && "rotate-45",
                 )}
                 style={{ background: "var(--tcy-card-strong)", color: "var(--tcy-dim)" }}
+                disabled={preparingImage}
                 aria-label="Прикрепить"
               >
                 <Plus size={21} />
