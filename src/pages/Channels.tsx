@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { AvatarEditor } from "@/components/AvatarEditor";
 import { TcButton } from "@/components/TcButton";
 import { fileToBase64 } from "@/lib/format";
 
@@ -26,6 +27,7 @@ export default function ChannelsPage() {
   const [isPublic, setIsPublic] = useState(true);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const [directoryQuery, setDirectoryQuery] = useState("");
   const [error, setError] = useState("");
 
@@ -121,10 +123,7 @@ export default function ChannelsPage() {
             className="hidden"
             onChange={(event) => {
               const file = event.target.files?.[0];
-              if (file) {
-                setAvatarFile(file);
-                setAvatarPreview(URL.createObjectURL(file));
-              }
+              if (file) setAvatarToEdit(file);
               event.currentTarget.value = "";
             }}
           />
@@ -281,6 +280,14 @@ export default function ChannelsPage() {
           )}
         </section>
       </div>
+      <AvatarEditor
+        file={avatarToEdit}
+        onCancel={() => setAvatarToEdit(null)}
+        onSave={(edited) => {
+          setAvatarFile(edited);
+          setAvatarPreview(URL.createObjectURL(edited));
+        }}
+      />
     </div>
   );
 }
