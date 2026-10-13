@@ -15,6 +15,7 @@ import {
   Pin,
   Shield,
   Trash2,
+  Upload,
   UserPlus,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
@@ -24,6 +25,61 @@ import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
 import { useFileUrl } from "@/hooks/useFileUrl";
 import { fileToBase64, formatFileSize, isOnline } from "@/lib/format";
+import {
+  CHAT_WALLPAPERS,
+  DEFAULT_CHAT_WALLPAPER,
+  chatWallpaperImageKey,
+  chatWallpaperKey,
+  isChatWallpaperId,
+} from "@/lib/chat-wallpapers";
+
+function readWallpaper(chatId: number) {
+  try {
+    const saved = localStorage.getItem(chatWallpaperKey(chatId));
+    return saved === "custom" || isChatWallpaperId(saved) ? saved : DEFAULT_CHAT_WALLPAPER;
+  } catch {
+    return DEFAULT_CHAT_WALLPAPER;
+  }
+}
+
+function readWallpaperImage(chatId: number) {
+  try {
+    return localStorage.getItem(chatWallpaperImageKey(chatId));
+  } catch {
+    return null;
+  }
+}
+
+function compressWallpaperImage(file: File): Promise<string> {
+  const objectUrl = URL.createObjectURL(file);
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      try {
+        const maxSide = 1600;
+        const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext("2d");
+        if (!context) throw new Error("Не удалось обработать изображение.");
+        context.fillStyle = "#050506";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.76));
+      } catch (error) {
+        reject(error);
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Не удалось открыть это изображение."));
+    };
+    image.src = objectUrl;
+  });
+}
 
 export default function ChatInfo() {
   const { id } = useParams<{ id: string }>();
@@ -38,7 +94,10 @@ export default function ChatInfo() {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [wallpaper, setWallpaper] = useState<string>(() => readWallpaper(chatId));
+  const [wallpaperImage, setWallpaperImage] = useState<string | null>(() => readWallpaperImage(chatId));
   const fileRef = useRef<HTMLInputElement>(null);
+  const wallpaperFileRef = useRef<HTMLInputElement>(null);
   const directory = trpc.profile.directory.useQuery(undefined, { enabled: addOpen });
 
   const invalidate = () => {
@@ -101,6 +160,50 @@ export default function ChatInfo() {
     updateGroup.mutate({ chatId, avatarKey: res.key });
   };
 
+  const selectWallpaper = (next: string) => {
+    try {
+      localStorage.setItem(chatWallpaperKey(chatId), next);
+      setWallpaper(next);
+    } catch {
+      alert("Не удалось сохранить обои в браузере. Освободите место в хранилище сайта и попробуйте ещё раз.");
+    }
+  };
+
+  const uploadWallpaper = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      alert("Выберите файл изображения.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alert("Изображение слишком большое. Максимальный размер исходного файла — 20 МБ.");
+      return;
+    }
+
+    try {
+      const dataUrl = await compressWallpaperImage(file);
+      localStorage.setItem(chatWallpaperImageKey(chatId), dataUrl);
+      localStorage.setItem(chatWallpaperKey(chatId), "custom");
+      setWallpaperImage(dataUrl);
+      setWallpaper("custom");
+    } catch (error) {
+      alert(
+        "Не удалось сохранить обои. Попробуйте другое изображение. " +
+          ((error as Error)?.message ?? ""),
+      );
+    }
+  };
+
+  const resetCustomWallpaper = () => {
+    try {
+      localStorage.removeItem(chatWallpaperImageKey(chatId));
+      localStorage.setItem(chatWallpaperKey(chatId), DEFAULT_CHAT_WALLPAPER);
+    } catch {
+      // The default black wallpaper can still be selected in memory.
+    }
+    setWallpaperImage(null);
+    setWallpaper(DEFAULT_CHAT_WALLPAPER);
+  };
+
   if (info.isLoading || !data) {
     return (
       <div className="h-full flex flex-col items-center pt-20 gap-4">
@@ -120,6 +223,17 @@ export default function ChatInfo() {
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) void changeGroupAvatar(f);
+        }}
+      />
+      <input
+        ref={wallpaperFileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void uploadWallpaper(f);
+          e.target.value = "";
         }}
       />
       <header className="relative z-10 px-4 pt-4 safe-top flex items-center justify-between">
@@ -208,6 +322,81 @@ export default function ChatInfo() {
           </span>
         </button>
       </div>
+
+      {/* chat wallpaper */}
+      <section className="mx-4 mt-6 rounded-[24px] tcy-card border tcy-line p-4">
+        <div className="flex items-center gap-3 mb-3.5">
+          <span className="w-9 h-9 rounded-[13px] flex items-center justify-center tcy-card-strong tcy-accent">
+            <ImageIcon size={17} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-[14.5px] font-bold tcy-text">Обои чата</h3>
+            <p className="text-[11.5px] tcy-faint mt-0.5">Меняются только для вас на этом устройстве</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          {CHAT_WALLPAPERS.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => selectWallpaper(item.id)}
+              aria-pressed={wallpaper === item.id}
+              className="min-w-0 text-left tcy-press"
+            >
+              <span
+                className={`tcy-wallpaper-preview tcy-wallpaper-bg--${item.id} relative flex h-[70px] w-full items-center justify-center rounded-[13px] border`}
+                style={{
+                  borderColor: wallpaper === item.id ? "var(--tcy-accent)" : "var(--tcy-line)",
+                  boxShadow: wallpaper === item.id ? "0 0 0 2px var(--tcy-accent)" : "none",
+                }}
+              >
+                {wallpaper === item.id && (
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,.68)", color: "#fff" }}>
+                    <Check size={14} strokeWidth={3} />
+                  </span>
+                )}
+              </span>
+              <span className="block mt-1.5 text-[11.5px] font-semibold tcy-text truncate">{item.name}</span>
+            </button>
+          ))}
+
+          <button
+            type="button"
+            onClick={() => wallpaperFileRef.current?.click()}
+            aria-pressed={wallpaper === "custom"}
+            className="min-w-0 text-left tcy-press"
+          >
+            <span
+              className="tcy-wallpaper-preview relative flex h-[70px] w-full items-center justify-center rounded-[13px] border overflow-hidden"
+              style={{
+                borderColor: wallpaper === "custom" ? "var(--tcy-accent)" : "var(--tcy-line)",
+                boxShadow: wallpaper === "custom" ? "0 0 0 2px var(--tcy-accent)" : "none",
+                backgroundImage: wallpaperImage
+                  ? `linear-gradient(rgba(0,0,0,.12),rgba(0,0,0,.32)),url("${wallpaperImage}")`
+                  : undefined,
+              }}
+            >
+              {!wallpaperImage && <Upload size={20} className="tcy-dim" />}
+              {wallpaper === "custom" && (
+                <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,.72)", color: "#fff" }}>
+                  <Check size={12} strokeWidth={3} />
+                </span>
+              )}
+            </span>
+            <span className="block mt-1.5 text-[11.5px] font-semibold tcy-text truncate">Свои обои</span>
+          </button>
+        </div>
+        {wallpaper === "custom" && wallpaperImage && (
+          <button
+            type="button"
+            onClick={resetCustomWallpaper}
+            className="mt-3 text-[12px] font-bold tcy-dim underline underline-offset-4"
+          >
+            Сбросить свои обои
+          </button>
+        )}
+      </section>
 
       {/* members */}
       {isGroup && (
