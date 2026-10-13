@@ -16,6 +16,7 @@ import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
+import SystemUpdate from "@/pages/SystemUpdate";
 import Admin from "@/pages/Admin";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
@@ -138,6 +139,7 @@ useEffect(() => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/system-update" element={<SystemUpdate />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
