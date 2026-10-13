@@ -17,7 +17,7 @@ import {
 } from "./lib/session";
 import { hashPassword, verifyPassword } from "./lib/passwords";
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
-import { recoveryCodes } from "@db/schema";
+import { recoveryCodes, recoverySecrets } from "@db/schema";
 import { getDb } from "./queries/connection";
 import { assertRateLimit, affectedRows } from "./lib/rate-limit";
 import {
@@ -27,6 +27,11 @@ import {
   recoveryKeyMatches,
   RECOVERY_KEY_RE,
 } from "./lib/recovery-key";
+import {
+  generateRecoverySecret,
+  hashRecoverySecret,
+  recoverySecretMatches,
+} from "./lib/recovery-secret";
 import { createUser, findUserByUsername, touchLastSignIn } from "./queries/users";
 
 const usernameSchema = z.string().trim().regex(/^[a-zA-Z0-9_]{3,32}$/, "Имя пользователя: 3–32 символа, латиница, цифры и _");
@@ -149,6 +154,73 @@ export const authRouter = createRouter({
       return { success: true };
     }),
 
+  /** Status visible only to the signed-in owner. The secret itself can never be read back. */
+  recoverySecretStatus: authedQuery.query(async ({ ctx }) => {
+    const records = await getDb()
+      .select({ id: recoverySecrets.id, updatedAt: recoverySecrets.updatedAt })
+      .from(recoverySecrets)
+      .where(eq(recoverySecrets.userId, ctx.user.id))
+      .limit(1);
+    return {
+      configured: records.length > 0,
+      updatedAt: records[0]?.updatedAt ?? null,
+    };
+  }),
+
+  /** Create a random, high-entropy private recovery secret, shown to the user exactly once. */
+  createRecoverySecret: authedQuery.mutation(async ({ ctx }) => {
+    const existing = await getDb()
+      .select({ id: recoverySecrets.id })
+      .from(recoverySecrets)
+      .where(eq(recoverySecrets.userId, ctx.user.id))
+      .limit(1);
+    if (existing.length > 0) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "Резервный секрет уже создан. Для замены подтверди текущий пароль.",
+      });
+    }
+
+    const secret = generateRecoverySecret();
+    await getDb().insert(recoverySecrets).values({
+      userId: ctx.user.id,
+      secretHash: hashRecoverySecret(secret),
+    });
+    return { secret };
+  }),
+
+  /** Rotate the private recovery secret only after confirming the current password. */
+  rotateRecoverySecret: authedQuery
+    .input(z.object({ currentPassword: z.string().min(1).max(128) }))
+    .mutation(async ({ ctx, input }) => {
+      const currentUser = await findUserByUsername(ctx.user.username);
+      if (!currentUser?.passwordHash || !(await verifyPassword(input.currentPassword, currentUser.passwordHash))) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Текущий пароль неверен. Резервный секрет не изменён.",
+        });
+      }
+
+      const existing = await getDb()
+        .select({ id: recoverySecrets.id })
+        .from(recoverySecrets)
+        .where(eq(recoverySecrets.userId, ctx.user.id))
+        .limit(1);
+      if (existing.length === 0) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Сначала создай резервный секрет.",
+        });
+      }
+
+      const secret = generateRecoverySecret();
+      await getDb()
+        .update(recoverySecrets)
+        .set({ secretHash: hashRecoverySecret(secret), updatedAt: new Date() })
+        .where(eq(recoverySecrets.userId, ctx.user.id));
+      return { secret };
+    }),
+
   /**
    * Issue a one-time sign-in key after checking the username and numeric account ID.
    * Only a hash is stored; the key expires after 15 minutes and older keys are invalidated.
@@ -157,6 +229,7 @@ export const authRouter = createRouter({
     .input(z.object({
       username: usernameSchema,
       accountId: recoveryAccountIdSchema,
+      recoverySecret: z.string().trim().min(1).max(100),
     }))
     .mutation(async ({ ctx, input }) => {
       const username = input.username.toLowerCase();
@@ -165,10 +238,18 @@ export const authRouter = createRouter({
       assertRateLimit(`recovery-request:user:${username}`, 3, RECOVERY_RATE_WINDOW_MS);
 
       const user = await findUserByUsername(username);
-      if (!user || user.id !== input.accountId) {
+      const storedSecret = user
+        ? await getDb().select().from(recoverySecrets)
+            .where(eq(recoverySecrets.userId, user.id))
+            .limit(1)
+        : [];
+      const isValidRecovery = !!user
+        && user.id === input.accountId
+        && recoverySecretMatches(input.recoverySecret, storedSecret[0]?.secretHash);
+      if (!isValidRecovery) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "Не удалось подтвердить аккаунт. Проверь username и ID.",
+          message: "Не удалось подтвердить аккаунт. Проверь username, ID и резервный секрет.",
         });
       }
 
