@@ -20,6 +20,18 @@ const s3Values = [s3Endpoint, s3Bucket, s3AccessKeyId, s3SecretAccessKey];
 const hasSomeS3Values = s3Values.some(Boolean);
 const hasAllS3Values = s3Values.every(Boolean);
 
+const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim() ?? "";
+const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY?.trim() ?? "";
+const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET?.trim() ?? "";
+const cloudinaryValues = [cloudinaryCloudName, cloudinaryApiKey, cloudinaryApiSecret];
+const hasSomeCloudinaryValues = cloudinaryValues.some(Boolean);
+const hasAllCloudinaryValues = cloudinaryValues.every(Boolean);
+
+if (hasSomeCloudinaryValues && !hasAllCloudinaryValues) {
+  throw new Error(
+    "Cloudinary storage is only partially configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET together.",
+  );
+}
 if (hasSomeS3Values && !hasAllS3Values) {
   throw new Error(
     "Persistent object storage is only partially configured. Set S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY together.",
@@ -43,4 +55,9 @@ export const env = {
   s3AccessKeyId,
   s3SecretAccessKey,
   s3Region,
+  // Optional Cloudinary media storage. Uploads are stored as authenticated raw assets.
+  cloudinaryEnabled: hasAllCloudinaryValues,
+  cloudinaryCloudName,
+  cloudinaryApiKey,
+  cloudinaryApiSecret,
 };
