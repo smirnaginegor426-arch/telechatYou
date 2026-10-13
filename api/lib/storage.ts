@@ -36,8 +36,6 @@ const s3 = env.s3Enabled
   ? new S3Client({
       region: env.s3Region,
       endpoint: env.s3Endpoint,
-      // Cloudflare R2 and many S3-compatible services support path-style requests.
-      forcePathStyle: true,
       maxAttempts: 3,
       credentials: {
         accessKeyId: env.s3AccessKeyId,
