@@ -95,7 +95,7 @@ export const channels = mysqlTable(
   {
     id: serial("id").primaryKey(),
     chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull().unique(),
-    ownerId: userId(),
+    ownerId: bigint("ownerId", { mode: "number", unsigned: true }).notNull(),
     username: varchar("username", { length: 32 }).unique(),
     description: varchar("description", { length: 280 }).default("").notNull(),
     isPublic: boolean("isPublic").default(false).notNull(),
@@ -169,7 +169,7 @@ export const polls = mysqlTable(
     id: serial("id").primaryKey(),
     messageId: bigint("messageId", { mode: "number", unsigned: true }).notNull().unique(),
     chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull(),
-    creatorId: userId(),
+    creatorId: bigint("creatorId", { mode: "number", unsigned: true }).notNull(),
     question: varchar("question", { length: 500 }).notNull(),
     allowMultiple: boolean("allowMultiple").default(false).notNull(),
     closedAt: timestamp("closedAt"),
