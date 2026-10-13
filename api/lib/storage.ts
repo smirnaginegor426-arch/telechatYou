@@ -73,6 +73,7 @@ function cloudinaryPrivateDownloadUrl(key: string): string {
     format,
     public_id: key,
     timestamp: String(timestamp),
+    type: "authenticated",
   };
   const query = new URLSearchParams({
     ...signedParams,
