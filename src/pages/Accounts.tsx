@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Check, LogIn, Plus, ShieldCheck, Trash2, UsersRound } from "lucide-react";
+import { ArrowLeft, Check, Plus, ShieldCheck, Trash2, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { TcButton } from "@/components/TcButton";
 import { trpc } from "@/providers/trpc";
