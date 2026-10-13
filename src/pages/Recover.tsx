@@ -62,7 +62,6 @@ export default function Recover() {
     (account) => account.username.toLowerCase() === normalizedUsername,
   );
   const slotId = existingAccount?.slotId ?? newSlotId;
-  const pending = requestKey.isPending || loginWithKey.isPending;
 
   const validateAccount = () => {
     if (!/^[a-zA-Z0-9_]{3,32}$/.test(normalizedUsername)) {
