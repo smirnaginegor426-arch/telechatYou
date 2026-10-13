@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { EMOJI_GROUPS } from "@/lib/emoji";
+import { AppleEmoji } from "./AppleEmoji";
 
 export function EmojiPicker({ onPick }: { onPick: (emoji: string) => void }) {
   const [group, setGroup] = useState(0);
@@ -27,7 +28,7 @@ export function EmojiPicker({ onPick }: { onPick: (emoji: string) => void }) {
             onClick={() => onPick(e)}
             className="tcy-press text-[24px] h-10 flex items-center justify-center rounded-xl hover:bg-[color:var(--tcy-card)]"
           >
-            {e}
+            <AppleEmoji emoji={e} size={26} />
           </button>
         ))}
       </div>
