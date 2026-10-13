@@ -200,6 +200,9 @@ export const messagesRouter = createRouter({
         throw new TRPCError({ code: "FORBIDDEN" });
       if (msg.kind !== "text")
         throw new TRPCError({ code: "BAD_REQUEST", message: "Можно редактировать только текст" });
+      const poll = await getDb().query.polls.findFirst({ where: eq(polls.messageId, msg.id) });
+      if (poll)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Нельзя редактировать вопрос опубликованного опроса" });
       await getDb()
         .update(messages)
         .set({ body: input.body.trim(), editedAt: new Date() })
