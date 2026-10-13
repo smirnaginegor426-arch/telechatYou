@@ -18,6 +18,7 @@ export default function Recover() {
   const [newSlotId] = useState(() => createAccountSlotId());
   const [username, setUsername] = useState("");
   const [accountId, setAccountId] = useState("");
+  const [recoverySecret, setRecoverySecret] = useState("");
   const [key, setKey] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [error, setError] = useState("");
@@ -86,7 +87,11 @@ export default function Recover() {
     if (!validateAccount()) return;
     setKey("");
     setExpiresAt("");
-    requestKey.mutate({ username: normalizedUsername, accountId: parsedAccountId });
+    requestKey.mutate({
+      username: normalizedUsername,
+      accountId: parsedAccountId,
+      recoverySecret: recoverySecret.trim(),
+    });
   };
 
   const handleLogin = (event: FormEvent<HTMLFormElement>) => {
@@ -130,7 +135,7 @@ export default function Recover() {
             <Logo size={58} />
             <CardTitle className="text-2xl tcy-text">Восстановление входа</CardTitle>
             <p className="text-sm tcy-dim">
-              Укажи username и ID аккаунта, чтобы получить одноразовый ключ.
+              Укажи username, ID аккаунта и личный резервный секрет, который ты заранее сохранил в настройках.
             </p>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -166,6 +171,25 @@ export default function Recover() {
                     onChange={(e) => setAccountId(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
                     required
                     placeholder="Например, 123"
+                  />
+                </div>
+              </label>
+              <label className="block space-y-1.5">
+                <span className="text-sm font-medium tcy-text">Личный резервный секрет</span>
+                <div className="relative block">
+                  <LockKeyhole size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
+                  <TcInput
+                    type="password"
+                    className="pl-11 font-mono tracking-wide"
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    value={recoverySecret}
+                    onChange={(e) => setRecoverySecret(e.target.value)}
+                    maxLength={100}
+                    required
+                    placeholder="Секрет, сохранённый в настройках"
                   />
                 </div>
               </label>
@@ -216,7 +240,7 @@ export default function Recover() {
 
             <p className="text-xs leading-relaxed tcy-faint text-center">
               Ключ действует 15 минут, хранится на сервере только в виде хеша и после входа становится недействительным.
-              Не передавай его другим людям.
+              Резервный секрет обязателен. Если ты его ещё не создал, восстановление пока недоступно. Не передавай ключ другим людям.
             </p>
           </CardContent>
         </Card>
