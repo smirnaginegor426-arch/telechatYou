@@ -5,7 +5,7 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "./router";
 import { createContext } from "./context";
 import { env } from "./lib/env";
-import { storage } from "./lib/storage";
+import { storage, StorageError } from "./lib/storage";
 import { getSessionToken, getSessionUser } from "./lib/session";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
@@ -47,8 +47,20 @@ app.get("/api/files/*", async (c) => {
     }
     return new Response(body, { status: 200, headers });
   } catch (error) {
+    if (error instanceof StorageError && error.code === "STORAGE_OBJECT_NOT_FOUND") {
+      return c.json({ error: "File not found" }, 404);
+    }
+    if (error instanceof StorageError && error.code === "STORAGE_INVALID_INPUT") {
+      return c.json({ error: "Invalid file key" }, 400);
+    }
+
+    // Distinguish a temporary storage/network failure from a file that is truly gone.
     if (env.isProduction) console.warn("File request failed", error instanceof Error ? error.message : String(error));
-    return c.json({ error: "File not found" }, 404);
+    return c.json(
+      { error: "File storage is temporarily unavailable" },
+      503,
+      { headers: { "Cache-Control": "no-store", "Retry-After": "5" } },
+    );
   }
 });
 
