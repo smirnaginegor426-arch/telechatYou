@@ -8,6 +8,7 @@ import { env } from "./lib/env";
 import { storage, StorageError } from "./lib/storage";
 import { getSessionToken, getSessionUser } from "./lib/session";
 import { ensureCommunitySchema } from "./lib/community-schema";
+import { ensureRecoverySecretSchema } from "./lib/recovery-secret-schema";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -67,6 +68,7 @@ app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 if (env.isProduction) {
   await ensureCommunitySchema();
+  await ensureRecoverySecretSchema();
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);
