@@ -226,7 +226,7 @@ export default function ChannelsPage() {
         <section className="space-y-3">
           <div>
             <h2 className="text-[16px] font-extrabold tcy-text">Публичные каналы</h2>
-            <p className="text-[12px] tcy-dim mt-1">Подпишитесь, чтобы канал появился в списке чатов.</p>
+            <p className="text-[12px] tcy-dim mt-1">Подпишитесь, чтобы канал появился в списке каналов.</p>
           </div>
           <div className="flex items-center gap-2.5 h-11 rounded-[16px] tcy-card border tcy-line px-3.5">
             <Search size={16} className="tcy-faint shrink-0" />

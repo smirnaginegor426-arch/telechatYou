@@ -4,13 +4,10 @@ export const ACCENTS = [
 
 export type AccentId = (typeof ACCENTS)[number]["id"];
 
-/**
- * TeleChatYou uses a fixed monochrome black theme.
- * Older saved theme/accent preferences are intentionally ignored.
- */
-export function applyTheme(_theme: "dark" | "light", _accent: string) {
-  document.documentElement.dataset.theme = "dark";
+/** Apply a user's selected theme while keeping the app's monochrome accent. */
+export function applyTheme(theme: "dark" | "light", _accent: string) {
+  document.documentElement.dataset.theme = theme;
   document.documentElement.dataset.accent = "mono";
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", "#050506");
+  if (meta) meta.setAttribute("content", theme === "light" ? "#f5f5f7" : "#050506");
 }

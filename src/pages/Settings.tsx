@@ -9,6 +9,7 @@ import {
   Info,
   Keyboard,
   Moon,
+  Sun,
   ShieldCheck,
   Trash2,
   UserRound,
@@ -20,9 +21,11 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { SettingsGroup, SettingsRow, Toggle } from "@/components/SettingsRow";
 import { TcButton } from "@/components/TcButton";
 import { formatFileSize } from "@/lib/format";
+import { useTheme } from "@/hooks/useTheme";
 
 export default function Settings() {
   const utils = trpc.useUtils();
+  const { theme, setTheme } = useTheme();
   const me = trpc.profile.me.useQuery();
   const settingsQuery = trpc.settings.get.useQuery();
   const myFiles = trpc.storage.mine.useQuery();
@@ -70,13 +73,27 @@ export default function Settings() {
 
       <SettingsGroup title="Внешний вид">
         <SettingsRow
-          icon={<Moon size={17} />}
+          icon={theme === "dark" ? <Moon size={17} /> : <Sun size={17} />}
           title="Тема"
-          subtitle="Чёрная · графитовые элементы"
+          subtitle={theme === "dark" ? "Тёмная тема" : "Светлая тема"}
           right={
-            <span className="px-3 py-1.5 rounded-full tcy-card-strong text-[11.5px] font-bold tcy-text">
-              Включена
-            </span>
+            <div className="flex items-center gap-1 rounded-full tcy-card-strong p-1">
+              {(["dark", "light"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={theme === value}
+                  onClick={() => setTheme(value)}
+                  className="px-3 py-1.5 rounded-full text-[11.5px] font-bold transition-colors"
+                  style={{
+                    background: theme === value ? "var(--tcy-accent)" : "transparent",
+                    color: theme === value ? "var(--tcy-on-accent)" : "var(--tcy-dim)",
+                  }}
+                >
+                  {value === "dark" ? "Тёмная" : "Светлая"}
+                </button>
+              ))}
+            </div>
           }
         />
       </SettingsGroup>

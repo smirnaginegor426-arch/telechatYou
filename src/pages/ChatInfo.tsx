@@ -124,6 +124,14 @@ export default function ChatInfo() {
       setAddOpen(false);
     },
   });
+  const setChannelAdmin = trpc.chats.setChannelAdmin.useMutation({
+    onSuccess: invalidate,
+    onError: (error) => alert(error.message),
+  });
+  const removeChannelMember = trpc.chats.removeChannelMember.useMutation({
+    onSuccess: invalidate,
+    onError: (error) => alert(error.message),
+  });
   const upload = trpc.storage.upload.useMutation();
 
   const data = info.data;
@@ -131,9 +139,10 @@ export default function ChatInfo() {
   const channel = data?.channel;
   const isGroup = chat?.type === "group";
   const peer = data?.peer;
-  const name = isGroup ? chat?.title ?? "Группа" : peer?.displayName ?? "…";
+  const name = isGroup ? chat?.title ?? (channel ? "Канал" : "Группа") : peer?.displayName ?? "…";
   const myRole = data?.me.role;
   const canEdit = isGroup && (myRole === "owner" || myRole === "admin");
+  const canManageChannel = !!channel && myRole === "owner";
 
   // shared media/files: load recent messages and pick attachments
   const recentMedia = trpc.messages.list.useQuery({ chatId });
@@ -320,7 +329,7 @@ export default function ChatInfo() {
         >
           <Pin size={17} className="tcy-accent" />
           <span className="text-[14px] font-semibold tcy-text flex-1 text-left">
-            {data.me.pinned ? "Открепить чат" : "Закрепить чат"}
+            {data.me.pinned ? (channel ? "Открепить канал" : "Открепить чат") : (channel ? "Закрепить канал" : "Закрепить чат")}
           </span>
         </button>
         <button
@@ -350,7 +359,7 @@ export default function ChatInfo() {
             <ImageIcon size={17} />
           </span>
           <div className="min-w-0 flex-1">
-            <h3 className="text-[14.5px] font-bold tcy-text">Обои чата</h3>
+            <h3 className="text-[14.5px] font-bold tcy-text">{channel ? "Обои канала" : "Обои чата"}</h3>
             <p className="text-[11.5px] tcy-faint mt-0.5">Меняются только для вас на этом устройстве</p>
           </div>
         </div>
@@ -426,41 +435,76 @@ export default function ChatInfo() {
         <div className="mt-6">
           <div className="px-5 pb-2 flex items-center justify-between">
             <h4 className="text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
-              Участники
+              {channel ? "Подписчики" : "Участники"}
             </h4>
             {canEdit && (
               <button
                 onClick={() => setAddOpen(true)}
                 className="tcy-press flex items-center gap-1.5 text-[12.5px] font-bold tcy-accent"
               >
-                <UserPlus size={14} /> Добавить
+                <UserPlus size={14} /> {channel ? "Пригласить" : "Добавить"}
               </button>
             )}
           </div>
           <div className="mx-4 rounded-[24px] tcy-card border tcy-line divide-y divide-[color:var(--tcy-line)]">
             {data.members.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => m.userId !== myId && navigate(`/user/${m.userId}`)}
-                className="w-full flex items-center gap-3 px-3.5 py-2.5 text-left tcy-press"
-              >
-                <Avatar
-                  name={m.profile?.displayName ?? "?"}
-                  avatarKey={m.profile?.avatarKey}
-                  size={40}
-                  lastSeenAt={m.profile?.lastSeenAt}
-                  showOnline
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[14px] font-semibold tcy-text truncate">
-                    {m.profile?.displayName ?? "Участник"}
-                    {m.userId === myId && <span className="tcy-faint"> (вы)</span>}
+              <div key={m.id} className="flex items-center gap-2 px-3.5 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => m.userId !== myId && navigate(`/user/${m.userId}`)}
+                  className="flex flex-1 min-w-0 items-center gap-3 text-left tcy-press"
+                >
+                  <Avatar
+                    name={m.profile?.displayName ?? "?"}
+                    avatarKey={m.profile?.avatarKey}
+                    size={40}
+                    lastSeenAt={m.profile?.lastSeenAt}
+                    showOnline
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[14px] font-semibold tcy-text truncate">
+                      {m.profile?.displayName ?? (channel ? "Подписчик" : "Участник")}
+                      {m.userId === myId && <span className="tcy-faint"> (вы)</span>}
+                    </div>
+                    <div className="text-[11.5px] tcy-faint">@{m.profile?.username}</div>
                   </div>
-                  <div className="text-[11.5px] tcy-faint">@{m.profile?.username}</div>
-                </div>
+                </button>
                 {m.role === "owner" && <Crown size={15} style={{ color: "var(--tcy-accent)" }} />}
                 {m.role === "admin" && <Shield size={15} className="tcy-dim" />}
-              </button>
+                {canManageChannel && m.userId !== myId && m.role !== "owner" && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={setChannelAdmin.isPending}
+                      title={m.role === "admin" ? "Снять права администратора" : "Назначить администратором"}
+                      aria-label={m.role === "admin" ? "Снять права администратора" : "Назначить администратором"}
+                      onClick={() => setChannelAdmin.mutate({
+                        chatId,
+                        userId: m.userId,
+                        isAdmin: m.role !== "admin",
+                      })}
+                      className="tcy-press w-9 h-9 rounded-full tcy-card flex items-center justify-center tcy-accent disabled:opacity-40"
+                    >
+                      <Shield size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={removeChannelMember.isPending}
+                      title="Удалить подписчика"
+                      aria-label="Удалить подписчика"
+                      onClick={() => {
+                        const subscriberName = m.profile?.displayName ?? m.profile?.username ?? "этого подписчика";
+                        if (confirm(`Удалить ${subscriberName} из канала?`)) {
+                          removeChannelMember.mutate({ chatId, userId: m.userId });
+                        }
+                      }}
+                      className="tcy-press w-9 h-9 rounded-full tcy-card flex items-center justify-center tcy-danger disabled:opacity-40"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -506,25 +550,29 @@ export default function ChatInfo() {
 
       {/* danger zone */}
       <div className="mx-4 mt-6 rounded-[24px] tcy-card border tcy-line">
-        <button
-          onClick={() => {
-            if (isGroup) {
-              if (confirm("Покинуть группу?")) remove.mutate({ chatId, leave: true });
-            } else if (confirm("Удалить чат из списка?")) {
-              remove.mutate({ chatId, leave: false });
-            }
-          }}
-          className="w-full flex items-center gap-3.5 px-4 py-4 tcy-press"
-        >
-          {isGroup ? <LogOut size={17} className="tcy-danger" /> : <Trash2 size={17} className="tcy-danger" />}
-          <span className="text-[14px] font-semibold tcy-danger">
-            {isGroup ? "Покинуть группу" : "Удалить чат"}
-          </span>
-        </button>
+        {!(channel && myRole === "owner") && (
+          <button
+            onClick={() => {
+              if (channel) {
+                if (confirm("Отписаться от канала?")) remove.mutate({ chatId, leave: true });
+              } else if (isGroup) {
+                if (confirm("Покинуть группу?")) remove.mutate({ chatId, leave: true });
+              } else if (confirm("Удалить чат из списка?")) {
+                remove.mutate({ chatId, leave: false });
+              }
+            }}
+            className="w-full flex items-center gap-3.5 px-4 py-4 tcy-press"
+          >
+            {isGroup ? <LogOut size={17} className="tcy-danger" /> : <Trash2 size={17} className="tcy-danger" />}
+            <span className="text-[14px] font-semibold tcy-danger">
+              {channel ? "Отписаться от канала" : isGroup ? "Покинуть группу" : "Удалить чат"}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* add members */}
-      <BottomSheet open={addOpen} onClose={() => setAddOpen(false)} title="Добавить участников">
+      <BottomSheet open={addOpen} onClose={() => setAddOpen(false)} title={channel ? "Пригласить подписчиков" : "Добавить участников"}>
         <div className="px-2">
           {addable.length === 0 && (
             <p className="text-center tcy-dim text-[13.5px] py-6">Больше некого добавить</p>
@@ -547,7 +595,7 @@ export default function ChatInfo() {
       </BottomSheet>
 
       {/* edit group */}
-      <BottomSheet open={editOpen} onClose={() => setEditOpen(false)} title="Название группы">
+      <BottomSheet open={editOpen} onClose={() => setEditOpen(false)} title={channel ? "Название канала" : "Название группы"}>
         <div className="px-5 space-y-4">
           <TcInput value={title} onChange={(e) => setTitle(e.target.value)} maxLength={96} />
           <TcButton
