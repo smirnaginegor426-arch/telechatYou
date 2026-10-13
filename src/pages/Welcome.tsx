@@ -3,7 +3,8 @@ import { useNavigate } from "react-router";
 import { Logo, Wordmark } from "@/components/Logo";
 import { TcButton } from "@/components/TcButton";
 import { LOGIN_PATH } from "@/const";
-import { ArrowRight, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, UsersRound, Zap } from "lucide-react";
+import { readSavedAccounts } from "@/lib/saved-accounts";
 
 const points = [
   { icon: Zap, text: "Мгновенные сообщения и голосовые" },
@@ -13,6 +14,7 @@ const points = [
 
 export default function Welcome() {
   const navigate = useNavigate();
+  const savedAccounts = readSavedAccounts();
   return (
     <div className="relative h-full flex flex-col overflow-hidden">
       <div className="tcy-aurora" />
@@ -81,6 +83,15 @@ export default function Welcome() {
         <TcButton size="lg" onClick={() => navigate(LOGIN_PATH)}>
           Начать <ArrowRight size={19} />
         </TcButton>
+        {savedAccounts.length > 0 && (
+          <button
+            type="button"
+            onClick={() => navigate("/accounts")}
+            className="w-full mt-3 h-11 rounded-[16px] tcy-card border tcy-line flex items-center justify-center gap-2 text-[12.5px] font-bold tcy-text tcy-press"
+          >
+            <UsersRound size={16} className="tcy-accent" /> Открыть сохранённые аккаунты ({savedAccounts.length})
+          </button>
+        )}
         <p className="text-center text-[11.5px] tcy-faint mt-4">
           Регистрация занимает меньше минуты
         </p>

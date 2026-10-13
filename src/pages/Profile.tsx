@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { AtSign, Camera, Check, LogOut, Pencil, Quote } from "lucide-react";
+import { AtSign, Camera, Check, ChevronRight, LogOut, Pencil, Quote, UsersRound } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
@@ -12,6 +13,7 @@ import { fileToBase64 } from "@/lib/format";
 
 export default function Profile() {
   const { logout } = useAuth();
+  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const me = trpc.profile.me.useQuery();
   const profile = me.data?.profile;
@@ -135,6 +137,20 @@ export default function Profile() {
 
       {/* info cards */}
       <div className="px-4 space-y-3">
+        <button
+          type="button"
+          onClick={() => navigate("/accounts")}
+          className="w-full rounded-[22px] tcy-card border tcy-line px-4 py-3.5 flex items-center gap-3.5 text-left tcy-press"
+        >
+          <span className="w-10 h-10 rounded-[14px] tcy-card-strong flex items-center justify-center tcy-accent">
+            <UsersRound size={18} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] font-bold tcy-text">Аккаунты</span>
+            <span className="block text-[11.5px] tcy-faint">Добавить или переключиться</span>
+          </span>
+          <ChevronRight size={17} className="tcy-faint" />
+        </button>
         <div className="rounded-[24px] tcy-card border tcy-line divide-y divide-[color:var(--tcy-line)]">
           <div className="flex items-center gap-3.5 px-4 py-3.5">
             <AtSign size={17} className="tcy-accent" />

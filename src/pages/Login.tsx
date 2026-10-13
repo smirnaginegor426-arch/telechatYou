@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router";
-import { ArrowLeft, LockKeyhole, UserRound } from "lucide-react";
+import { useLocation, useNavigate } from "react-router";
+import { ArrowLeft, LockKeyhole, UserRound, UsersRound } from "lucide-react";
+import { createAccountSlotId, MAX_SAVED_ACCOUNTS, readSavedAccounts, upsertSavedAccount } from "@/lib/saved-accounts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
@@ -9,18 +10,30 @@ import { trpc } from "@/providers/trpc";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAddingAccount = new URLSearchParams(location.search).get("addAccount") === "1";
+  const [newSlotId] = useState(() => createAccountSlotId());
+  const savedAccounts = readSavedAccounts();
   const utils = trpc.useUtils();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const afterAuth = async () => {
+  const afterAuth = async (variables: { username: string; slotId?: string }) => {
+    const slotId = variables.slotId ?? newSlotId;
+    upsertSavedAccount({ slotId, username: variables.username, displayName: variables.username });
     await utils.invalidate();
     navigate("/", { replace: true });
   };
-  const login = trpc.auth.login.useMutation({ onSuccess: afterAuth, onError: (e) => setError(e.message) });
-  const register = trpc.auth.register.useMutation({ onSuccess: afterAuth, onError: (e) => setError(e.message) });
+  const login = trpc.auth.login.useMutation({
+    onSuccess: async (_result, variables) => afterAuth(variables),
+    onError: (e) => setError(e.message),
+  });
+  const register = trpc.auth.register.useMutation({
+    onSuccess: async (_result, variables) => afterAuth(variables),
+    onError: (e) => setError(e.message),
+  });
   const pending = login.isPending || register.isPending;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -35,11 +48,18 @@ export default function Login() {
       setError("Пароль должен содержать от 8 до 128 символов");
       return;
     }
+    const saved = readSavedAccounts();
+    const existingAccount = saved.find((account) => account.username.toLowerCase() === normalized);
+    if (!existingAccount && saved.length >= MAX_SAVED_ACCOUNTS) {
+      setError("Сохранено максимум 5 аккаунтов. Откройте сохранённые аккаунты и удалите один перед добавлением.");
+      return;
+    }
+    const accountSlotId = existingAccount?.slotId ?? newSlotId;
     if (mode === "register") {
       if (password !== confirmPassword) { setError("Пароли не совпадают"); return; }
-      register.mutate({ username: normalized, password });
+      register.mutate({ username: normalized, password, slotId: accountSlotId });
     } else {
-      login.mutate({ username: normalized, password });
+      login.mutate({ username: normalized, password, slotId: accountSlotId });
     }
   };
 
@@ -52,8 +72,8 @@ export default function Login() {
         <Card className="w-full tcy-card border tcy-line">
           <CardHeader className="items-center text-center space-y-3">
             <Logo size={58} />
-            <CardTitle className="text-2xl tcy-text">{mode === "login" ? "С возвращением" : "Создать аккаунт"}</CardTitle>
-            <p className="text-sm tcy-dim">{mode === "login" ? "Войдите в TeleChatYou" : "Придумайте имя и надёжный пароль"}</p>
+            <CardTitle className="text-2xl tcy-text">{mode === "login" ? (isAddingAccount ? "Добавить аккаунт" : "С возвращением") : "Создать аккаунт"}</CardTitle>
+            <p className="text-sm tcy-dim">{mode === "login" ? (isAddingAccount ? "Войдите в другой аккаунт — текущий останется сохранённым" : "Войдите в TeleChatYou") : "Придумайте имя и надёжный пароль"}</p>
           </CardHeader>
           <CardContent>
             <form onSubmit={submit} className="space-y-4">
@@ -89,6 +109,15 @@ export default function Login() {
             >
               {mode === "login" ? "Нет аккаунта? Зарегистрироваться" : "Уже есть аккаунт? Войти"}
             </button>
+            {savedAccounts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => navigate("/accounts")}
+                className="w-full mt-4 rounded-[15px] tcy-card border tcy-line px-3 py-3 text-[12.5px] font-bold tcy-text flex items-center justify-center gap-2"
+              >
+                <UsersRound size={16} className="tcy-accent" /> Сохранённые аккаунты ({savedAccounts.length})
+              </button>
+            )}
           </CardContent>
         </Card>
       </div>
