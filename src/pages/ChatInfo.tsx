@@ -27,6 +27,7 @@ import { useFileUrl } from "@/hooks/useFileUrl";
 import { fileToBase64, formatFileSize, isOnline } from "@/lib/format";
 import {
   CHAT_WALLPAPERS,
+  CHAT_WALLPAPER_CHANGE_EVENT,
   DEFAULT_CHAT_WALLPAPER,
   chatWallpaperImageKey,
   chatWallpaperKey,
@@ -160,10 +161,21 @@ export default function ChatInfo() {
     updateGroup.mutate({ chatId, avatarKey: res.key });
   };
 
+  const notifyWallpaperChange = (next: string, image: string | null) => {
+    window.dispatchEvent(
+      new CustomEvent(CHAT_WALLPAPER_CHANGE_EVENT, {
+        detail: { chatId, wallpaper: next, image },
+      }),
+    );
+  };
+
   const selectWallpaper = (next: string) => {
     try {
       localStorage.setItem(chatWallpaperKey(chatId), next);
+      const nextImage = next === "custom" ? readWallpaperImage(chatId) : null;
       setWallpaper(next);
+      setWallpaperImage(nextImage);
+      notifyWallpaperChange(next, nextImage);
     } catch {
       alert("Не удалось сохранить обои в браузере. Освободите место в хранилище сайта и попробуйте ещё раз.");
     }
@@ -185,6 +197,7 @@ export default function ChatInfo() {
       localStorage.setItem(chatWallpaperKey(chatId), "custom");
       setWallpaperImage(dataUrl);
       setWallpaper("custom");
+      notifyWallpaperChange("custom", dataUrl);
     } catch (error) {
       alert(
         "Не удалось сохранить обои. Попробуйте другое изображение. " +
@@ -202,6 +215,7 @@ export default function ChatInfo() {
     }
     setWallpaperImage(null);
     setWallpaper(DEFAULT_CHAT_WALLPAPER);
+    notifyWallpaperChange(DEFAULT_CHAT_WALLPAPER, null);
   };
 
   if (info.isLoading || !data) {

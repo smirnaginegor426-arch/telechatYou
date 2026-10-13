@@ -37,7 +37,7 @@ export const storageRouter = createRouter({
       return { key: saved.key, size: saved.size, contentType: saved.contentType };
     }),
 
-  /** short-lived render URLs for a batch of keys */
+  /** authenticated render URLs for a batch of keys; URLs are stable and access remains session-guarded */
   urls: authedQuery
     .input(z.object({ keys: z.array(z.string()).max(50) }))
     .query(async ({ input }) => {

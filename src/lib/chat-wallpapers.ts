@@ -22,3 +22,5 @@ export function chatWallpaperImageKey(chatId: number) {
 export function isChatWallpaperId(value: string | null): value is ChatWallpaperId {
   return CHAT_WALLPAPERS.some((wallpaper) => wallpaper.id === value);
 }
+
+export const CHAT_WALLPAPER_CHANGE_EVENT = "tcy:chat-wallpaper-change";

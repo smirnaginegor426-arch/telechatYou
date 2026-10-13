@@ -1,4 +1,5 @@
 
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil } from "lucide-react";
 import { Avatar } from "./Avatar";
@@ -100,6 +101,8 @@ export function MessageBubble({
   onReaction: (m: MessageItem, emoji: string) => void;
 }) {
   const imgUrl = useFileUrl(m.kind === "image" ? m.attachmentKey : null);
+  const [imageUnavailable, setImageUnavailable] = useState(false);
+  const imageRetryKeyRef = useRef<string | null>(null);
 
   if (m.kind === "system") {
     return (
@@ -239,29 +242,52 @@ export function MessageBubble({
             <button
               type="button"
               onClick={() => {
-                if (m.attachmentKey) onImageOpen(m.attachmentKey);
+                if (!m.attachmentKey) return;
+                if (imageUnavailable) {
+                  imageRetryKeyRef.current = null;
+                  setImageUnavailable(false);
+                  refreshFileUrl(m.attachmentKey);
+                  return;
+                }
+                onImageOpen(m.attachmentKey);
               }}
-              className="block mb-1 p-0 border-0 bg-transparent appearance-none"
+              className="block mb-1 p-0 border-0 bg-transparent appearance-none text-left"
+              aria-label={imageUnavailable ? "Повторить загрузку фотографии" : "Открыть фотографию"}
             >
-              {imgUrl ? (
-  <img
-    src={imgUrl}
-    alt={m.attachmentName ?? "Фото"}
-    className="rounded-[16px] max-w-[240px] max-h-[300px] object-cover"
-    loading="lazy"
-    onError={(event) => {
-      const img = event.currentTarget;
-
-      if (img.dataset.refreshing === "true") return;
-
-      img.dataset.refreshing = "true";
-      refreshFileUrl(m.attachmentKey);
-    }}
-    onLoad={(event) => {
-      event.currentTarget.dataset.refreshing = "false";
-    }}
-  />
-) : (
+              {imgUrl && !imageUnavailable ? (
+                <img
+                  src={imgUrl}
+                  alt={m.attachmentName ?? "Фото"}
+                  className="rounded-[16px] max-w-[240px] max-h-[300px] object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  onError={() => {
+                    const key = m.attachmentKey;
+                    if (!key) {
+                      setImageUnavailable(true);
+                      return;
+                    }
+                    if (imageRetryKeyRef.current === key) {
+                      setImageUnavailable(true);
+                      return;
+                    }
+                    // One automatic retry avoids endless loops when the stored
+                    // object really is missing. Clicking the placeholder retries manually.
+                    imageRetryKeyRef.current = key;
+                    refreshFileUrl(key);
+                  }}
+                  onLoad={() => {
+                    imageRetryKeyRef.current = null;
+                    setImageUnavailable(false);
+                  }}
+                />
+              ) : imageUnavailable ? (
+                <div className="w-[220px] h-[120px] rounded-[16px] border tcy-line tcy-card flex flex-col items-center justify-center gap-2 px-3 text-center">
+                  <FileText size={22} className="tcy-faint" />
+                  <span className="text-[12px] font-semibold tcy-dim">Фото не загрузилось</span>
+                  <span className="text-[11px] tcy-faint">Нажмите, чтобы повторить</span>
+                </div>
+              ) : (
                 <div className="tcy-skeleton w-[220px] h-[160px] rounded-[16px]" />
               )}
             </button>

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { useFileUrl, refreshFileUrl } from "@/hooks/useFileUrl";
 import { avatarGradient, initials, isOnline } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -21,13 +22,20 @@ export function Avatar({
 }: Props) {
   const url = useFileUrl(avatarKey);
   const online = showOnline && isOnline(lastSeenAt);
+  const [imageUnavailable, setImageUnavailable] = useState(false);
+  const imageRetryKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    imageRetryKeyRef.current = null;
+    setImageUnavailable(false);
+  }, [avatarKey]);
 
   return (
     <div
       className={cn("relative shrink-0", className)}
       style={{ width: size, height: size }}
     >
-      {url ? (
+      {url && !imageUnavailable ? (
         <img
           src={url}
           alt=""
@@ -35,7 +43,20 @@ export function Avatar({
           className="w-full h-full object-cover rounded-full"
           style={{ borderRadius: size >= 56 ? "30%" : "50%" }}
           onError={() => {
-            if (avatarKey) refreshFileUrl(avatarKey);
+            if (!avatarKey) {
+              setImageUnavailable(true);
+              return;
+            }
+            if (imageRetryKeyRef.current === avatarKey) {
+              setImageUnavailable(true);
+              return;
+            }
+            imageRetryKeyRef.current = avatarKey;
+            refreshFileUrl(avatarKey);
+          }}
+          onLoad={() => {
+            imageRetryKeyRef.current = null;
+            setImageUnavailable(false);
           }}
         />
       ) : (

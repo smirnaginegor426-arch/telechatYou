@@ -1,6 +1,14 @@
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { mkdir, readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import {
+  DeleteObjectsCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { env } from "./env";
 
 export type ReviewStatus = "active";
@@ -24,6 +32,105 @@ export class StorageError extends Error {
 
 const root = path.resolve(env.uploadDir);
 const maxBytes = env.maxUploadMb * 1024 * 1024;
+const s3 = env.s3Enabled
+  ? new S3Client({
+      region: env.s3Region,
+      endpoint: env.s3Endpoint,
+      maxAttempts: 3,
+      credentials: {
+        accessKeyId: env.s3AccessKeyId,
+        secretAccessKey: env.s3SecretAccessKey,
+      },
+    })
+  : null;
+
+function cloudinaryApiUrl(pathname: string): string {
+  return `https://api.cloudinary.com/v1_1/${encodeURIComponent(env.cloudinaryCloudName)}/${pathname.split("/").filter(Boolean).join("/")}`;
+}
+
+function cloudinaryBasicAuth(): string {
+  return `Basic ${Buffer.from(`${env.cloudinaryApiKey}:${env.cloudinaryApiSecret}`).toString("base64")}`;
+}
+
+function cloudinaryIdPath(key: string): string {
+  return key.split("/").map(encodeURIComponent).join("/");
+}
+
+function cloudinarySignature(params: Record<string, string>): string {
+  const serialized = Object.entries(params)
+    .filter(([, value]) => value !== "")
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([name, value]) => `${name}=${value}`)
+    .join("&");
+  return createHash("sha1").update(serialized + env.cloudinaryApiSecret).digest("hex");
+}
+
+function cloudinaryPrivateDownloadUrl(key: string): string {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const format = path.posix.extname(key).slice(1) || "bin";
+  const signedParams = {
+    expires_at: String(timestamp + 60),
+    format,
+    public_id: key,
+    timestamp: String(timestamp),
+    type: "authenticated",
+  };
+  const query = new URLSearchParams({
+    ...signedParams,
+    api_key: env.cloudinaryApiKey,
+    signature: cloudinarySignature(signedParams),
+  });
+  return `${cloudinaryApiUrl("raw/download")}?${query.toString()}`;
+}
+
+async function cloudinaryAdminFetch(pathname: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", cloudinaryBasicAuth());
+  return fetch(cloudinaryApiUrl(pathname), { ...init, headers });
+}
+
+async function cloudinaryUpload(key: string, data: Uint8Array, contentType: string): Promise<void> {
+  const form = new FormData();
+  form.set("file", new Blob([Buffer.from(data)], { type: contentType }), path.posix.basename(key));
+  form.set("public_id", key);
+  form.set("type", "authenticated");
+  form.set("overwrite", "false");
+  const response = await cloudinaryAdminFetch("raw/upload", { method: "POST", body: form });
+  if (!response.ok) {
+    const detail = (await response.text().catch(() => "")).slice(0, 300);
+    throw new Error(`Cloudinary upload failed (${response.status})${detail ? `: ${detail}` : ""}`);
+  }
+}
+
+async function cloudinaryDestroy(key: string): Promise<void> {
+  const timestamp = String(Math.floor(Date.now() / 1000));
+  const signedParams = { invalidate: "true", public_id: key, timestamp, type: "authenticated" };
+  const form = new URLSearchParams({
+    ...signedParams,
+    api_key: env.cloudinaryApiKey,
+    signature: cloudinarySignature(signedParams),
+  });
+  const response = await fetch(cloudinaryApiUrl("raw/destroy"), {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: form,
+  });
+  if (!response.ok) {
+    const detail = (await response.text().catch(() => "")).slice(0, 300);
+    throw new Error(`Cloudinary delete failed (${response.status})${detail ? `: ${detail}` : ""}`);
+  }
+  const result = await response.json() as { result?: string };
+  if (result.result && result.result !== "ok" && result.result !== "not found") {
+    throw new Error(`Cloudinary delete failed: ${result.result}`);
+  }
+}
+
+if (env.isProduction && !s3 && !env.cloudinaryEnabled) {
+  console.warn(
+    "[storage] Persistent storage is not configured. Files are stored on the local filesystem and may disappear when the host restarts or redeploys.",
+  );
+}
+
 const mimeTypes: Record<string, string> = {
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp",
   ".svg": "image/svg+xml", ".mp4": "video/mp4", ".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav",
@@ -51,8 +158,22 @@ function randomKey(fileName: string) {
   const base = path.posix.basename(normalized);
   const ext = path.posix.extname(base);
   const stem = ext ? base.slice(0, -ext.length) : base;
-  const unique = `${stem}-${randomBytes(6).toString("hex")}${ext}`;
+  const unique = `${stem}-${randomBytes(6).toString("hex")}${ext || ".bin"}`;
   return dir === "." ? unique : `${dir}/${unique}`;
+}
+
+function isMissingS3Object(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const value = error as {
+    name?: string;
+    Code?: string;
+    $metadata?: { httpStatusCode?: number };
+  };
+  return (
+    value.$metadata?.httpStatusCode === 404 ||
+    ["NoSuchKey", "NoSuchObject", "NotFound"].includes(value.name ?? "") ||
+    ["NoSuchKey", "NoSuchObject", "NotFound"].includes(value.Code ?? "")
+  );
 }
 
 export class Storage {
@@ -60,19 +181,55 @@ export class Storage {
     const data = typeof input.fileContent === "string" ? Buffer.from(input.fileContent, "utf8") : Buffer.from(input.fileContent);
     if (!data.byteLength) throw new StorageError("STORAGE_INVALID_INPUT", "Файл пустой");
     if (data.byteLength > maxBytes) throw new StorageError("STORAGE_FILE_TOO_LARGE", `Файл превышает лимит ${env.maxUploadMb} МБ`);
+
     const key = randomKey(input.fileName);
-    const full = safePath(key);
-    await mkdir(path.dirname(full), { recursive: true });
-    await writeFile(full, data, { flag: "wx" });
-    return { key, fileName: path.posix.basename(key), size: data.byteLength, contentType: input.contentType || contentTypeFor(key), reviewStatus: "active" };
+    const contentType = input.contentType || contentTypeFor(key);
+
+    if (env.cloudinaryEnabled) {
+      await cloudinaryUpload(key, data, contentType);
+    } else if (s3) {
+      await s3.send(new PutObjectCommand({
+        Bucket: env.s3Bucket,
+        Key: key,
+        Body: data,
+        ContentLength: data.byteLength,
+        ContentType: contentType,
+      }));
+    } else {
+      const full = safePath(key);
+      await mkdir(path.dirname(full), { recursive: true });
+      await writeFile(full, data, { flag: "wx" });
+    }
+
+    return { key, fileName: path.posix.basename(key), size: data.byteLength, contentType, reviewStatus: "active" };
   }
 
   async readFile(input: { fileKey: string }): Promise<Uint8Array> {
+    assertKey(input.fileKey);
+    if (env.cloudinaryEnabled) {
+      const response = await fetch(cloudinaryPrivateDownloadUrl(input.fileKey));
+      if (response.status === 404) throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден");
+      if (!response.ok) throw new Error(`Cloudinary download failed (${response.status})`);
+      return new Uint8Array(await response.arrayBuffer());
+    }
+    if (s3) {
+      try {
+        const response = await s3.send(new GetObjectCommand({ Bucket: env.s3Bucket, Key: input.fileKey }));
+        if (!response.Body) throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден");
+        return new Uint8Array(await response.Body.transformToByteArray());
+      } catch (error) {
+        if (error instanceof StorageError) throw error;
+        if (isMissingS3Object(error)) throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден");
+        throw error;
+      }
+    }
+
     try { return new Uint8Array(await readFile(safePath(input.fileKey))); }
     catch (e) { if ((e as NodeJS.ErrnoException).code === "ENOENT") throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден"); throw e; }
   }
 
   async getPresignedUrls(input: { keys: string[]; download?: boolean }): Promise<{ urls: PresignedUrlResult[]; failures: { key: string; message: string }[] }> {
+    // Keep all downloads behind the authenticated app endpoint; object storage stays private.
     const urls = input.keys.map((key) => ({ key, url: `/api/files/${encodeKey(key)}${input.download ? "?download=1" : ""}` }));
     return { urls, failures: [] };
   }
@@ -83,6 +240,38 @@ export class Storage {
   }
 
   async headFile(input: { fileKey: string }): Promise<FileMeta> {
+    assertKey(input.fileKey);
+    if (env.cloudinaryEnabled) {
+      const response = await cloudinaryAdminFetch(`resources/raw/authenticated/${cloudinaryIdPath(input.fileKey)}`);
+      if (response.status === 404) throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден");
+      if (!response.ok) throw new Error(`Cloudinary metadata lookup failed (${response.status})`);
+      const info = await response.json() as { bytes?: number; created_at?: string };
+      return {
+        key: input.fileKey,
+        fileName: path.posix.basename(input.fileKey),
+        size: Number(info.bytes ?? 0),
+        contentType: contentTypeFor(input.fileKey),
+        lastModified: info.created_at,
+        reviewStatus: "active",
+      };
+    }
+    if (s3) {
+      try {
+        const info = await s3.send(new HeadObjectCommand({ Bucket: env.s3Bucket, Key: input.fileKey }));
+        return {
+          key: input.fileKey,
+          fileName: path.posix.basename(input.fileKey),
+          size: Number(info.ContentLength ?? 0),
+          contentType: info.ContentType || contentTypeFor(input.fileKey),
+          lastModified: info.LastModified?.toISOString(),
+          reviewStatus: "active",
+        };
+      } catch (error) {
+        if (isMissingS3Object(error)) throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден");
+        throw error;
+      }
+    }
+
     const full = safePath(input.fileKey);
     try {
       const info = await stat(full);
@@ -94,6 +283,74 @@ export class Storage {
   async listFiles(input: ListFilesInput = {}): Promise<ListFilesResult> {
     const prefix = input.prefix ?? "";
     if (prefix) assertKey(prefix.endsWith("/") ? prefix.slice(0, -1) : prefix);
+    const size = Math.max(1, Math.min(input.maxKeys ?? 100, 100));
+
+    if (env.cloudinaryEnabled) {
+      const query = new URLSearchParams({ max_results: String(size) });
+      if (prefix) query.set("prefix", prefix);
+      if (input.pageToken) query.set("next_cursor", input.pageToken);
+      const response = await cloudinaryAdminFetch(`resources/raw/authenticated?${query.toString()}`);
+      if (!response.ok) throw new Error(`Cloudinary list failed (${response.status})`);
+      const result = await response.json() as {
+        resources?: Array<{ public_id?: string; bytes?: number; created_at?: string }>;
+        next_cursor?: string;
+      };
+      const objects: FileMeta[] = [];
+      const folders = new Set<string>();
+      for (const item of result.resources ?? []) {
+        if (!item.public_id) continue;
+        const key = item.public_id;
+        if (input.delimiter === "/" && prefix) {
+          const rest = key.slice(prefix.length);
+          const slash = rest.indexOf("/");
+          if (slash >= 0) {
+            folders.add(`${prefix}${rest.slice(0, slash + 1)}`);
+            continue;
+          }
+        } else if (input.delimiter === "/") {
+          const slash = key.indexOf("/");
+          if (slash >= 0) {
+            folders.add(`${key.slice(0, slash + 1)}`);
+            continue;
+          }
+        }
+        objects.push({
+          key,
+          fileName: path.posix.basename(key),
+          size: Number(item.bytes ?? 0),
+          contentType: contentTypeFor(key),
+          lastModified: item.created_at,
+          reviewStatus: "active",
+        });
+      }
+      return { folders: [...folders].sort(), objects, nextPageToken: result.next_cursor };
+    }
+
+    if (s3) {
+      const result = await s3.send(new ListObjectsV2Command({
+        Bucket: env.s3Bucket,
+        Prefix: prefix || undefined,
+        Delimiter: input.delimiter === "/" ? "/" : undefined,
+        MaxKeys: size,
+        ContinuationToken: input.pageToken || undefined,
+      }));
+      const objects: FileMeta[] = (result.Contents ?? []).flatMap((item) => {
+        if (!item.Key) return [];
+        return [{
+          key: item.Key,
+          fileName: path.posix.basename(item.Key),
+          size: Number(item.Size ?? 0),
+          contentType: contentTypeFor(item.Key),
+          lastModified: item.LastModified?.toISOString(),
+          reviewStatus: "active" as const,
+        }];
+      });
+      const folders = (result.CommonPrefixes ?? [])
+        .map((item) => item.Prefix ?? "")
+        .filter(Boolean);
+      return { folders, objects, nextPageToken: result.NextContinuationToken };
+    }
+
     const objects: FileMeta[] = [];
     const folders = new Set<string>();
     const start = prefix ? safePath(prefix.endsWith("/") ? prefix.slice(0, -1) : prefix) : root;
@@ -117,21 +374,63 @@ export class Storage {
     };
     await walk(start);
     const offset = Math.max(0, Number(input.pageToken ?? "0") || 0);
-    const size = Math.max(1, Math.min(input.maxKeys ?? 100, 100));
     const sorted = objects.sort((a, b) => a.key.localeCompare(b.key));
     const slice = sorted.slice(offset, offset + size);
     return { folders: [...folders].sort(), objects: slice, nextPageToken: offset + size < sorted.length ? String(offset + size) : undefined };
   }
 
   async deleteFile(input: { fileKey: string }): Promise<boolean> {
+    assertKey(input.fileKey);
+    if (env.cloudinaryEnabled) {
+      await cloudinaryDestroy(input.fileKey);
+      return true;
+    }
+    if (s3) {
+      await s3.send(new DeleteObjectsCommand({
+        Bucket: env.s3Bucket,
+        Delete: { Objects: [{ Key: input.fileKey }], Quiet: true },
+      }));
+      return true;
+    }
     try { await unlink(safePath(input.fileKey)); return true; }
     catch (e) { if ((e as NodeJS.ErrnoException).code === "ENOENT") return true; throw e; }
   }
 
   async deleteFiles(input: { fileKeys: string[] }): Promise<DeleteFilesResult> {
+    const fileKeys = [...new Set(input.fileKeys)];
+    for (const key of fileKeys) assertKey(key);
+    if (!fileKeys.length) return { deleted: [], failed: [] };
+
+    if (env.cloudinaryEnabled) {
+      const deleted: string[] = [];
+      const failed: { key: string; message: string }[] = [];
+      for (const key of fileKeys) {
+        try {
+          await cloudinaryDestroy(key);
+          deleted.push(key);
+        } catch (error) {
+          failed.push({ key, message: error instanceof Error ? error.message : String(error) });
+        }
+      }
+      return { deleted, failed };
+    }
+
+    if (s3) {
+      const result = await s3.send(new DeleteObjectsCommand({
+        Bucket: env.s3Bucket,
+        Delete: { Objects: fileKeys.map((key) => ({ Key: key })), Quiet: false },
+      }));
+      const failures = (result.Errors ?? []).map((error) => ({
+        key: error.Key ?? "",
+        message: error.Message ?? error.Code ?? "Не удалось удалить файл",
+      }));
+      const failedKeys = new Set(failures.map((failure) => failure.key));
+      return { deleted: fileKeys.filter((key) => !failedKeys.has(key)), failed: failures };
+    }
+
     const deleted: string[] = [];
     const failed: { key: string; message: string }[] = [];
-    for (const key of input.fileKeys) {
+    for (const key of fileKeys) {
       try { await this.deleteFile({ fileKey: key }); deleted.push(key); }
       catch (e) { failed.push({ key, message: e instanceof Error ? e.message : String(e) }); }
     }

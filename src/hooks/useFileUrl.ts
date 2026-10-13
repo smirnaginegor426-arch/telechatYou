@@ -120,22 +120,22 @@ export function useFileUrl(
         setUrl(nextUrl);
         schedule(REFRESH_AFTER_MS);
       } else {
-        // При временной ошибке не стираем старую ссылку.
-        // Повторяем попытку через 30 секунд.
+        // If URL lookup temporarily fails, retry instead of leaving media permanently blank.
         schedule(RETRY_AFTER_MS);
       }
     }
 
     function onRefresh(event: Event) {
-  const detail = (
-    event as CustomEvent<{ key: string }>
-  ).detail;
+      const detail = (event as CustomEvent<{ key: string }>).detail;
+      if (detail?.key !== key) return;
 
-  if (detail?.key !== key) return;
-
-  // Не убираем текущий URL, пока получаем новый.
-  void load(true);
-}
+      // Force the image/audio element to remount after a network or storage error.
+      // The URL itself is stable (/api/files/<key>), so refreshing only the cache
+      // without changing the state would not make the browser retry the request.
+      setUrl(null);
+      if (timer) clearTimeout(timer);
+      void load(true);
+    }
 
     window.addEventListener(REFRESH_EVENT, onRefresh);
     void load();
