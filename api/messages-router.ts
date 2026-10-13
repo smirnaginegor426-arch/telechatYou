@@ -34,12 +34,14 @@ async function hydrate(rows: (typeof messages.$inferSelect)[], viewerId: number)
 
   const pollRows = await getDb().select().from(polls).where(inArray(polls.messageId, msgIds));
   const pollIds = pollRows.map((poll) => poll.id);
-  const [optionRows, voteRows] = pollIds.length
-    ? await Promise.all([
-        getDb().select().from(pollOptions).where(inArray(pollOptions.pollId, pollIds)),
-        getDb().select().from(pollVotes).where(inArray(pollVotes.pollId, pollIds)),
-      ])
-    : [[], []] as const;
+  let optionRows: (typeof pollOptions.$inferSelect)[] = [];
+  let voteRows: (typeof pollVotes.$inferSelect)[] = [];
+  if (pollIds.length) {
+    [optionRows, voteRows] = await Promise.all([
+      getDb().select().from(pollOptions).where(inArray(pollOptions.pollId, pollIds)),
+      getDb().select().from(pollVotes).where(inArray(pollVotes.pollId, pollIds)),
+    ]);
+  }
   const votesByOption = new Map<number, number>();
   const votedByMe = new Map<number, number[]>();
   for (const vote of voteRows) {
