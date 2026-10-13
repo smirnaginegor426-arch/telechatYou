@@ -85,6 +85,7 @@ export function MessageBubble({
   own,
   myId,
   isGroup,
+  isChannel,
   showSender,
   peerLastReadId,
   onLongPress,
@@ -95,6 +96,7 @@ export function MessageBubble({
   own: boolean;
   myId: number;
   isGroup: boolean;
+  isChannel: boolean;
   showSender: boolean;
   peerLastReadId?: number;
   onLongPress: (m: MessageItem) => void;
@@ -145,7 +147,7 @@ export function MessageBubble({
         own ? "justify-end" : "justify-start",
       )}
     >
-      {isGroup && !own && (
+      {isGroup && showSender && (!own || isChannel) && (
         <div className="w-8 mr-1.5 shrink-0 flex items-end">
           {showSender && (
             <Avatar
@@ -191,7 +193,7 @@ export function MessageBubble({
                   }
           }
         >
-          {isGroup && !own && showSender && (
+          {isGroup && showSender && (!own || isChannel) && (
             <div className="text-[12.5px] font-bold mb-0.5 tcy-accent">
               {m.sender?.displayName ?? "Участник"}
             </div>

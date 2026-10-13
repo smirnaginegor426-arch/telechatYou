@@ -397,7 +397,7 @@ export default function ChatView() {
               const dayBreak = !prev || !sameDay(prev.createdAt, m.createdAt);
               const own = m.senderId === myId;
               const showSender =
-                isGroup && !own && (isChannel || !prev || prev.senderId !== m.senderId || sameDay(prev.createdAt, m.createdAt) === false);
+                isGroup && (isChannel || (!own && (!prev || prev.senderId !== m.senderId || sameDay(prev.createdAt, m.createdAt) === false)));
               return (
                 <div key={m.id}>
                   {dayBreak && (
@@ -412,6 +412,7 @@ export default function ChatView() {
                     own={own}
                     myId={myId}
                     isGroup={!!isGroup}
+                    isChannel={isChannel}
                     showSender={!!showSender}
                     peerLastReadId={peerLastReadId}
                     onLongPress={setActionMsg}
