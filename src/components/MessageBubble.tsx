@@ -184,7 +184,7 @@ export function MessageBubble({
           className={cn(
             "relative select-none cursor-default",
             isImage || isPoll || isStickerMessage ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
-            !isImage && !isPoll && !isStickerMessage
+            !isImage && !isPoll && !isStickerMessage &&
               (own
                 ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
                 : "rounded-[22px] rounded-bl-[8px] border tcy-line"),
