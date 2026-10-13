@@ -30,7 +30,6 @@ export function PollCard({ poll, own }: { poll: PollData; own: boolean }) {
 
   const closed = Boolean(poll.closedAt);
   const hasVoted = poll.votedOptionIds.length > 0;
-  const maxVotes = Math.max(1, ...poll.options.map((option) => option.votes));
 
   const toggle = (id: number) => {
     if (closed || vote.isPending) return;
