@@ -5,6 +5,7 @@ import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
 import { TcButton } from "@/components/TcButton";
 import { formatLastSeen, isOnline } from "@/lib/format";
+import { useFileUrl } from "@/hooks/useFileUrl";
 
 /** Public profile of another user */
 export default function UserView() {
@@ -17,6 +18,7 @@ export default function UserView() {
   });
 
   const p = profile.data;
+  const bannerUrl = useFileUrl(p?.bannerKey);
 
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar">
@@ -41,6 +43,17 @@ export default function UserView() {
             className="absolute inset-x-0 top-0 h-64 pointer-events-none"
             style={{ background: "radial-gradient(120% 100% at 50% 0%, var(--tcy-glow-1), transparent 70%)" }}
           />
+          <div className="relative -mx-8 mb-[-58px] mt-2 h-[168px] w-[calc(100%+4rem)] overflow-hidden rounded-[24px] border tcy-line tcy-card-strong shadow-lg">
+            {bannerUrl ? (
+              <img src={bannerUrl} alt={p.displayName + " — обложка"} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+            ) : (
+              <div className="absolute inset-0" style={{ background: "radial-gradient(circle at 78% 25%, color-mix(in srgb, var(--tcy-accent) 42%, transparent), transparent 34%), radial-gradient(circle at 18% 110%, color-mix(in srgb, #f97316 30%, transparent), transparent 44%), linear-gradient(135deg, var(--tcy-card-strong), var(--tcy-card))" }}>
+                <div className="absolute -right-5 -top-10 h-36 w-36 rounded-full border border-white/10" />
+                <div className="absolute right-16 -bottom-20 h-48 w-48 rounded-full border border-white/10" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/10" />
+          </div>
           <motion.div
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

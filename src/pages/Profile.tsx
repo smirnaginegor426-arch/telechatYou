@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { AtSign, Camera, Check, ChevronRight, LogOut, Pencil, Quote, UsersRound } from "lucide-react";
+import { AtSign, Camera, Check, ChevronRight, ImagePlus, LogOut, Pencil, Quote, Trash2, UsersRound } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
@@ -10,6 +10,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
+import { useFileUrl } from "@/hooks/useFileUrl";
 
 export default function Profile() {
   const { logout } = useAuth();
@@ -17,6 +18,7 @@ export default function Profile() {
   const utils = trpc.useUtils();
   const me = trpc.profile.me.useQuery();
   const profile = me.data?.profile;
+  const bannerUrl = useFileUrl(profile?.bannerKey);
 
   const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState("");
@@ -25,6 +27,8 @@ export default function Profile() {
   const [error, setError] = useState("");
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const bannerRef = useRef<HTMLInputElement>(null);
+  const [bannerError, setBannerError] = useState("");
 
   const update = trpc.profile.update.useMutation({
     onSuccess: async () => {
@@ -63,6 +67,30 @@ export default function Profile() {
     await update.mutateAsync({ avatarKey: res.key });
   };
 
+  const changeBanner = async (f: File) => {
+    setBannerError("");
+    if (!f.type.startsWith("image/")) {
+      setBannerError("Выберите изображение для обложки.");
+      return;
+    }
+    if (f.size > 20 * 1024 * 1024) {
+      setBannerError("Размер обложки не должен превышать 20 МБ.");
+      return;
+    }
+    try {
+      const res = await upload.mutateAsync({
+        name: f.name,
+        contentBase64: await fileToBase64(f),
+        contentType: f.type,
+        folder: "banners",
+      });
+      await update.mutateAsync({ bannerKey: res.key });
+      await utils.profile.me.invalidate();
+    } catch (cause) {
+      setBannerError(cause instanceof Error ? cause.message : "Не удалось загрузить обложку.");
+    }
+  };
+
   if (me.isLoading || !profile) {
     return (
       <div className="h-full flex flex-col items-center pt-24 px-8 gap-5">
@@ -86,6 +114,17 @@ export default function Profile() {
           e.currentTarget.value = "";
         }}
       />
+      <input
+        ref={bannerRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/avif"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.currentTarget.value = "";
+          if (f) void changeBanner(f);
+        }}
+      />
       {/* hero */}
       <div className="relative pt-16 safe-top pb-8 flex flex-col items-center">
         <div
@@ -95,6 +134,34 @@ export default function Profile() {
               "radial-gradient(120% 100% at 50% 0%, var(--tcy-glow-1), transparent 70%)",
           }}
         />
+        <div className="relative mx-4 mb-[-58px] h-[168px] overflow-hidden rounded-[24px] border tcy-line tcy-card-strong shadow-lg">
+          {bannerUrl ? (
+            <img src={bannerUrl} alt="Обложка профиля" className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+          ) : (
+            <div className="absolute inset-0" style={{ background: "radial-gradient(circle at 78% 25%, color-mix(in srgb, var(--tcy-accent) 46%, transparent), transparent 34%), radial-gradient(circle at 18% 110%, color-mix(in srgb, #f97316 34%, transparent), transparent 44%), linear-gradient(135deg, var(--tcy-card-strong), var(--tcy-card))" }}>
+              <div className="absolute -right-5 -top-10 h-36 w-36 rounded-full border border-white/10" />
+              <div className="absolute right-16 -bottom-20 h-48 w-48 rounded-full border border-white/10" />
+              <div className="absolute left-5 bottom-5 text-[11px] font-extrabold uppercase tracking-[0.24em] text-white/75">TeleChatYou</div>
+              <div className="absolute right-5 top-5 rounded-full border border-white/15 bg-black/10 p-2 text-white/80"><ImagePlus size={15} /></div>
+            </div>
+          )}
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/35 via-transparent to-black/10" />
+          <button type="button" onClick={() => { setBannerError(""); bannerRef.current?.click(); }}
+            aria-label="Изменить обложку" title="Изменить обложку"
+            className="tcy-press absolute right-2.5 top-2.5 flex h-9 items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 text-white backdrop-blur-md">
+            <Camera size={15} /><span className="text-[11px] font-bold">Обложка</span>
+          </button>
+          {profile.bannerKey && (
+            <button type="button" onClick={() => {
+              void update.mutateAsync({ bannerKey: null }).then(() => utils.profile.me.invalidate()).catch((cause) => setBannerError(cause instanceof Error ? cause.message : "Не удалось убрать обложку."));
+            }} aria-label="Удалить обложку" title="Удалить обложку"
+              className="tcy-press absolute left-2.5 top-2.5 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white backdrop-blur-md">
+              <Trash2 size={14} />
+            </button>
+          )}
+          {!profile.bannerKey && <div className="absolute left-5 top-5 rounded-full bg-black/20 px-2.5 py-1 text-[10px] font-semibold text-white/85">Рекомендуемый размер 1920 × 768</div>}
+        </div>
+        {bannerError && <p role="alert" className="relative mt-[62px] px-5 text-center text-[12px] font-semibold tcy-danger">{bannerError}</p>}
         <motion.div
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
