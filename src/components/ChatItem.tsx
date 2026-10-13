@@ -46,6 +46,7 @@ export function ChatItem({
   onMute,
   onRead,
   onDelete,
+  onAvatarClick,
   index,
 }: {
   item: ChatListItem;
@@ -54,6 +55,7 @@ export function ChatItem({
   onMute: () => void;
   onRead: () => void;
   onDelete: () => void;
+  onAvatarClick?: () => void;
   index: number;
 }) {
   const isDirect = item.chat.type === "direct";
@@ -91,20 +93,34 @@ export function ChatItem({
         },
       ]}
     >
-      <motion.button
+      <motion.div
+        role="button"
+        tabIndex={0}
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: Math.min(index * 0.035, 0.3), type: "spring", stiffness: 300, damping: 30 }}
         onClick={onClick}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onClick();
+          }
+        }}
         className="w-full flex items-center gap-3.5 px-4 py-3 text-left tcy-bg active:bg-[color:var(--tcy-card)] transition-colors"
       >
-        <Avatar
-          name={title}
-          avatarKey={isDirect ? item.peer?.avatarKey : item.chat.avatarKey}
-          size={54}
-          lastSeenAt={isDirect ? item.peer?.lastSeenAt : null}
-          showOnline={isDirect}
-        />
+        <button type="button"
+          aria-label={isDirect ? `Открыть аватар пользователя ${title}` : `Открыть аватар ${title}`}
+          onClick={(event) => { event.stopPropagation(); onAvatarClick?.(); }}
+          className="tcy-press rounded-full shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--tcy-accent)]">
+          <Avatar
+            name={title}
+            avatarKey={isDirect ? item.peer?.avatarKey : item.chat.avatarKey}
+            size={54}
+            lastSeenAt={isDirect ? item.peer?.lastSeenAt : null}
+            showOnline={isDirect}
+          />
+        </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2">
             <span className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-1.5">
@@ -152,7 +168,7 @@ export function ChatItem({
             </span>
           </div>
         </div>
-      </motion.button>
+      </motion.div>
     </SwipeableRow>
   );
 }

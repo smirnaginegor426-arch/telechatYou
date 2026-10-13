@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { AtSign, Camera, Check, ChevronRight, ImagePlus, LogOut, Pencil, Quote, Trash2, UsersRound } from "lucide-react";
+import { AtSign, Camera, Check, ChevronRight, LogOut, Pencil, Quote, Trash2, UsersRound } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
@@ -142,7 +142,7 @@ export default function Profile() {
               <div className="absolute -right-5 -top-10 h-36 w-36 rounded-full border border-white/10" />
               <div className="absolute right-16 -bottom-20 h-48 w-48 rounded-full border border-white/10" />
               <div className="absolute left-5 bottom-5 text-[11px] font-extrabold uppercase tracking-[0.24em] text-white/75">TeleChatYou</div>
-              <div className="absolute right-5 top-5 rounded-full border border-white/15 bg-black/10 p-2 text-white/80"><ImagePlus size={15} /></div>
+
             </div>
           )}
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/35 via-transparent to-black/10" />
@@ -161,7 +161,7 @@ export default function Profile() {
           )}
           {!profile.bannerKey && <div className="absolute left-5 top-5 rounded-full bg-black/20 px-2.5 py-1 text-[10px] font-semibold text-white/85">Рекомендуемый размер 1920 × 768</div>}
         </div>
-        {bannerError && <p role="alert" className="relative mt-[62px] px-5 text-center text-[12px] font-semibold tcy-danger">{bannerError}</p>}
+        {bannerError && <p role="alert" className="relative mt-3 px-5 text-center text-[12px] font-semibold tcy-danger">{bannerError}</p>}
         <motion.div
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -251,7 +251,7 @@ export default function Profile() {
 
       {/* edit sheet */}
       <BottomSheet open={editOpen} onClose={() => setEditOpen(false)} title="Редактировать профиль">
-        <div className="px-5 space-y-4" data-no-translate="true">
+        <div className="px-5 space-y-4">
           <label className="block space-y-1.5">
             <span className="block text-[12.5px] font-semibold tcy-dim">Имя</span>
             <TcInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Введите имя" maxLength={64} />

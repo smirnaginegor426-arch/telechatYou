@@ -383,6 +383,23 @@
   box-shadow: 0 14px 36px -20px color-mix(in srgb, var(--tcy-accent) 42%, transparent),
     0 8px 28px -20px rgba(0, 0, 0, .34);
 }
+.tcy-halloween-decor {
+  position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; contain: layout paint;
+}
+.tcy-halloween-decor::before, .tcy-halloween-decor::after {
+  position: absolute; display: block; pointer-events: none; user-select: none; opacity: .16;
+  filter: saturate(.82); animation: tcy-halloween-drift 8s ease-in-out infinite;
+}
+.tcy-halloween-decor::before { content: "🎃"; top: 18%; left: max(12px, calc(50% - 235px)); font-size: 24px; }
+.tcy-halloween-decor::after { content: "🦇"; right: max(14px, calc(50% - 235px)); bottom: 17%; font-size: 23px; animation-delay: -3s; }
+@keyframes tcy-halloween-drift {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-7px) rotate(5deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tcy-halloween-decor::before, .tcy-halloween-decor::after { animation: none; }
+}
+
 .tcy-island::before {
   content: "";
   position: absolute;

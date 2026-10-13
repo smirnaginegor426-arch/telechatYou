@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { trpc } from "@/providers/trpc";
 import { TabBar } from "@/components/TabBar";
+import { CustomLanguageBridge } from "@/components/CustomLanguageBridge";
 import { Logo } from "@/components/Logo";
 
 import Welcome from "@/pages/Welcome";
@@ -16,6 +17,7 @@ import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
+import CustomLanguage from "@/pages/CustomLanguage";
 import SystemUpdate from "@/pages/SystemUpdate";
 import Admin from "@/pages/Admin";
 import Search from "@/pages/Search";
@@ -140,6 +142,7 @@ useEffect(() => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/language" element={<CustomLanguage />} />
             <Route path="/system-update" element={<SystemUpdate />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/search" element={<Search />} />
@@ -205,6 +208,8 @@ export default function App() {
   return (
     <div className="tcy-app-shell">
       <div className="tcy-aurora" />
+      <div className="tcy-halloween-decor" aria-hidden="true" />
+      <CustomLanguageBridge />
 
       <div className="relative z-10 h-full">
         {location.pathname === "/recover" ? (

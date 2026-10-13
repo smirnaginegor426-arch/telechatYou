@@ -7,6 +7,7 @@ import { ChatItem } from "@/components/ChatItem";
 import { Logo, Wordmark } from "@/components/Logo";
 import { EmptyState } from "@/components/EmptyState";
 import { TcButton } from "@/components/TcButton";
+import { Lightbox } from "@/components/Lightbox";
 
 function ChatSkeleton() {
   return (
@@ -22,6 +23,7 @@ function ChatSkeleton() {
 
 export default function Chats() {
   const navigate = useNavigate();
+  const [avatarPreview, setAvatarPreview] = useState<{ key: string | null; name: string; username?: string | null } | null>(null);
   const utils = trpc.useUtils();
   const [showArchived, setShowArchived] = useState(false);
   const [brandPhase, setBrandPhase] = useState<"connecting" | "updating" | "ready">("connecting");
@@ -232,6 +234,14 @@ export default function Chats() {
                   item={item}
                   index={i}
                   onClick={() => navigate(`/chat/${item.chat.id}`)}
+                  onAvatarClick={() => {
+                    const direct = item.chat.type === "direct";
+                    setAvatarPreview({
+                      key: (direct ? item.peer?.avatarKey : item.chat.avatarKey) ?? null,
+                      name: direct ? item.peer?.displayName ?? "Пользователь" : item.chat.title ?? "Группа",
+                      username: direct && item.peer?.username ? `@${item.peer.username}` : null,
+                    });
+                  }}
                   onPin={() => actions.onPin(item.chat.id, item.membership.pinned)}
                   onMute={() => actions.onMute(item.chat.id, item.membership.muted)}
                   onRead={() => actions.onRead(item.chat.id)}
@@ -242,6 +252,13 @@ export default function Chats() {
           </div>
         )}
       </div>
+      <Lightbox
+        imageKey={avatarPreview?.key ?? null}
+        name={avatarPreview?.name}
+        subtitle={avatarPreview?.username}
+        fallbackName={avatarPreview && !avatarPreview.key ? avatarPreview.name : null}
+        onClose={() => setAvatarPreview(null)}
+      />
     </div>
   );
 }
