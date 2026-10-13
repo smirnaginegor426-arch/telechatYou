@@ -1,0 +1,1 @@
+ALTER TABLE profiles ADD COLUMN bannerKey VARCHAR(255) NULL;
