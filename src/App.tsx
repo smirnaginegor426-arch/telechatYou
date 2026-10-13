@@ -21,6 +21,7 @@ import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
 import ChannelsPage from "@/pages/Channels";
 import Login from "@/pages/Login";
+import AccountsPage from "@/pages/Accounts";
 import NotFound from "@/pages/NotFound";
 import Maintenance from "@/pages/Maintenance";
 
@@ -203,7 +204,11 @@ export default function App() {
       <div className="tcy-aurora" />
 
       <div className="relative z-10 h-full">
-        {location.pathname === "/login" && !isAuthenticated ? (
+        {location.pathname === "/accounts" ? (
+          <AccountsPage />
+        ) : location.pathname === "/login" && (
+          !isAuthenticated || new URLSearchParams(location.search).get("addAccount") === "1"
+        ) ? (
           <Routes>
             <Route path="/login" element={<Login />} />
           </Routes>
