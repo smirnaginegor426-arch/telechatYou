@@ -120,8 +120,7 @@ export function useFileUrl(
         setUrl(nextUrl);
         schedule(REFRESH_AFTER_MS);
       } else {
-        // При временной ошибке не стираем старую ссылку.
-        // Повторяем попытку через 30 секунд.
+        // If URL lookup temporarily fails, retry instead of leaving media permanently blank.
         schedule(RETRY_AFTER_MS);
       }
     }
