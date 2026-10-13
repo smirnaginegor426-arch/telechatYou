@@ -91,6 +91,17 @@ export default function Login() {
                   <TcInput className="pl-11" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} maxLength={128} required placeholder="Минимум 8 символов" />
                 </div>
               </label>
+              {mode === "login" && (
+                <div className="-mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => navigate("/recover")}
+                    className="text-sm font-semibold tcy-accent"
+                  >
+                    Забыл пароль?
+                  </button>
+                </div>
+              )}
               {mode === "register" && (
                 <label className="block space-y-1.5">
                   <span className="text-sm font-medium tcy-text">Повторите пароль</span>

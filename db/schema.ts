@@ -47,6 +47,24 @@ export const sessions = mysqlTable(
   (t) => ({ userIdx: index("sessions_user_idx").on(t.userId), expiresIdx: index("sessions_expires_idx").on(t.expiresAt) }),
 );
 
+/** One-time keys used to recover access when a password is forgotten. */
+export const recoveryCodes = mysqlTable(
+  "recovery_codes",
+  {
+    id: serial("id").primaryKey(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
+    /** SHA-256 hash only; the plain key is returned once to the account owner. */
+    codeHash: varchar("codeHash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    usedAt: timestamp("usedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    userIdx: index("recovery_codes_user_idx").on(t.userId),
+    expiresIdx: index("recovery_codes_expires_idx").on(t.expiresAt),
+  }),
+);
+
 // ===================== TeleChatYou schema =====================
 
 const userId = () => bigint("userId", { mode: "number", unsigned: true }).notNull();
