@@ -26,6 +26,7 @@ import { fileToBase64, formatDayLabel, formatLastSeen, isOnline, sameDay } from 
 import type { ChatListItem, MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
 import {
+  CHAT_WALLPAPER_CHANGE_EVENT,
   DEFAULT_CHAT_WALLPAPER,
   chatWallpaperImageKey,
   chatWallpaperKey,
@@ -52,13 +53,26 @@ export default function ChatView() {
   const myIdRef = useRef<number>(0);
 
   useEffect(() => {
-    try {
-      setWallpaper(localStorage.getItem(chatWallpaperKey(chatId)) || DEFAULT_CHAT_WALLPAPER);
-      setWallpaperImage(localStorage.getItem(chatWallpaperImageKey(chatId)));
-    } catch {
-      setWallpaper(DEFAULT_CHAT_WALLPAPER);
-      setWallpaperImage(null);
-    }
+    const loadSavedWallpaper = () => {
+      try {
+        setWallpaper(localStorage.getItem(chatWallpaperKey(chatId)) || DEFAULT_CHAT_WALLPAPER);
+        setWallpaperImage(localStorage.getItem(chatWallpaperImageKey(chatId)));
+      } catch {
+        setWallpaper(DEFAULT_CHAT_WALLPAPER);
+        setWallpaperImage(null);
+      }
+    };
+
+    const onWallpaperChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ chatId: number; wallpaper: string; image: string | null }>).detail;
+      if (detail?.chatId !== chatId) return;
+      setWallpaper(detail.wallpaper || DEFAULT_CHAT_WALLPAPER);
+      setWallpaperImage(detail.wallpaper === "custom" ? detail.image : null);
+    };
+
+    loadSavedWallpaper();
+    window.addEventListener(CHAT_WALLPAPER_CHANGE_EVENT, onWallpaperChange);
+    return () => window.removeEventListener(CHAT_WALLPAPER_CHANGE_EVENT, onWallpaperChange);
   }, [chatId]);
 
   const me = trpc.profile.me.useQuery(undefined, { staleTime: 60_000 });
