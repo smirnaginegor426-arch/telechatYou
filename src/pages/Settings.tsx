@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   Bell,
   Check,
@@ -10,25 +9,19 @@ import {
   Info,
   Keyboard,
   Moon,
-  Palette,
   ShieldCheck,
-  Sparkles,
-  Sun,
   Trash2,
   UserRound,
   Volume2,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
-import { useTheme } from "@/hooks/useTheme";
 import { Avatar } from "@/components/Avatar";
 import { BottomSheet } from "@/components/BottomSheet";
 import { SettingsGroup, SettingsRow, Toggle } from "@/components/SettingsRow";
 import { TcButton } from "@/components/TcButton";
-import { ACCENTS } from "@/lib/accents";
 import { formatFileSize } from "@/lib/format";
 
 export default function Settings() {
-  const { theme, accent, setTheme, setAccent } = useTheme();
   const utils = trpc.useUtils();
   const me = trpc.profile.me.useQuery();
   const settingsQuery = trpc.settings.get.useQuery();
@@ -45,14 +38,6 @@ export default function Settings() {
 
   const s = settingsQuery.data;
   const patch = (p: Parameters<typeof update.mutate>[0]) => update.mutate(p);
-
-  // push theme/accent changes to server
-  useEffect(() => {
-    if (s && (s.theme !== theme || s.accent !== accent)) {
-      update.mutate({ theme, accent });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme, accent]);
 
   const files = myFiles.data ?? [];
   const totalSize = files.reduce((sum, f) => sum + Number(f.size), 0);
@@ -85,56 +70,13 @@ export default function Settings() {
 
       <SettingsGroup title="Внешний вид">
         <SettingsRow
-          icon={theme === "dark" ? <Moon size={17} /> : <Sun size={17} />}
+          icon={<Moon size={17} />}
           title="Тема"
-          subtitle={theme === "dark" ? "Тёмная" : "Светлая"}
+          subtitle="Чёрная · графитовые элементы"
           right={
-            <Toggle
-              checked={theme === "dark"}
-              onChange={(v) => setTheme(v ? "dark" : "light")}
-            />
-          }
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        />
-        <div className="px-4 py-4">
-          <div className="flex items-center gap-3.5 mb-3">
-            <span className="w-9 h-9 rounded-[13px] flex items-center justify-center tcy-card-strong tcy-accent">
-              <Palette size={17} />
+            <span className="px-3 py-1.5 rounded-full tcy-card-strong text-[11.5px] font-bold tcy-text">
+              Включена
             </span>
-            <span className="text-[14.5px] font-semibold tcy-text">Цвет акцента</span>
-          </div>
-          <div className="flex gap-3 px-1 flex-wrap">
-            {ACCENTS.map((a) => (
-              <motion.button
-                key={a.id}
-                whileTap={{ scale: 0.85 }}
-                onClick={() => setAccent(a.id)}
-                className="relative w-11 h-11 rounded-full flex items-center justify-center"
-                style={{ background: a.color }}
-                aria-label={a.name}
-              >
-                {accent === a.id && (
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
-                  >
-                    <Check size={18} strokeWidth={3} color="#03211a" />
-                  </motion.span>
-                )}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-        <SettingsRow
-          icon={<Sparkles size={17} />}
-          title="Анимации в чатах"
-          subtitle="Фон «аврора» и микродвижения"
-          right={
-            <Toggle
-              checked={s?.autoplayMedia ?? true}
-              onChange={(v) => patch({ autoplayMedia: v })}
-            />
           }
         />
       </SettingsGroup>
