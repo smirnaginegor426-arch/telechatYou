@@ -56,11 +56,9 @@ app.get("/api/files/*", async (c) => {
 
     // Distinguish a temporary storage/network failure from a file that is truly gone.
     if (env.isProduction) console.warn("File request failed", error instanceof Error ? error.message : String(error));
-    return c.json(
-      { error: "File storage is temporarily unavailable" },
-      503,
-      { headers: { "Cache-Control": "no-store", "Retry-After": "5" } },
-    );
+    c.header("Cache-Control", "no-store");
+    c.header("Retry-After", "5");
+    return c.json({ error: "File storage is temporarily unavailable" }, 503);
   }
 });
 
