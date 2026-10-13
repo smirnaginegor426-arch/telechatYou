@@ -611,6 +611,12 @@ export default function ChatInfo() {
           </TcButton>
         </div>
       </BottomSheet>
+      <AvatarEditor
+        file={avatarToEdit}
+        onCancel={() => setAvatarToEdit(null)}
+        onSave={changeGroupAvatar}
+        saving={upload.isPending || updateGroup.isPending}
+      />
     </div>
   );
 }
@@ -626,12 +632,6 @@ function MediaThumb({ attachmentKey }: { attachmentKey: string | null }) {
           <ImageIcon size={18} />
         </div>
       )}
-      <AvatarEditor
-        file={avatarToEdit}
-        onCancel={() => setAvatarToEdit(null)}
-        onSave={changeGroupAvatar}
-        saving={upload.isPending || updateGroup.isPending}
-      />
     </div>
   );
 }
