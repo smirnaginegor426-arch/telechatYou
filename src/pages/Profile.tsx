@@ -117,7 +117,7 @@ export default function Profile() {
       <input
         ref={bannerRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/avif"
+        accept="image/*"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
@@ -134,7 +134,7 @@ export default function Profile() {
               "radial-gradient(120% 100% at 50% 0%, var(--tcy-glow-1), transparent 70%)",
           }}
         />
-        <div className="relative mx-4 mb-[-58px] h-[168px] overflow-hidden rounded-[24px] border tcy-line tcy-card-strong shadow-lg">
+        <div className="relative mx-4 mb-0 h-[168px] w-[calc(100%-2rem)] max-w-[560px] overflow-hidden rounded-[24px] border tcy-line tcy-card-strong shadow-lg">
           {bannerUrl ? (
             <img src={bannerUrl} alt="Обложка профиля" className="absolute inset-0 h-full w-full object-cover" draggable={false} />
           ) : (
@@ -148,8 +148,8 @@ export default function Profile() {
           <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/35 via-transparent to-black/10" />
           <button type="button" onClick={() => { setBannerError(""); bannerRef.current?.click(); }}
             aria-label="Изменить обложку" title="Изменить обложку"
-            className="tcy-press absolute right-2.5 top-2.5 flex h-9 items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3 text-white backdrop-blur-md">
-            <Camera size={15} /><span className="text-[11px] font-bold">Обложка</span>
+            className="tcy-press absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md">
+            <Pencil size={16} />
           </button>
           {profile.bannerKey && (
             <button type="button" onClick={() => {
@@ -166,7 +166,7 @@ export default function Profile() {
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 260, damping: 22 }}
-          className="relative"
+          className="relative mt-5"
         >
           <Avatar
             name={profile.displayName}
@@ -251,21 +251,21 @@ export default function Profile() {
 
       {/* edit sheet */}
       <BottomSheet open={editOpen} onClose={() => setEditOpen(false)} title="Редактировать профиль">
-        <div className="px-5 space-y-4">
-          <TcInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Имя" maxLength={64} />
-          <TcInput
-            value={username}
-            onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
-            placeholder="username"
-            maxLength={32}
-          />
-          <TcTextarea
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="О себе"
-            rows={3}
-            maxLength={280}
-          />
+        <div className="px-5 space-y-4" data-no-translate="true">
+          <label className="block space-y-1.5">
+            <span className="block text-[12.5px] font-semibold tcy-dim">Имя</span>
+            <TcInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Введите имя" maxLength={64} />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="block text-[12.5px] font-semibold tcy-dim">Имя пользователя</span>
+            <span className="block text-[11.5px] tcy-faint">@юзернейм пользователя</span>
+            <TcInput value={username} onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))} placeholder="@username" maxLength={32} />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="block text-[12.5px] font-semibold tcy-dim">О себе</span>
+            <span className="block text-[11.5px] tcy-faint">Описание пользователя</span>
+            <TcTextarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Расскажите о себе" rows={3} maxLength={280} />
+          </label>
           {error && <p className="text-[13px] tcy-danger font-semibold">{error}</p>}
           <TcButton size="lg" loading={update.isPending} onClick={save}>
             <Check size={17} /> Сохранить

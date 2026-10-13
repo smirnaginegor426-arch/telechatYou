@@ -43,7 +43,7 @@ export default function UserView() {
             className="absolute inset-x-0 top-0 h-64 pointer-events-none"
             style={{ background: "radial-gradient(120% 100% at 50% 0%, var(--tcy-glow-1), transparent 70%)" }}
           />
-          <div className="relative -mx-8 mb-[-58px] mt-2 h-[168px] w-[calc(100%+4rem)] overflow-hidden rounded-[24px] border tcy-line tcy-card-strong shadow-lg">
+          <div className="relative -mx-8 mb-0 mt-2 h-[168px] w-[calc(100%+4rem)] overflow-hidden rounded-[24px] border tcy-line tcy-card-strong shadow-lg">
             {bannerUrl ? (
               <img src={bannerUrl} alt={p.displayName + " — обложка"} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
             ) : (
@@ -58,6 +58,7 @@ export default function UserView() {
             initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            className="mt-5"
           >
             <Avatar
               name={p.displayName}
