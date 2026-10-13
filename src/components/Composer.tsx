@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Mic, Plus, SendHorizonal, Smile, Trash2 } from "lucide-react";
+import { Mic, Plus, SendHorizonal, Smile, Trash2, X } from "lucide-react";
 import { EmojiPicker } from "./EmojiPicker";
-import { formatDuration } from "@/lib/format";
+import { formatDuration, formatFileSize } from "@/lib/format";
+import { AppleEmoji } from "./AppleEmoji";
+import { compressPhoto, getMediaSendPreferences } from "@/lib/media-send-preferences";
 import { cn } from "@/lib/utils";
+
+const STICKERS = ["😀", "😂", "🥹", "😍", "😎", "😭", "🥳", "🤔", "😴", "🥰", "🤯", "🙄", "❤️", "🔥", "👍", "👎", "👏", "🙏", "💀", "✨", "🎉", "🤝", "🫶", "💔", "🐱", "🐶", "🦊", "🐸", "🐼", "🦄"];
 
 type Props = {
   onSendText: (text: string) => void;
@@ -25,6 +29,9 @@ export function Composer({
   const [text, setText] = useState("");
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
+  const [stickerOpen, setStickerOpen] = useState(false);
+  const [preparingImage, setPreparingImage] = useState(false);
+  const [stickersEnabled] = useState(() => getMediaSendPreferences().stickersEnabled);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
@@ -165,6 +172,31 @@ export function Composer({
 
   const hasText = text.trim().length > 0;
 
+  const handleImageSelection = async (file?: File) => {
+    setAttachOpen(false);
+    if (!file) return;
+    const preferences = getMediaSendPreferences();
+    if (preferences.confirmBeforeSend && !window.confirm(`Отправить фотографию «${file.name}» (${formatFileSize(file.size)})?`)) {
+      return;
+    }
+    setPreparingImage(true);
+    try {
+      onAttachImage(preferences.compressPhotos ? await compressPhoto(file) : file);
+    } finally {
+      setPreparingImage(false);
+    }
+  };
+
+  const handleFileSelection = (file?: File) => {
+    setAttachOpen(false);
+    if (!file) return;
+    const preferences = getMediaSendPreferences();
+    if (preferences.confirmBeforeSend && !window.confirm(`Отправить файл «${file.name}» (${formatFileSize(file.size)})?`)) {
+      return;
+    }
+    onAttachFile(file);
+  };
+
   return (
     <div className="relative z-20 shrink-0">
       <input
@@ -174,9 +206,8 @@ export function Composer({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onAttachImage(f);
           e.target.value = "";
-          setAttachOpen(false);
+          void handleImageSelection(f);
         }}
       />
       <input
@@ -185,9 +216,8 @@ export function Composer({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onAttachFile(f);
           e.target.value = "";
-          setAttachOpen(false);
+          handleFileSelection(f);
         }}
       />
 
@@ -204,6 +234,7 @@ export function Composer({
             {[
               { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
               { label: "Файл", emoji: "📎", fn: () => fileInputRef.current?.click() },
+              ...(stickersEnabled ? [{ label: "Стикеры", emoji: "✨", fn: () => { setAttachOpen(false); setEmojiOpen(false); setStickerOpen(true); } }] : []),
             ].map((a) => (
               <button
                 key={a.label}
@@ -214,6 +245,43 @@ export function Composer({
                 <span className="text-[14.5px] font-semibold tcy-text">{a.label}</span>
               </button>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {stickerOpen && !recording && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 450, damping: 34 }}
+            className="absolute bottom-[72px] left-3 z-30 w-[min(330px,calc(100vw-24px))] rounded-[22px] tcy-solid border tcy-line p-3 tcy-shadow-soft"
+          >
+            <div className="flex items-center gap-2 px-1 pb-2">
+              <span className="flex-1 text-[14px] font-bold tcy-text">Стикеры</span>
+              <button type="button" onClick={() => setStickerOpen(false)} className="tcy-press w-8 h-8 rounded-full flex items-center justify-center tcy-dim" aria-label="Закрыть стикеры">
+                <X size={17} />
+              </button>
+            </div>
+            <div className="grid grid-cols-5 gap-1 max-h-[250px] overflow-y-auto no-scrollbar">
+              {STICKERS.map((sticker) => (
+                <button
+                  key={sticker}
+                  type="button"
+                  onClick={() => {
+                    onSendText(sticker);
+                    setStickerOpen(false);
+                    setAttachOpen(false);
+                    setEmojiOpen(false);
+                  }}
+                  className="tcy-press h-12 rounded-[14px] flex items-center justify-center hover:bg-[color:var(--tcy-card)]"
+                  aria-label={"Отправить стикер " + sticker}
+                >
+                  <AppleEmoji emoji={sticker} size={32} />
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -255,6 +323,7 @@ export function Composer({
                 onClick={() => {
                   setAttachOpen((v) => !v);
                   setEmojiOpen(false);
+                  setStickerOpen(false);
                 }}
                 className={cn(
                   "tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform",
@@ -270,7 +339,7 @@ export function Composer({
                 value={text}
                 rows={1}
                 onChange={(e) => setText(e.target.value)}
-                onFocus={() => setEmojiOpen(false)}
+                onFocus={() => { setEmojiOpen(false); setStickerOpen(false); }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey && enterToSend) {
                     e.preventDefault();
@@ -281,7 +350,7 @@ export function Composer({
                 className="flex-1 bg-transparent outline-none resize-none text-[15px] tcy-text placeholder:text-[color:var(--tcy-faint)] py-2.5 max-h-[120px] no-scrollbar leading-[1.4]"
               />
               <button
-                onClick={() => setEmojiOpen((v) => !v)}
+                onClick={() => { setEmojiOpen((v) => !v); setStickerOpen(false); }}
                 className="tcy-press w-10 h-11 flex items-center justify-center shrink-0"
                 style={{ color: emojiOpen ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
                 aria-label="Эмодзи"
