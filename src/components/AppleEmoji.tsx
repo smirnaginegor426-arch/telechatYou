@@ -11,8 +11,9 @@ const graphemeSegmenter =
 
 function emojiImageName(emoji: string) {
   return (
-    Array.from(emoji, (character) => character.codePointAt(0)?.toString(16) ?? "")
-      .filter(Boolean)
+    Array.from(emoji, (character) => character.codePointAt(0))
+      .filter((codePoint): codePoint is number => codePoint !== undefined && codePoint !== 0xfe0f && codePoint !== 0xfe0e)
+      .map((codePoint) => codePoint.toString(16))
       .join("-") + ".png"
   );
 }
