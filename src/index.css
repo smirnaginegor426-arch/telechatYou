@@ -80,7 +80,9 @@
   }
 
   [data-theme="light"] {
-    --tcy-on-accent: #09090b;
+    --tcy-accent: #52525b;
+    --tcy-accent-deep: #27272a;
+    --tcy-on-accent: #fafafa;
   }
 
   * {
