@@ -95,6 +95,7 @@ export const profiles = mysqlTable(
     displayName: varchar("displayName", { length: 64 }).notNull(),
     bio: varchar("bio", { length: 280 }).default("").notNull(),
     avatarKey: varchar("avatarKey", { length: 255 }),
+    bannerKey: varchar("bannerKey", { length: 255 }),
     accent: varchar("accent", { length: 16 }).default("mint").notNull(),
     lastSeenAt: timestamp("lastSeenAt").defaultNow().notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
