@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowLeft,
+  BarChart3,
   Check,
   Copy,
   Forward,
@@ -11,6 +12,7 @@ import {
   Reply,
   SmilePlus,
   Trash2,
+  X,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
@@ -48,6 +50,11 @@ export default function ChatView() {
   const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null } | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(DEFAULT_CHAT_WALLPAPER);
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(null);
+  const [pollOpen, setPollOpen] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState("");
+  const [pollOptions, setPollOptions] = useState(["", ""]);
+  const [pollMultiple, setPollMultiple] = useState(false);
+  const [pollError, setPollError] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const myIdRef = useRef<number>(0);
@@ -171,6 +178,18 @@ export default function ChatView() {
   });
   const react = trpc.messages.toggleReaction.useMutation();
   const upload = trpc.storage.upload.useMutation();
+  const createPoll = trpc.messages.createPoll.useMutation({
+    onSuccess: async () => {
+      await utils.messages.list.invalidate({ chatId });
+      await utils.chats.list.invalidate();
+      setPollOpen(false);
+      setPollQuestion("");
+      setPollOptions(["", ""]);
+      setPollMultiple(false);
+      setPollError("");
+    },
+    onError: (error) => setPollError(error.message),
+  });
 
   const applyLocal = (id: number, patch: Partial<MessageItem>) =>
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
@@ -220,18 +239,46 @@ export default function ChatView() {
 
   const chat = info.data?.chat;
   const peer = info.data?.peer;
+  const channel = info.data?.channel;
+  const isChannel = !!channel;
+  const canPublish = !channel || info.data?.me.role === "owner" || info.data?.me.role === "admin";
   const isGroup = chat?.type === "group";
   const title = isGroup ? chat?.title ?? "Группа" : peer?.displayName ?? "…";
   const peerMember = info.data?.members.find((m) => m.userId !== myId);
   const peerLastReadId = !isGroup ? peerMember?.lastReadMessageId ?? 0 : 0;
   const online = !isGroup && isOnline(peer?.lastSeenAt);
-  const status = isGroup
-    ? `${info.data?.members.length ?? 0} участн.`
-    : online
-      ? "в сети"
-      : peer
-        ? formatLastSeen(peer.lastSeenAt)
-        : "";
+  const status = channel
+    ? channel.isPublic ? `Публичный канал · @${channel.username}` : "Приватный канал"
+    : isGroup
+      ? `${info.data?.members.length ?? 0} участн.`
+      : online
+        ? "в сети"
+        : peer
+          ? formatLastSeen(peer.lastSeenAt)
+          : "";
+
+  const submitPoll = () => {
+    setPollError("");
+    const options = pollOptions.map((option) => option.trim()).filter(Boolean);
+    if (pollQuestion.trim().length < 2) {
+      setPollError("Введите вопрос опроса.");
+      return;
+    }
+    if (options.length < 2) {
+      setPollError("Добавьте как минимум два варианта.");
+      return;
+    }
+    if (new Set(options.map((option) => option.toLowerCase())).size !== options.length) {
+      setPollError("Варианты не должны повторяться.");
+      return;
+    }
+    createPoll.mutate({
+      chatId,
+      question: pollQuestion.trim(),
+      options,
+      allowMultiple: pollMultiple,
+    });
+  };
 
   const chatItems: ChatListItem[] = useMemo(() => {
     const all = utils.chats.list.getData() ?? [];
@@ -400,14 +447,105 @@ export default function ChatView() {
           </motion.div>
         )}
       </AnimatePresence>
-      <Composer
-        onSendText={sendText}
-        onSendVoice={(blob) => void sendAttachment(blob, "voice")}
-        onAttachImage={(f) => void sendAttachment(f, "image")}
-        onAttachFile={(f) => void sendAttachment(f, "file")}
-        sending={send.isPending || upload.isPending}
-        enterToSend
-      />
+      {isChannel && canPublish && (
+        <div className="px-3 pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              setPollError("");
+              setPollOpen(true);
+            }}
+            className="tcy-press w-full h-9 rounded-[13px] tcy-card border tcy-line flex items-center justify-center gap-2 text-[12px] font-bold tcy-accent"
+          >
+            <BarChart3 size={15} /> Создать опрос
+          </button>
+        </div>
+      )}
+
+      {canPublish ? (
+        <Composer
+          onSendText={sendText}
+          onSendVoice={(blob) => void sendAttachment(blob, "voice")}
+          onAttachImage={(f) => void sendAttachment(f, "image")}
+          onAttachFile={(f) => void sendAttachment(f, "file")}
+          sending={send.isPending || upload.isPending || createPoll.isPending}
+          enterToSend
+        />
+      ) : (
+        <div className="px-4 pb-4 pt-2 safe-bottom">
+          <div className="rounded-[18px] border tcy-line tcy-card px-4 py-3 text-center text-[12.5px] tcy-dim">
+            Публиковать сообщения и опросы могут только владелец и администраторы канала.
+          </div>
+        </div>
+      )}
+
+      {pollOpen && isChannel && canPublish && (
+        <div className="absolute inset-0 z-50 flex items-end justify-center bg-black/60 px-3 pb-3">
+          <button
+            type="button"
+            className="absolute inset-0 w-full h-full cursor-default"
+            aria-label="Закрыть создание опроса"
+            onClick={() => setPollOpen(false)}
+          />
+          <div className="relative w-full max-w-lg rounded-[26px] tcy-solid border tcy-line p-4 space-y-3 tcy-shadow-soft">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={19} className="tcy-accent" />
+              <h2 className="flex-1 text-[17px] font-extrabold tcy-text">Новый опрос</h2>
+              <button type="button" onClick={() => setPollOpen(false)} className="tcy-press w-9 h-9 rounded-full tcy-card flex items-center justify-center tcy-dim" aria-label="Закрыть">
+                <X size={17} />
+              </button>
+            </div>
+            <input
+              value={pollQuestion}
+              onChange={(event) => setPollQuestion(event.target.value)}
+              maxLength={500}
+              placeholder="Задайте вопрос"
+              className="w-full h-11 rounded-[15px] tcy-card border tcy-line px-3.5 text-[13.5px] tcy-text outline-none focus:border-[color:var(--tcy-accent)]"
+            />
+            <div className="space-y-2 max-h-[36vh] overflow-y-auto no-scrollbar">
+              {pollOptions.map((option, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    value={option}
+                    onChange={(event) => setPollOptions((current) => current.map((value, i) => i === index ? event.target.value : value))}
+                    maxLength={255}
+                    placeholder={`Вариант ${index + 1}`}
+                    className="flex-1 min-w-0 h-10 rounded-[14px] tcy-card border tcy-line px-3 text-[13px] tcy-text outline-none focus:border-[color:var(--tcy-accent)]"
+                  />
+                  {pollOptions.length > 2 && (
+                    <button type="button" onClick={() => setPollOptions((current) => current.filter((_, i) => i !== index))} className="tcy-press w-9 h-9 rounded-full tcy-card flex items-center justify-center tcy-faint" aria-label="Удалить вариант">
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+              {pollOptions.length < 10 && (
+                <button
+                  type="button"
+                  onClick={() => setPollOptions((current) => current.length < 10 ? [...current, ""] : current)}
+                  className="tcy-press text-[12px] font-bold tcy-accent px-1 py-1"
+                >
+                  + Добавить вариант
+                </button>
+              )}
+            </div>
+            <label className="flex items-center gap-2.5 text-[12.5px] tcy-dim">
+              <input type="checkbox" checked={pollMultiple} onChange={(event) => setPollMultiple(event.target.checked)} />
+              Разрешить несколько ответов
+            </label>
+            {pollError && <p role="alert" className="text-[12px]" style={{ color: "var(--tcy-danger)" }}>{pollError}</p>}
+            <button
+              type="button"
+              onClick={submitPoll}
+              disabled={createPoll.isPending}
+              className="tcy-press w-full h-11 rounded-[15px] tcy-gradient-accent text-[13px] font-bold disabled:opacity-50"
+              style={{ color: "var(--tcy-on-accent)" }}
+            >
+              {createPoll.isPending ? "Публикуем…" : "Опубликовать опрос"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* message actions sheet */}
       <BottomSheet open={!!actionMsg} onClose={() => setActionMsg(null)}>
