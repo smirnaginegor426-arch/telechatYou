@@ -43,9 +43,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (savedSettings.data?.theme) setThemeState(savedSettings.data.theme);
   }, [savedSettings.data?.theme]);
 
-  // The Halloween palette is a private visual override for this account only.
-  const isHalloweenUser = Number(me.data?.user.id) === 848013;
-  const activeAccent = isHalloweenUser ? "halloween" : "mono";
+  // Halloween is the default accent for every user on web and Android.
+  const activeAccent = "halloween" as const;
 
   useEffect(() => {
     applyTheme(theme, activeAccent);

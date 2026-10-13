@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - halloween-theme-tester-848013
     paths:
       - "android/**"
       - ".github/workflows/build-telechatyou-apk.yml"
