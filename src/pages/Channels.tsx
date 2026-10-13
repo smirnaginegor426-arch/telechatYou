@@ -10,7 +10,6 @@ import {
   Plus,
   Radio,
   Search,
-  Users,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
