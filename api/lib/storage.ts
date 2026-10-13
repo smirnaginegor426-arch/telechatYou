@@ -95,13 +95,6 @@ function isMissingS3Object(error: unknown): boolean {
   );
 }
 
-function requireS3(): S3Client {
-  if (!s3 || !env.s3Bucket) {
-    throw new Error("S3-compatible storage is not configured. Set S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY.");
-  }
-  return s3;
-}
-
 export class Storage {
   async uploadFile(input: UploadFileInput): Promise<UploadResult> {
     const data = typeof input.fileContent === "string" ? Buffer.from(input.fileContent, "utf8") : Buffer.from(input.fileContent);
