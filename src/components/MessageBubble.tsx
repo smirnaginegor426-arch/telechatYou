@@ -14,6 +14,15 @@ import { cn } from "@/lib/utils";
 import { AppleEmoji, EmojiText } from "./AppleEmoji";
 import { PollCard } from "./PollCard";
 
+function isStandaloneEmoji(text: string) {
+  const value = text.trim();
+  return value.length > 0
+    && value.length <= 32
+    && !/\s/u.test(value)
+    && /\p{Extended_Pictographic}/u.test(value)
+    && !/[A-Za-z0-9]/.test(value);
+}
+
 function groupReactions(
   reactions: { emoji: string; userId: number }[],
   myId: number,
@@ -135,6 +144,7 @@ export function MessageBubble({
   const reactions = groupReactions(m.reactions, myId);
   const isImage = m.kind === "image";
   const isPoll = !!m.poll;
+  const isStickerMessage = m.kind === "text" && !isPoll && isStandaloneEmoji(m.body ?? "");
 
   return (
     <motion.div
@@ -173,14 +183,14 @@ export function MessageBubble({
           onDoubleClick={() => onReaction(m, "❤️")}
           className={cn(
             "relative select-none cursor-default",
-            isImage || isPoll ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
-            !isImage && !isPoll &&
+            isImage || isPoll || isStickerMessage ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
+            !isImage && !isPoll && !isStickerMessage &&
               (own
                 ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
                 : "rounded-[22px] rounded-bl-[8px] border tcy-line"),
           )}
           style={
-            isImage || isPoll
+            isImage || isPoll || isStickerMessage
               ? {
                   background: "transparent",
                   color: "var(--tcy-text)",
@@ -310,9 +320,15 @@ export function MessageBubble({
           {m.poll && <PollCard poll={m.poll} own={own} />}
 
           {m.body && !m.poll && (
-            <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
-              <EmojiText text={m.body} />
-            </p>
+            isStickerMessage ? (
+              <div className="px-1 py-1">
+                <AppleEmoji emoji={m.body.trim()} size={58} />
+              </div>
+            ) : (
+              <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
+                <EmojiText text={m.body} />
+              </p>
+            )
           )}
 
           <span
@@ -321,7 +337,7 @@ export function MessageBubble({
               "justify-end",
             )}
             style={{
-              color: isImage
+              color: isImage || isStickerMessage
                 ? "var(--tcy-faint)"
                 : own
                   ? "color-mix(in srgb, var(--tcy-on-accent) 62%, transparent)"

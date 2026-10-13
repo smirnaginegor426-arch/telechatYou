@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Bell,
@@ -10,7 +10,9 @@ import {
   Info,
   Keyboard,
   Moon,
+  Paperclip,
   RefreshCw,
+  Smile,
   Sun,
   ShieldCheck,
   Trash2,
@@ -24,6 +26,7 @@ import { SettingsGroup, SettingsRow, Toggle } from "@/components/SettingsRow";
 import { TcButton } from "@/components/TcButton";
 import { formatFileSize } from "@/lib/format";
 import { useTheme } from "@/hooks/useTheme";
+import { getMediaSendPreferences, saveMediaSendPreferences, type MediaSendPreferences } from "@/lib/media-send-preferences";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -34,6 +37,11 @@ export default function Settings() {
   const myFiles = trpc.storage.mine.useQuery();
   const [aboutOpen, setAboutOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
+  const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
+
+  useEffect(() => {
+    setMediaPreferences(getMediaSendPreferences());
+  }, []);
 
   const update = trpc.settings.update.useMutation({
     onSuccess: (s) => utils.settings.get.setData(undefined, s),
@@ -44,6 +52,11 @@ export default function Settings() {
 
   const s = settingsQuery.data;
   const patch = (p: Parameters<typeof update.mutate>[0]) => update.mutate(p);
+  const updateMediaPreference = (key: keyof MediaSendPreferences, value: boolean) => {
+    const next = { ...mediaPreferences, [key]: value };
+    setMediaPreferences(next);
+    saveMediaSendPreferences(next);
+  };
 
   const files = myFiles.data ?? [];
   const totalSize = files.reduce((sum, f) => sum + Number(f.size), 0);
@@ -160,6 +173,24 @@ export default function Settings() {
           title="Enter отправляет"
           subtitle="Иначе Enter — новая строка"
           right={<Toggle checked={s?.enterToSend ?? false} onChange={(v) => patch({ enterToSend: v })} />}
+        />
+        <SettingsRow
+          icon={<ImageIcon size={17} />}
+          title="Сжимать фото"
+          subtitle="Уменьшать размер JPG, PNG и WebP"
+          right={<Toggle checked={mediaPreferences.compressPhotos} onChange={(v) => updateMediaPreference("compressPhotos", v)} />}
+        />
+        <SettingsRow
+          icon={<Paperclip size={17} />}
+          title="Подтверждать отправку"
+          subtitle="Спрашивать перед отправкой фото и файлов"
+          right={<Toggle checked={mediaPreferences.confirmBeforeSend} onChange={(v) => updateMediaPreference("confirmBeforeSend", v)} />}
+        />
+        <SettingsRow
+          icon={<Smile size={17} />}
+          title="Стикеры"
+          subtitle="Показывать панель стикеров у кнопки +"
+          right={<Toggle checked={mediaPreferences.stickersEnabled} onChange={(v) => updateMediaPreference("stickersEnabled", v)} />}
         />
         <SettingsRow
           icon={<ImageIcon size={17} />}
