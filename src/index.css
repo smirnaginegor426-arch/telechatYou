@@ -392,8 +392,9 @@
   background:
     radial-gradient(90% 130% at 50% 110%, color-mix(in srgb, var(--tcy-accent) 11%, transparent), transparent 70%),
     linear-gradient(135deg, color-mix(in srgb, white 5%, transparent), transparent 42%);
-  z-index: -1;
+  z-index: 0;
 }
+.tcy-island > div { position: relative; z-index: 1; }
 .tcy-tab-orb {
   background: color-mix(in srgb, var(--tcy-accent) 12%, transparent);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tcy-accent) 12%, transparent),
