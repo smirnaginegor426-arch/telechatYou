@@ -137,9 +137,10 @@ async function cloudinaryUpload(key: string, data: Uint8Array, contentType: stri
   const form = new FormData();
   form.set("file", new Blob([Buffer.from(data)], { type: contentType }), path.posix.basename(key));
   form.set("public_id", key);
+  form.set("type", "authenticated");
   form.set("overwrite", "false");
-  // For REST Upload API, the delivery type belongs in the endpoint path, not the form body.
-  const response = await cloudinaryAdminFetch("raw/authenticated/upload", { method: "POST", body: form });
+  // Upload API uses /:resource_type/upload; the delivery type is sent as a form parameter.
+  const response = await cloudinaryAdminFetch("raw/upload", { method: "POST", body: form });
   if (!response.ok) {
     const detail = await cloudinaryResponseDetail(response);
     throw new Error(`Cloudinary upload failed (${response.status})${detail ? `: ${detail}` : ""}`);
@@ -148,14 +149,14 @@ async function cloudinaryUpload(key: string, data: Uint8Array, contentType: stri
 
 async function cloudinaryDestroy(key: string): Promise<void> {
   const timestamp = String(Math.floor(Date.now() / 1000));
-  const signedParams = { invalidate: "true", public_id: key, timestamp };
+  const signedParams = { invalidate: "true", public_id: key, timestamp, type: "authenticated" };
   const form = new URLSearchParams({
     ...signedParams,
     api_key: env.cloudinaryApiKey,
     signature: cloudinarySignature(signedParams),
   });
-  // For REST API calls, authenticated delivery type is part of the endpoint path.
-  const response = await fetch(cloudinaryApiUrl("raw/authenticated/destroy"), {
+  // Destroy API uses /:resource_type/destroy; delivery type is a signed request parameter.
+  const response = await fetch(cloudinaryApiUrl("raw/destroy"), {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: form,
