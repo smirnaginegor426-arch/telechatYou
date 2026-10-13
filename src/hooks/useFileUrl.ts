@@ -127,15 +127,16 @@ export function useFileUrl(
     }
 
     function onRefresh(event: Event) {
-  const detail = (
-    event as CustomEvent<{ key: string }>
-  ).detail;
+      const detail = (event as CustomEvent<{ key: string }>).detail;
+      if (detail?.key !== key) return;
 
-  if (detail?.key !== key) return;
-
-  // Не убираем текущий URL, пока получаем новый.
-  void load(true);
-}
+      // Force the image/audio element to remount after a network or storage error.
+      // The URL itself is stable (/api/files/<key>), so refreshing only the cache
+      // without changing the state would not make the browser retry the request.
+      setUrl(null);
+      if (timer) clearTimeout(timer);
+      void load(true);
+    }
 
     window.addEventListener(REFRESH_EVENT, onRefresh);
     void load();
