@@ -5,7 +5,7 @@ import { trpc } from "@/providers/trpc";
 type Theme = "dark" | "light";
 type ThemeCtx = {
   theme: Theme;
-  accent: "mono";
+  accent: "mono" | "halloween";
   setTheme: (theme: Theme) => void;
   setAccent: (_accent: string) => void;
 };
@@ -43,15 +43,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (savedSettings.data?.theme) setThemeState(savedSettings.data.theme);
   }, [savedSettings.data?.theme]);
 
+  // The Halloween palette is a private visual override for this account only.
+  const isHalloweenUser = Number(me.data?.user.id) === 848013;
+  const activeAccent = isHalloweenUser ? "halloween" : "mono";
+
   useEffect(() => {
-    applyTheme(theme, "mono");
+    applyTheme(theme, activeAccent);
     try {
       localStorage.setItem("tcy-theme", theme);
-      localStorage.setItem("tcy-accent", "mono");
+      localStorage.setItem("tcy-accent", activeAccent);
     } catch {
       // The selected theme still applies for this session when storage is unavailable.
     }
-  }, [theme]);
+  }, [theme, activeAccent]);
 
   const setTheme = useCallback((nextTheme: Theme) => {
     setThemeState(nextTheme);
@@ -62,7 +66,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider
       value={{
         theme,
-        accent: "mono",
+        accent: activeAccent,
         setTheme,
         setAccent: noop,
       }}
