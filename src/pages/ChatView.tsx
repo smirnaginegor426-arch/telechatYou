@@ -25,6 +25,11 @@ import { AppleEmoji } from "@/components/AppleEmoji";
 import { fileToBase64, formatDayLabel, formatLastSeen, isOnline, sameDay } from "@/lib/format";
 import type { ChatListItem, MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_CHAT_WALLPAPER,
+  chatWallpaperImageKey,
+  chatWallpaperKey,
+} from "@/lib/chat-wallpapers";
 
 export default function ChatView() {
   const { id } = useParams<{ id: string }>();
@@ -40,9 +45,21 @@ export default function ChatView() {
   const [actionMsg, setActionMsg] = useState<MessageItem | null>(null);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
   const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null } | null>(null);
+  const [wallpaper, setWallpaper] = useState<string>(DEFAULT_CHAT_WALLPAPER);
+  const [wallpaperImage, setWallpaperImage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const myIdRef = useRef<number>(0);
+
+  useEffect(() => {
+    try {
+      setWallpaper(localStorage.getItem(chatWallpaperKey(chatId)) || DEFAULT_CHAT_WALLPAPER);
+      setWallpaperImage(localStorage.getItem(chatWallpaperImageKey(chatId)));
+    } catch {
+      setWallpaper(DEFAULT_CHAT_WALLPAPER);
+      setWallpaperImage(null);
+    }
+  }, [chatId]);
 
   const me = trpc.profile.me.useQuery(undefined, { staleTime: 60_000 });
   const myId = me.data?.profile?.userId ?? 0;
@@ -265,11 +282,27 @@ export default function ChatView() {
 
       {/* messages */}
       <div className="relative flex-1 min-h-0">
-        <div className="tcy-wallpaper" />
+        <div
+          aria-hidden="true"
+          className={cn(
+            "tcy-wallpaper",
+            wallpaper !== "custom" && `tcy-wallpaper-bg--${wallpaper}`,
+          )}
+          style={
+            wallpaper === "custom" && wallpaperImage
+              ? {
+                  backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.36)), url("${wallpaperImage}")`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                }
+              : undefined
+          }
+        />
         <div
           ref={scrollRef}
           onScroll={onScroll}
-          className="absolute inset-0 overflow-y-auto no-scrollbar py-3"
+          className="absolute inset-0 z-[1] overflow-y-auto no-scrollbar py-3"
         >
           {loadingOlder && (
             <div className="flex justify-center py-2">
