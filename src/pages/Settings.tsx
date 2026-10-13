@@ -10,7 +10,6 @@ import {
   Keyboard,
   Moon,
   ShieldCheck,
-  Sparkles,
   Trash2,
   UserRound,
   Volume2,
