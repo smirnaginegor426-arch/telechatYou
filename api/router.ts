@@ -1,6 +1,7 @@
 import { authRouter } from "./auth-router";
 import { adminRouter } from "./admin-router";
 import { chatsRouter } from "./chats-router";
+import { channelsRouter } from "./channels-router";
 import { messagesRouter } from "./messages-router";
 import { profileRouter } from "./profile-router";
 import { settingsRouter } from "./settings-router";
@@ -15,6 +16,7 @@ export const appRouter = createRouter({
   auth: authRouter,
   profile: profileRouter,
   chats: chatsRouter,
+  channels: channelsRouter,
   messages: messagesRouter,
   storage: storageRouter,
   settings: settingsRouter,
