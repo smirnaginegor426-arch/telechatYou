@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, ne } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { chatMembers, chats, messages, profiles } from "@db/schema";
+import { channels, chatMembers, chats, messages, profiles } from "@db/schema";
 import {
   getChatMembers,
   getLastMessage,
@@ -37,7 +37,10 @@ async function buildChatListItem(m: typeof chatMembers.$inferSelect, userId: num
   const lastSender = lastMessage
     ? (await getProfilesByIds([lastMessage.senderId]))[0] ?? null
     : null;
-  return { chat, membership: m, lastMessage, lastSender, unread, peer, membersCount };
+  const channel = chat.type === "group"
+    ? await getDb().query.channels.findFirst({ where: eq(channels.chatId, chat.id) }) ?? null
+    : null;
+  return { chat, membership: m, lastMessage, lastSender, unread, peer, membersCount, channel };
 }
 
 export const chatsRouter = createRouter({
@@ -132,12 +135,15 @@ export const chatsRouter = createRouter({
       });
       if (!chat) throw new TRPCError({ code: "NOT_FOUND" });
       const members = await getChatMembers(chat.id);
+      const channel = await getDb().query.channels.findFirst({
+        where: eq(channels.chatId, chat.id),
+      }) ?? null;
       let peer: typeof profiles.$inferSelect | null = null;
       if (chat.type === "direct") {
         const other = members.find((m) => m.userId !== ctx.user.id);
         if (other?.userId) peer = (await getProfilesByIds([other.userId]))[0] ?? null;
       }
-      return { chat, members, me, peer };
+      return { chat, members, me, peer, channel };
     }),
 
   updateGroup: authedQuery
@@ -170,6 +176,12 @@ export const chatsRouter = createRouter({
       });
       if (!chat || chat.type !== "group")
         throw new TRPCError({ code: "BAD_REQUEST", message: "Не группа" });
+      const channel = await getDb().query.channels.findFirst({
+        where: eq(channels.chatId, input.chatId),
+      });
+      if (channel && me.role !== "owner" && me.role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Добавлять участников в канал может только владелец или администратор" });
+      }
       const existing = await getChatMembers(input.chatId);
       const existingIds = new Set(existing.map((m) => m.userId));
       const fresh = input.memberIds.filter((u) => !existingIds.has(u));
