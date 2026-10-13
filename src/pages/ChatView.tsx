@@ -21,6 +21,7 @@ import { Lightbox } from "@/components/Lightbox";
 import { computePeaks } from "@/components/VoiceMessage";
 import { EmptyState } from "@/components/EmptyState";
 import { QUICK_REACTIONS } from "@/lib/emoji";
+import { AppleEmoji } from "@/components/AppleEmoji";
 import { fileToBase64, formatDayLabel, formatLastSeen, isOnline, sameDay } from "@/lib/format";
 import type { ChatListItem, MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
@@ -375,7 +376,7 @@ export default function ChatView() {
                   }}
                   className="tcy-press text-[26px] w-11 h-11 rounded-full tcy-card flex items-center justify-center"
                 >
-                  {e}
+                  <AppleEmoji emoji={e} size={27} />
                 </button>
               ))}
             </div>

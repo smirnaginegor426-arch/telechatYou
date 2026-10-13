@@ -10,6 +10,7 @@ import {
 import { formatFileSize, formatMessageTime } from "@/lib/format";
 import type { MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
+import { AppleEmoji, EmojiText } from "./AppleEmoji";
 
 function groupReactions(
   reactions: { emoji: string; userId: number }[],
@@ -278,7 +279,7 @@ export function MessageBubble({
 
           {m.body && (
             <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
-              {m.body}
+              <EmojiText text={m.body} />
             </p>
           )}
 
@@ -336,7 +337,7 @@ export function MessageBubble({
                       : { color: "var(--tcy-text)" }
                   }
                 >
-                  {emoji}
+                  <AppleEmoji emoji={emoji} size={15} />
                   {info.count > 1 && (
                     <span className="text-[10px] font-bold">
                       {info.count}
