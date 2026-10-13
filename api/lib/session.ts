@@ -19,10 +19,47 @@ function tokenHash(token: string): string {
     .digest("hex");
 }
 
+export const ACTIVE_ACCOUNT_COOKIE = "tcy_active_account";
+const ACCOUNT_COOKIE_PREFIX = "tcy_account_";
+const ACCOUNT_SLOT_ID_PATTERN = /^[a-f0-9]{32}$/;
+
+export function isValidAccountSlotId(value: string): boolean {
+  return ACCOUNT_SLOT_ID_PATTERN.test(value);
+}
+
+export function accountCookieName(slotId: string): string {
+  if (!isValidAccountSlotId(slotId)) {
+    throw new Error("Invalid account slot");
+  }
+  return ACCOUNT_COOKIE_PREFIX + slotId;
+}
+
+export function getActiveAccountSlotId(headers: Headers): string | undefined {
+  const parsed = cookie.parse(headers.get("cookie") ?? "");
+  const slotId = parsed[ACTIVE_ACCOUNT_COOKIE];
+  return slotId && isValidAccountSlotId(slotId) ? slotId : undefined;
+}
+
+export function getAccountSessionToken(
+  headers: Headers,
+  slotId: string,
+): string | undefined {
+  if (!isValidAccountSlotId(slotId)) return undefined;
+  const parsed = cookie.parse(headers.get("cookie") ?? "");
+  return parsed[accountCookieName(slotId)] || undefined;
+}
+
 export function getSessionToken(
   headers: Headers,
 ): string | undefined {
   const parsed = cookie.parse(headers.get("cookie") ?? "");
+  const activeSlotId = parsed[ACTIVE_ACCOUNT_COOKIE];
+  // If account mode is selected but its session cookie is missing, do not silently
+  // fall back to a different legacy session.
+  if (activeSlotId !== undefined) {
+    if (!isValidAccountSlotId(activeSlotId)) return undefined;
+    return parsed[accountCookieName(activeSlotId)] || undefined;
+  }
   return parsed[Session.cookieName] || undefined;
 }
 
