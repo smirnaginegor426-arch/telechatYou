@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* ============================================================
-   TeleChatYou design system — "Aurora Forest"
+   TeleChatYou design system — "Midnight Black"
    ============================================================ */
 
 @layer base {
@@ -32,62 +32,56 @@
 
   /* ---- TeleChatYou semantic tokens ---- */
   :root {
-    --tcy-bg: #07110e;
-    --tcy-bg-2: #0b1a15;
-    --tcy-card: rgba(233, 245, 240, 0.045);
-    --tcy-card-strong: rgba(233, 245, 240, 0.08);
-    --tcy-solid: #0e1f19;
-    --tcy-solid-2: #122720;
-    --tcy-line: rgba(233, 245, 240, 0.08);
-    --tcy-line-strong: rgba(233, 245, 240, 0.14);
-    --tcy-text: #e9f5f0;
-    --tcy-dim: #8fa9a0;
-    --tcy-faint: #5c746b;
-    --tcy-danger: #f87d7d;
-    --tcy-bubble-in: rgba(233, 245, 240, 0.055);
-    --tcy-header: rgba(7, 17, 14, 0.72);
-    --tcy-glow-1: rgba(47, 224, 168, 0.14);
-    --tcy-glow-2: rgba(20, 184, 166, 0.1);
+    --tcy-bg: #050506;
+    --tcy-bg-2: #09090b;
+    --tcy-card: rgba(244, 244, 245, 0.035);
+    --tcy-card-strong: rgba(244, 244, 245, 0.075);
+    --tcy-solid: #0b0b0d;
+    --tcy-solid-2: #111114;
+    --tcy-line: rgba(244, 244, 245, 0.085);
+    --tcy-line-strong: rgba(244, 244, 245, 0.14);
+    --tcy-text: #f4f4f5;
+    --tcy-dim: #a1a1aa;
+    --tcy-faint: #71717a;
+    --tcy-danger: #fb7185;
+    --tcy-bubble-in: rgba(244, 244, 245, 0.045);
+    --tcy-header: rgba(5, 5, 6, 0.82);
+    --tcy-glow-1: rgba(255, 255, 255, 0.035);
+    --tcy-glow-2: rgba(148, 163, 184, 0.035);
     color-scheme: dark;
   }
 
   [data-theme="light"] {
-    --tcy-bg: #edf3f0;
-    --tcy-bg-2: #ffffff;
-    --tcy-card: rgba(12, 27, 22, 0.045);
-    --tcy-card-strong: rgba(12, 27, 22, 0.08);
-    --tcy-solid: #ffffff;
-    --tcy-solid-2: #f2f7f4;
-    --tcy-line: rgba(12, 27, 22, 0.09);
-    --tcy-line-strong: rgba(12, 27, 22, 0.16);
-    --tcy-text: #0c1b16;
-    --tcy-dim: #52675e;
-    --tcy-faint: #8ba098;
-    --tcy-danger: #dc5555;
-    --tcy-bubble-in: #ffffff;
-    --tcy-header: rgba(237, 243, 240, 0.78);
-    --tcy-glow-1: rgba(15, 159, 118, 0.12);
-    --tcy-glow-2: rgba(20, 184, 166, 0.08);
-    color-scheme: light;
+    --tcy-bg: #09090b;
+    --tcy-bg-2: #111114;
+    --tcy-card: rgba(244, 244, 245, 0.035);
+    --tcy-card-strong: rgba(244, 244, 245, 0.075);
+    --tcy-solid: #0b0b0d;
+    --tcy-solid-2: #111114;
+    --tcy-line: rgba(244, 244, 245, 0.085);
+    --tcy-line-strong: rgba(244, 244, 245, 0.14);
+    --tcy-text: #f4f4f5;
+    --tcy-dim: #a1a1aa;
+    --tcy-faint: #71717a;
+    --tcy-danger: #fb7185;
+    --tcy-bubble-in: rgba(244, 244, 245, 0.045);
+    --tcy-header: rgba(5, 5, 6, 0.82);
+    --tcy-glow-1: rgba(255, 255, 255, 0.035);
+    --tcy-glow-2: rgba(148, 163, 184, 0.035);
+    color-scheme: dark;
   }
 
-  /* ---- accent packs ---- */
-  [data-accent="mint"]   { --tcy-accent: #2fe0a8; --tcy-accent-deep: #0e9f76; --tcy-on-accent: #03211a; }
-  [data-accent="lagoon"] { --tcy-accent: #2dd4bf; --tcy-accent-deep: #0d9488; --tcy-on-accent: #032220; }
-  [data-accent="sky"]    { --tcy-accent: #4cc3f7; --tcy-accent-deep: #1e8fd6; --tcy-on-accent: #06222f; }
-  [data-accent="violet"] { --tcy-accent: #b39dfa; --tcy-accent-deep: #8b6cf0; --tcy-on-accent: #1d1040; }
-  [data-accent="amber"]  { --tcy-accent: #fbbf24; --tcy-accent-deep: #d97706; --tcy-on-accent: #2c1a02; }
-  [data-accent="rose"]   { --tcy-accent: #fb8ba0; --tcy-accent-deep: #e0506e; --tcy-on-accent: #33050f; }
+  /* Monochrome palette: legacy saved accent values no longer tint the app green. */
+  :root,
+  [data-accent] {
+    --tcy-accent: #e4e4e7;
+    --tcy-accent-deep: #a1a1aa;
+    --tcy-on-accent: #09090b;
+  }
 
   [data-theme="light"] {
-    --tcy-on-accent: #ffffff;
+    --tcy-on-accent: #09090b;
   }
-  [data-theme="light"][data-accent="mint"]   { --tcy-accent: #0e9f76; --tcy-accent-deep: #0b8463; }
-  [data-theme="light"][data-accent="lagoon"] { --tcy-accent: #0d9488; --tcy-accent-deep: #0b7a70; }
-  [data-theme="light"][data-accent="sky"]    { --tcy-accent: #1e8fd6; --tcy-accent-deep: #1774b0; }
-  [data-theme="light"][data-accent="violet"] { --tcy-accent: #8b6cf0; --tcy-accent-deep: #7452e0; }
-  [data-theme="light"][data-accent="amber"]  { --tcy-accent: #d97706; --tcy-accent-deep: #b4640a; }
-  [data-theme="light"][data-accent="rose"]   { --tcy-accent: #e0506e; --tcy-accent-deep: #c43f5b; }
 
   * {
     border-color: var(--tcy-line);
@@ -215,16 +209,70 @@
   to { transform: translate3d(6vmax, 4vmax, 0) scale(1.12); }
 }
 
-/* ---- chat wallpaper: subtle dot grid over aurora ---- */
+/* ---- selectable chat wallpapers ---- */
 .tcy-wallpaper {
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
-  background-image: radial-gradient(var(--tcy-line) 1px, transparent 1px);
-  background-size: 22px 22px;
-  mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
-  opacity: 0.5;
+  overflow: hidden;
+  background-color: #050506;
+}
+
+.tcy-wallpaper-preview {
+  background-color: #050506;
+  background-size: cover;
+  background-position: center;
+}
+
+.tcy-wallpaper-bg--black {
+  background-image: radial-gradient(ellipse at 50% 0%, #17171b 0%, #08080a 48%, #030304 100%);
+}
+
+.tcy-wallpaper-bg--graphite {
+  background-color: #09090b;
+  background-image:
+    linear-gradient(135deg, rgba(255,255,255,.035) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(255,255,255,.025) 25%, transparent 25%),
+    radial-gradient(ellipse at 80% 10%, rgba(148,163,184,.11), transparent 42%),
+    linear-gradient(160deg, #17181d, #070708 72%);
+  background-size: 26px 26px, 26px 26px, auto, auto;
+}
+
+.tcy-wallpaper-bg--stars {
+  background-color: #03040a;
+  background-image:
+    radial-gradient(1.4px 1.4px at 20px 30px, rgba(255,255,255,.8) 60%, transparent 100%),
+    radial-gradient(1px 1px at 105px 82px, rgba(203,213,225,.75) 60%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 70px 145px, rgba(255,255,255,.55) 60%, transparent 100%),
+    radial-gradient(ellipse at 78% 18%, rgba(79,70,229,.18), transparent 45%),
+    linear-gradient(180deg, #090d1c, #03040a 75%);
+  background-size: 180px 170px, 210px 190px, 160px 210px, auto, auto;
+}
+
+.tcy-wallpaper-bg--space {
+  background-color: #050611;
+  background-image:
+    radial-gradient(ellipse at 18% 12%, rgba(37,99,235,.28), transparent 44%),
+    radial-gradient(ellipse at 85% 75%, rgba(124,58,237,.22), transparent 48%),
+    radial-gradient(ellipse at 50% 105%, rgba(14,116,144,.12), transparent 42%),
+    linear-gradient(155deg, #080a18, #040407 72%);
+}
+
+.tcy-wallpaper-bg--violet {
+  background-color: #09050f;
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgba(124,58,237,.28), transparent 48%),
+    radial-gradient(ellipse at 100% 100%, rgba(91,33,182,.2), transparent 44%),
+    linear-gradient(150deg, #10091a, #050407 78%);
+}
+
+.tcy-wallpaper-bg--wine {
+  background-color: #10070b;
+  background-image:
+    radial-gradient(ellipse at 100% 0%, rgba(159,18,57,.22), transparent 46%),
+    radial-gradient(ellipse at 0% 100%, rgba(124,45,18,.16), transparent 48%),
+    linear-gradient(150deg, #16090e, #050506 76%);
 }
 
 /* ---- skeleton shimmer ---- */
@@ -288,7 +336,7 @@
 }
 @media (min-width: 768px) {
   body {
-    background: #04090a;
+    background: #020203;
   }
   .tcy-app-shell {
     height: min(92dvh, 900px);
