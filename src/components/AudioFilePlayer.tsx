@@ -53,6 +53,7 @@ export function AudioFilePlayer({
       border: `1px solid ${own ? "color-mix(in srgb, var(--tcy-on-accent) 18%, transparent)" : "var(--tcy-line)"}`,
     }}>
       <audio
+        className="hidden"
         ref={audioRef}
         src={url ?? undefined}
         preload="metadata"
