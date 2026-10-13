@@ -43,8 +43,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (savedSettings.data?.theme) setThemeState(savedSettings.data.theme);
   }, [savedSettings.data?.theme]);
 
-  // The Halloween palette is a private visual override for this account only.
-  const isHalloweenUser = Number(me.data?.user.id) === 848013;
+  // Enable the private palette only inside the Android app's WebView and only for tester.
+  const isAndroidApp = (() => {
+    try {
+      if (new URLSearchParams(window.location.search).get("tcyAndroidApp") === "1") {
+        sessionStorage.setItem("tcy-android-app", "1");
+      }
+      return sessionStorage.getItem("tcy-android-app") === "1";
+    } catch {
+      return new URLSearchParams(window.location.search).get("tcyAndroidApp") === "1";
+    }
+  })();
+  const isHalloweenUser = isAndroidApp && Number(me.data?.user.id) === 848013;
   const activeAccent = isHalloweenUser ? "halloween" : "mono";
 
   useEffect(() => {

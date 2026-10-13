@@ -37,7 +37,7 @@ import android.widget.Toast;
 import android.net.http.SslError;
 
 public class MainActivity extends Activity {
-    private static final String START_URL = "https://telechatyou-1.onrender.com/";
+    private static final String START_URL = "https://telechatyou-1.onrender.com/?tcyAndroidApp=1";
     private static final String ALLOWED_HOST = "telechatyou-1.onrender.com";
     private static final int FILE_CHOOSER_REQUEST = 4101;
     private static final int MICROPHONE_REQUEST = 4102;
