@@ -85,6 +85,23 @@
     --tcy-on-accent: #fafafa;
   }
 
+  /* Private Halloween palette. It is activated only for the designated account. */
+  [data-accent="halloween"] {
+    --tcy-accent: #ff8a24;
+    --tcy-accent-deep: #d95f02;
+    --tcy-on-accent: #1c1004;
+    --tcy-glow-1: rgba(255, 138, 36, 0.14);
+    --tcy-glow-2: rgba(126, 34, 206, 0.10);
+  }
+
+  [data-theme="light"][data-accent="halloween"] {
+    --tcy-accent: #c65d0a;
+    --tcy-accent-deep: #97400b;
+    --tcy-on-accent: #fff7ed;
+    --tcy-glow-1: rgba(249, 115, 22, 0.14);
+    --tcy-glow-2: rgba(126, 34, 206, 0.08);
+  }
+
   * {
     border-color: var(--tcy-line);
   }
