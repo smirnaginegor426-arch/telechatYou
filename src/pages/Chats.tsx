@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { Archive, MessageCirclePlus, MessagesSquare, Search } from "lucide-react";
@@ -24,6 +24,52 @@ export default function Chats() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [showArchived, setShowArchived] = useState(false);
+  const [brandPhase, setBrandPhase] = useState<"connecting" | "updating" | "ready">("connecting");
+
+  useEffect(() => {
+    // Ask the browser to refresh the current location on entry. Coordinates are
+    // deliberately not stored or sent to our server; this check only drives the status animation.
+    let cancelled = false;
+    let completed = false;
+    const timers: number[] = [];
+    const startedAt = Date.now();
+    let fallbackTimer: number | undefined;
+
+    const finishLocationCheck = () => {
+      if (cancelled || completed) return;
+      completed = true;
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+
+      // Keep "Соединение…" visible long enough to read, even if geolocation answers quickly.
+      const delay = Math.max(0, 1250 - (Date.now() - startedAt));
+      timers.push(window.setTimeout(() => {
+        if (cancelled) return;
+        setBrandPhase("updating");
+        timers.push(window.setTimeout(() => {
+          if (!cancelled) setBrandPhase("ready");
+        }, 1050));
+      }, delay));
+    };
+
+    if (!("geolocation" in navigator)) {
+      timers.push(window.setTimeout(finishLocationCheck, 900));
+    } else {
+      // A timeout prevents the header from staying in a loading state indefinitely
+      // if the person declines the permission request or the device can't locate them.
+      fallbackTimer = window.setTimeout(finishLocationCheck, 4000);
+      navigator.geolocation.getCurrentPosition(
+        () => finishLocationCheck(),
+        () => finishLocationCheck(),
+        { enableHighAccuracy: false, maximumAge: 0, timeout: 3500 },
+      );
+    }
+
+    return () => {
+      cancelled = true;
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+      timers.forEach((timer) => window.clearTimeout(timer));
+    };
+  }, []);
 
   const list = trpc.chats.list.useQuery(undefined, {
     refetchInterval: 4000,
@@ -64,7 +110,36 @@ export default function Chats() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Logo size={34} />
-            <Wordmark />
+            {brandPhase === "ready" ? (
+              <Wordmark />
+            ) : (
+              <motion.div
+                key={brandPhase}
+                initial={{ opacity: 0, y: 3 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="flex items-center font-extrabold tracking-tight text-[18px] tcy-text select-none"
+                aria-live="polite"
+                aria-label={brandPhase === "connecting" ? "Соединение" : "Обновление"}
+              >
+                <span>{brandPhase === "connecting" ? "Соединение" : "Обновление"}</span>
+                <span className="ml-1.5 inline-flex items-center gap-[3px]" aria-hidden="true">
+                  {[0, 1, 2].map((dot) => (
+                    <motion.span
+                      key={dot}
+                      className="inline-block h-[4px] w-[4px] rounded-full tcy-accent-bg"
+                      animate={{ opacity: [0.25, 1, 0.25], y: [0, -2, 0] }}
+                      transition={{
+                        duration: 0.8,
+                        delay: dot * 0.15,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  ))}
+                </span>
+              </motion.div>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button
