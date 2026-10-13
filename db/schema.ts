@@ -65,6 +65,22 @@ export const recoveryCodes = mysqlTable(
   }),
 );
 
+/** Private second factor that authorizes issuing a password-recovery sign-in key. */
+export const recoverySecrets = mysqlTable(
+  "recovery_secrets",
+  {
+    id: serial("id").primaryKey(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull().unique(),
+    /** Hash of a cryptographically random 256-bit secret. Never store the secret itself. */
+    secretHash: varchar("secretHash", { length: 64 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+  },
+  (t) => ({
+    secretUserIdx: index("recovery_secrets_user_idx").on(t.userId),
+  }),
+);
+
 // ===================== TeleChatYou schema =====================
 
 const userId = () => bigint("userId", { mode: "number", unsigned: true }).notNull();
