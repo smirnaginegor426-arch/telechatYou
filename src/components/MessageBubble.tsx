@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
+import { AudioFilePlayer } from "./AudioFilePlayer";
 import {
   useFileUrl,
   refreshFileUrl,
@@ -48,6 +49,9 @@ function FileAttachment({
   own: boolean;
 }) {
   const url = useFileUrl(m.attachmentKey);
+  const attachmentName = m.attachmentName ?? "Аудиофайл";
+  const isAudio = (m.attachmentMime ?? "").startsWith("audio/") || /\.(mp3|m4a|wav|ogg|opus|aac|flac|wma)$/i.test(attachmentName);
+  if (isAudio) return <AudioFilePlayer url={url} name={attachmentName} size={m.attachmentSize} own={own} />;
 
   return (
     <a
@@ -182,7 +186,7 @@ export function MessageBubble({
           }}
           onDoubleClick={() => onReaction(m, "❤️")}
           className={cn(
-            "relative select-none cursor-default",
+            "relative select-none cursor-default tcy-no-select",
             isImage || isPoll || isStickerMessage ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
             !isImage && !isPoll && !isStickerMessage &&
               (own
