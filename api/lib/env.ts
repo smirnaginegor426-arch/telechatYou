@@ -20,16 +20,34 @@ const s3Values = [s3Endpoint, s3Bucket, s3AccessKeyId, s3SecretAccessKey];
 const hasSomeS3Values = s3Values.some(Boolean);
 const hasAllS3Values = s3Values.every(Boolean);
 
-const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim() ?? "";
-const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY?.trim() ?? "";
-const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET?.trim() ?? "";
+// Prefer Cloudinary's single API environment variable when provided. It binds the
+// API key, API secret, and cloud name to the same product environment.
+const cloudinaryUrlValue = process.env.CLOUDINARY_URL?.trim() ?? "";
+let cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim() ?? "";
+let cloudinaryApiKey = process.env.CLOUDINARY_API_KEY?.trim() ?? "";
+let cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET?.trim() ?? "";
+
+if (cloudinaryUrlValue) {
+  try {
+    const parsed = new URL(cloudinaryUrlValue);
+    if (parsed.protocol !== "cloudinary:" || !parsed.hostname || !parsed.username || !parsed.password) {
+      throw new Error("Expected cloudinary://API_KEY:API_SECRET@CLOUD_NAME");
+    }
+    cloudinaryCloudName = parsed.hostname;
+    cloudinaryApiKey = decodeURIComponent(parsed.username);
+    cloudinaryApiSecret = decodeURIComponent(parsed.password);
+  } catch {
+    throw new Error("CLOUDINARY_URL is invalid. Copy the API environment variable from Cloudinary Settings → API Keys.");
+  }
+}
+
 const cloudinaryValues = [cloudinaryCloudName, cloudinaryApiKey, cloudinaryApiSecret];
 const hasSomeCloudinaryValues = cloudinaryValues.some(Boolean);
 const hasAllCloudinaryValues = cloudinaryValues.every(Boolean);
 
 if (hasSomeCloudinaryValues && !hasAllCloudinaryValues) {
   throw new Error(
-    "Cloudinary storage is only partially configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET together.",
+    "Cloudinary storage is only partially configured. Set CLOUDINARY_URL or all three CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET variables.",
   );
 }
 if (hasSomeS3Values && !hasAllS3Values) {
