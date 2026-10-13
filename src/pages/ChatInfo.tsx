@@ -129,7 +129,6 @@ export default function ChatInfo() {
   const data = info.data;
   const chat = data?.chat;
   const channel = data?.channel;
-  const isChannel = !!channel;
   const isGroup = chat?.type === "group";
   const peer = data?.peer;
   const name = isGroup ? chat?.title ?? "Группа" : peer?.displayName ?? "…";
@@ -299,13 +298,13 @@ export default function ChatInfo() {
         </motion.div>
         <h1 className="mt-4 text-[20px] font-extrabold tcy-text text-center">{name}</h1>
         <p className="mt-1 text-[12.5px] tcy-faint font-semibold">
-          {isChannel
+          {channel
             ? `${channel.isPublic ? `@${channel.username}` : "Приватный канал"} · ${data.members.length} подписчиков`
             : isGroup
               ? `${data.members.length} участников`
               : `@${peer?.username} · ${isOnline(peer?.lastSeenAt) ? "в сети" : "не в сети"}`}
         </p>
-        {isChannel && channel.description && (
+        {channel && channel.description && (
           <p className="mt-2.5 text-center text-[13px] tcy-dim max-w-[300px] whitespace-pre-wrap">{channel.description}</p>
         )}
         {!isGroup && peer?.bio && (
