@@ -39,6 +39,7 @@ export function Composer({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imgInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
@@ -220,6 +221,17 @@ export function Composer({
           handleFileSelection(f);
         }}
       />
+      <input
+        ref={audioInputRef}
+        type="file"
+        accept="audio/*,.mp3,.m4a,.aac,.ogg,.opus,.wav,.flac"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          handleFileSelection(f);
+        }}
+      />
 
       {/* attach popover */}
       <AnimatePresence>
@@ -234,6 +246,7 @@ export function Composer({
             {[
               { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
               { label: "Файл", emoji: "📎", fn: () => fileInputRef.current?.click() },
+              { label: "Музыка / MP3", emoji: "🎵", fn: () => audioInputRef.current?.click() },
               ...(stickersEnabled ? [{ label: "Стикеры", emoji: "✨", fn: () => { setAttachOpen(false); setEmojiOpen(false); setStickerOpen(true); } }] : []),
             ].map((a) => (
               <button
