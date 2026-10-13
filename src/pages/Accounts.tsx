@@ -66,6 +66,13 @@ export default function AccountsPage() {
     );
     if (existing) {
       setAccounts(readSavedAccounts());
+      setSyncingCurrent(true);
+      saveCurrent.mutate(
+        { slotId: existing.slotId },
+        {
+          onSuccess: () => setSyncingCurrent(false),
+        },
+      );
       return;
     }
 
