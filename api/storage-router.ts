@@ -15,7 +15,7 @@ export const storageRouter = createRouter({
         name: z.string().min(1).max(200),
         contentBase64: z.string(),
         contentType: z.string().max(128).optional(),
-        folder: z.enum(["uploads", "avatars", "voices"]).default("uploads"),
+        folder: z.enum(["uploads", "avatars", "voices", "banners"]).default("uploads"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
