@@ -45,7 +45,7 @@ const s3 = env.s3Enabled
   : null;
 
 function cloudinaryApiUrl(pathname: string): string {
-  return `https://api.cloudinary.com/v1_1/${encodeURIComponent(env.cloudinaryCloudName)}/${pathname.split("/").filter(Boolean).join("/");
+  return `https://api.cloudinary.com/v1_1/${encodeURIComponent(env.cloudinaryCloudName)}/${pathname.split("/").filter(Boolean).join("/")}`;
 }
 
 function cloudinaryBasicAuth(): string {
