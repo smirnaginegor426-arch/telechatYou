@@ -4,6 +4,7 @@ import { AtSign, Camera, Check, LogOut, Pencil, Quote } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
+import { AvatarEditor } from "@/components/AvatarEditor";
 import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
@@ -20,6 +21,7 @@ export default function Profile() {
   const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [error, setError] = useState("");
+  const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const update = trpc.profile.update.useMutation({
@@ -56,7 +58,7 @@ export default function Profile() {
       contentType: f.type,
       folder: "avatars",
     });
-    update.mutate({ avatarKey: res.key });
+    await update.mutateAsync({ avatarKey: res.key });
   };
 
   if (me.isLoading || !profile) {
@@ -78,7 +80,8 @@ export default function Profile() {
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) void changeAvatar(f);
+          if (f) setAvatarToEdit(f);
+          e.currentTarget.value = "";
         }}
       />
       {/* hero */}
@@ -186,6 +189,12 @@ export default function Profile() {
           </TcButton>
         </div>
       </BottomSheet>
+      <AvatarEditor
+        file={avatarToEdit}
+        onCancel={() => setAvatarToEdit(null)}
+        onSave={changeAvatar}
+        saving={upload.isPending || update.isPending}
+      />
     </div>
   );
 }

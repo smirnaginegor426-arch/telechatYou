@@ -1,9 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, Camera, Check, Radio, Users } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { AvatarEditor } from "@/components/AvatarEditor";
 import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
@@ -17,7 +18,13 @@ export default function NewChat() {
   const [title, setTitle] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!avatarPreview) return;
+    return () => URL.revokeObjectURL(avatarPreview);
+  }, [avatarPreview]);
 
   const createDirect = trpc.chats.createDirect.useMutation({
     onSuccess: (r) => navigate(`/chat/${r.chatId}`, { replace: true }),
@@ -150,10 +157,8 @@ export default function NewChat() {
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
-                  if (f) {
-                    setAvatarFile(f);
-                    setAvatarPreview(URL.createObjectURL(f));
-                  }
+                  if (f) setAvatarToEdit(f);
+                  e.currentTarget.value = "";
                 }}
               />
               <button onClick={() => fileRef.current?.click()} className="tcy-press shrink-0">
@@ -178,6 +183,14 @@ export default function NewChat() {
           </motion.div>
         )}
       </div>
+      <AvatarEditor
+        file={avatarToEdit}
+        onCancel={() => setAvatarToEdit(null)}
+        onSave={(edited) => {
+          setAvatarFile(edited);
+          setAvatarPreview(URL.createObjectURL(edited));
+        }}
+      />
     </div>
   );
 }

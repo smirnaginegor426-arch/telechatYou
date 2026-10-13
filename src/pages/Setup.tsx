@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, AtSign, Camera, Check, UserRound } from "lucide-
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { TcButton } from "@/components/TcButton";
+import { AvatarEditor } from "@/components/AvatarEditor";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 
 import { Logo } from "@/components/Logo";
@@ -27,6 +28,7 @@ export default function Setup() {
   const [bio, setBio] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -46,6 +48,11 @@ export default function Setup() {
   const upload = trpc.storage.upload.useMutation();
 
   useEffect(() => setError(""), [step, username, displayName]);
+
+  useEffect(() => {
+    if (!avatarPreview) return;
+    return () => URL.revokeObjectURL(avatarPreview);
+  }, [avatarPreview]);
 
   const finish = async () => {
     setError("");
@@ -138,10 +145,8 @@ export default function Setup() {
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) {
-            setAvatarFile(f);
-            setAvatarPreview(URL.createObjectURL(f));
-          }
+          if (f) setAvatarToEdit(f);
+          e.currentTarget.value = "";
         }}
       />
       <div className="flex justify-center">
@@ -218,6 +223,14 @@ export default function Setup() {
           </motion.p>
         )}
       </div>
+      <AvatarEditor
+        file={avatarToEdit}
+        onCancel={() => setAvatarToEdit(null)}
+        onSave={(edited) => {
+          setAvatarFile(edited);
+          setAvatarPreview(URL.createObjectURL(edited));
+        }}
+      />
     </div>
   );
 }

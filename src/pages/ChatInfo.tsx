@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { AvatarEditor } from "@/components/AvatarEditor";
 import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
@@ -95,6 +96,7 @@ export default function ChatInfo() {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(() => readWallpaper(chatId));
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(() => readWallpaperImage(chatId));
   const fileRef = useRef<HTMLInputElement>(null);
@@ -168,7 +170,7 @@ export default function ChatInfo() {
       contentType: f.type,
       folder: "avatars",
     });
-    updateGroup.mutate({ chatId, avatarKey: res.key });
+    await updateGroup.mutateAsync({ chatId, avatarKey: res.key });
   };
 
   const notifyWallpaperChange = (next: string, image: string | null) => {
@@ -246,7 +248,8 @@ export default function ChatInfo() {
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) void changeGroupAvatar(f);
+          if (f) setAvatarToEdit(f);
+          e.currentTarget.value = "";
         }}
       />
       <input
@@ -608,6 +611,12 @@ export default function ChatInfo() {
           </TcButton>
         </div>
       </BottomSheet>
+      <AvatarEditor
+        file={avatarToEdit}
+        onCancel={() => setAvatarToEdit(null)}
+        onSave={changeGroupAvatar}
+        saving={upload.isPending || updateGroup.isPending}
+      />
     </div>
   );
 }
