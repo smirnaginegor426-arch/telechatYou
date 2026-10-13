@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, AtSign, Copy, Hash, KeyRound, LockKeyhole, UserRound } from "lucide-react";
+import { ArrowLeft, AtSign, Copy, Hash, KeyRound, LockKeyhole } from "lucide-react";
 import {
   createAccountSlotId,
   MAX_SAVED_ACCOUNTS,
