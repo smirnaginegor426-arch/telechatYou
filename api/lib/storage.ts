@@ -73,7 +73,6 @@ function cloudinaryPrivateDownloadUrl(key: string): string {
     format,
     public_id: key,
     timestamp: String(timestamp),
-    type: "authenticated",
   };
   const query = new URLSearchParams({
     ...signedParams,
@@ -89,6 +88,50 @@ async function cloudinaryAdminFetch(pathname: string, init: RequestInit = {}): P
   return fetch(cloudinaryApiUrl(pathname), { ...init, headers });
 }
 
+async function cloudinaryResponseDetail(response: Response): Promise<string> {
+  const body = await response.text().catch(() => "");
+  if (!body) return "";
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string } | string; message?: string };
+    if (typeof parsed.error === "string") return parsed.error.slice(0, 240);
+    if (parsed.error && typeof parsed.error === "object" && parsed.error.message) return parsed.error.message.slice(0, 240);
+    if (parsed.message) return parsed.message.slice(0, 240);
+  } catch {
+    // Cloudinary Admin API may return an HTML page when credentials are rejected.
+  }
+  if (/<!doctype html|<html[\s>]/i.test(body)) {
+    return "Cloudinary returned HTML instead of JSON. Check CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET in Render.";
+  }
+  return body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240);
+}
+
+async function readLocalFallbackFile(key: string): Promise<Uint8Array | null> {
+  try {
+    return new Uint8Array(await readFile(safePath(key)));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+async function getLocalFallbackMeta(key: string): Promise<FileMeta | null> {
+  try {
+    const info = await stat(safePath(key));
+    if (!info.isFile()) return null;
+    return {
+      key,
+      fileName: path.posix.basename(key),
+      size: info.size,
+      contentType: contentTypeFor(key),
+      lastModified: info.mtime.toISOString(),
+      reviewStatus: "active",
+    };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
 async function cloudinaryUpload(key: string, data: Uint8Array, contentType: string): Promise<void> {
   const form = new FormData();
   form.set("file", new Blob([Buffer.from(data)], { type: contentType }), path.posix.basename(key));
@@ -97,7 +140,7 @@ async function cloudinaryUpload(key: string, data: Uint8Array, contentType: stri
   // For REST Upload API, the delivery type belongs in the endpoint path, not the form body.
   const response = await cloudinaryAdminFetch("raw/authenticated/upload", { method: "POST", body: form });
   if (!response.ok) {
-    const detail = (await response.text().catch(() => "")).slice(0, 300);
+    const detail = await cloudinaryResponseDetail(response);
     throw new Error(`Cloudinary upload failed (${response.status})${detail ? `: ${detail}` : ""}`);
   }
 }
@@ -117,7 +160,7 @@ async function cloudinaryDestroy(key: string): Promise<void> {
     body: form,
   });
   if (!response.ok) {
-    const detail = (await response.text().catch(() => "")).slice(0, 300);
+    const detail = await cloudinaryResponseDetail(response);
     throw new Error(`Cloudinary delete failed (${response.status})${detail ? `: ${detail}` : ""}`);
   }
   const result = await response.json() as { result?: string };
@@ -209,7 +252,12 @@ export class Storage {
     assertKey(input.fileKey);
     if (env.cloudinaryEnabled) {
       const response = await fetch(cloudinaryPrivateDownloadUrl(input.fileKey));
-      if (response.status === 404) throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден");
+      if (response.status === 404) {
+        // Existing uploads may predate Cloudinary. Use the old local copy only if it still exists.
+        const local = await readLocalFallbackFile(input.fileKey);
+        if (local) return local;
+        throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден в Cloudinary или старом локальном хранилище");
+      }
       if (!response.ok) throw new Error(`Cloudinary download failed (${response.status})`);
       return new Uint8Array(await response.arrayBuffer());
     }
@@ -244,8 +292,15 @@ export class Storage {
     assertKey(input.fileKey);
     if (env.cloudinaryEnabled) {
       const response = await cloudinaryAdminFetch(`resources/raw/authenticated/${cloudinaryIdPath(input.fileKey)}`);
-      if (response.status === 404) throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден");
-      if (!response.ok) throw new Error(`Cloudinary metadata lookup failed (${response.status})`);
+      if (response.status === 404) {
+        const local = await getLocalFallbackMeta(input.fileKey);
+        if (local) return local;
+        throw new StorageError("STORAGE_OBJECT_NOT_FOUND", "Файл не найден в Cloudinary или старом локальном хранилище");
+      }
+      if (!response.ok) {
+        const detail = await cloudinaryResponseDetail(response);
+        throw new Error(`Cloudinary metadata lookup failed (${response.status})${detail ? `: ${detail}` : ""}`);
+      }
       const info = await response.json() as { bytes?: number; created_at?: string };
       return {
         key: input.fileKey,
