@@ -12,6 +12,7 @@ import { formatFileSize, formatMessageTime } from "@/lib/format";
 import type { MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { AppleEmoji, EmojiText } from "./AppleEmoji";
+import { PollCard } from "./PollCard";
 
 function groupReactions(
   reactions: { emoji: string; userId: number }[],
@@ -131,6 +132,7 @@ export function MessageBubble({
 
   const reactions = groupReactions(m.reactions, myId);
   const isImage = m.kind === "image";
+  const isPoll = !!m.poll;
 
   return (
     <motion.div
@@ -169,14 +171,14 @@ export function MessageBubble({
           onDoubleClick={() => onReaction(m, "❤️")}
           className={cn(
             "relative select-none cursor-default",
-            isImage ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
-            !isImage &&
+            isImage || isPoll ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
+            !isImage && !isPoll &&
               (own
                 ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
                 : "rounded-[22px] rounded-bl-[8px] border tcy-line"),
           )}
           style={
-            isImage
+            isImage || isPoll
               ? {
                   background: "transparent",
                   color: "var(--tcy-text)",
@@ -303,7 +305,9 @@ export function MessageBubble({
             />
           )}
 
-          {m.body && (
+          {m.poll && <PollCard poll={m.poll} own={own} />}
+
+          {m.body && !m.poll && (
             <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
               <EmojiText text={m.body} />
             </p>

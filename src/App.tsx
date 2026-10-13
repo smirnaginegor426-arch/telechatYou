@@ -19,6 +19,7 @@ import Settings from "@/pages/Settings";
 import Admin from "@/pages/Admin";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
+import ChannelsPage from "@/pages/Channels";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 import Maintenance from "@/pages/Maintenance";
@@ -139,6 +140,7 @@ useEffect(() => {
             <Route path="/admin" element={<Admin />} />
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
+            <Route path="/channels" element={<ChannelsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </motion.div>

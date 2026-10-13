@@ -89,6 +89,26 @@ export const chats = mysqlTable("chats", {
 
 export type Chat = typeof chats.$inferSelect;
 
+/** Metadata for a broadcast channel. The conversation itself reuses chats/chat_members. */
+export const channels = mysqlTable(
+  "channels",
+  {
+    id: serial("id").primaryKey(),
+    chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull().unique(),
+    ownerId: bigint("ownerId", { mode: "number", unsigned: true }).notNull(),
+    username: varchar("username", { length: 32 }).unique(),
+    description: varchar("description", { length: 280 }).default("").notNull(),
+    isPublic: boolean("isPublic").default(false).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    publicIdx: index("channels_public_idx").on(t.isPublic, t.username),
+    ownerIdx: index("channels_owner_idx").on(t.ownerId),
+  }),
+);
+
+export type Channel = typeof channels.$inferSelect;
+
 export const chatMembers = mysqlTable(
   "chat_members",
   {
@@ -141,6 +161,55 @@ export const messages = mysqlTable(
 );
 
 export type Message = typeof messages.$inferSelect;
+
+/** Poll attached to an ordinary message so existing message history remains compatible. */
+export const polls = mysqlTable(
+  "polls",
+  {
+    id: serial("id").primaryKey(),
+    messageId: bigint("messageId", { mode: "number", unsigned: true }).notNull().unique(),
+    chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull(),
+    creatorId: bigint("creatorId", { mode: "number", unsigned: true }).notNull(),
+    question: varchar("question", { length: 500 }).notNull(),
+    allowMultiple: boolean("allowMultiple").default(false).notNull(),
+    closedAt: timestamp("closedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    chatIdx: index("polls_chat_idx").on(t.chatId),
+    creatorIdx: index("polls_creator_idx").on(t.creatorId),
+  }),
+);
+
+export type Poll = typeof polls.$inferSelect;
+
+export const pollOptions = mysqlTable(
+  "poll_options",
+  {
+    id: serial("id").primaryKey(),
+    pollId: bigint("pollId", { mode: "number", unsigned: true }).notNull(),
+    text: varchar("text", { length: 255 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({ pollIdx: index("poll_options_poll_idx").on(t.pollId) }),
+);
+
+export const pollVotes = mysqlTable(
+  "poll_votes",
+  {
+    id: serial("id").primaryKey(),
+    pollId: bigint("pollId", { mode: "number", unsigned: true }).notNull(),
+    optionId: bigint("optionId", { mode: "number", unsigned: true }).notNull(),
+    userId: userId(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    pollIdx: index("poll_votes_poll_idx").on(t.pollId),
+    optionIdx: index("poll_votes_option_idx").on(t.optionId),
+    userIdx: index("poll_votes_user_idx").on(t.userId),
+    uniqVote: uniqueIndex("poll_votes_unique").on(t.pollId, t.optionId, t.userId),
+  }),
+);
 
 export const reactions = mysqlTable(
   "reactions",
