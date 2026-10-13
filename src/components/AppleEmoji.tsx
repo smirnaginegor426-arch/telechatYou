@@ -12,8 +12,10 @@ const graphemeSegmenter =
 function emojiImageName(emoji: string) {
   return (
     Array.from(emoji, (character) => character.codePointAt(0))
-      .filter((codePoint): codePoint is number => codePoint !== undefined && codePoint !== 0xfe0f && codePoint !== 0xfe0e)
-      .map((codePoint) => codePoint.toString(16))
+      // The Apple emoji asset filenames include FE0F variation selectors in many sequences.
+      // Keep FE0F; only discard FE0E (text presentation, which has no separate emoji image).
+      .filter((codePoint): codePoint is number => codePoint !== undefined && codePoint !== 0xfe0e)
+      .map((codePoint) => codePoint.toString(16).padStart(4, "0"))
       .join("-") + ".png"
   );
 }
