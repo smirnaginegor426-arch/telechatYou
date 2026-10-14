@@ -107,7 +107,7 @@ export function ChatItem({
             onClick();
           }
         }}
-        className="w-full flex items-center gap-3.5 px-4 py-3 text-left tcy-bg active:bg-[color:var(--tcy-card)] transition-colors"
+        className="tcy-chat-list-item w-full flex items-center gap-3.5 px-4 py-3 text-left active:bg-[color:var(--tcy-card)] transition-colors"
       >
         <button type="button"
           aria-label={isDirect ? `Открыть аватар пользователя ${title}` : `Открыть аватар ${title}`}
