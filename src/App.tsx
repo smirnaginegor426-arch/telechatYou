@@ -12,6 +12,7 @@ import Welcome from "@/pages/Welcome";
 import Setup from "@/pages/Setup";
 import Chats from "@/pages/Chats";
 import ChatView from "@/pages/ChatView";
+import TeleChatYouBot from "@/pages/TeleChatYouBot";
 import ChatInfo from "@/pages/ChatInfo";
 import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
@@ -136,6 +137,7 @@ useEffect(() => {
         >
           <Routes location={location}>
             <Route path="/" element={<Chats />} />
+            <Route path="/chat/telechatyou" element={<TeleChatYouBot />} />
             <Route path="/chat/:id" element={<ChatView />} />
             <Route path="/chat/:id/info" element={<ChatInfo />} />
             <Route path="/contacts" element={<Contacts />} />

@@ -18,7 +18,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const gestureRef = useRef<Gesture | null>(null);
   const longPressTimer = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
-  const hidden = /^\/chat\/\d+(?:\/info)?\/?$/.test(location.pathname) || location.pathname.startsWith("/setup");
+  const hidden = /^\/chat\/(?:\d+|telechatyou)(?:\/info)?\/?$/.test(location.pathname) || location.pathname.startsWith("/setup");
   const clearLongPress = () => {
     if (longPressTimer.current !== null) { window.clearTimeout(longPressTimer.current); longPressTimer.current = null; }
   };
@@ -85,9 +85,9 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
               className={cn("relative h-full min-w-0 flex flex-col items-center justify-center gap-0 rounded-[21px] p-0 outline-none touch-none transition-colors duration-200",highlighted&&"tcy-tab-highlight",dragTarget===to&&"scale-[1.04]")}
               style={{color:highlighted?"var(--tcy-accent)":"var(--tcy-faint)"}}>
               {highlighted&&<motion.span layoutId="tcy-tab-orb" className="absolute inset-0 rounded-[20px] tcy-tab-orb pointer-events-none" transition={{type:"spring",stiffness:720,damping:42}}/>}
-              <span className="relative z-[1] flex h-7 items-center justify-center pointer-events-none">
+              <span className="relative z-[1] flex h-10 items-center justify-center pointer-events-none">
                 <motion.span animate={{scale:highlighted?1.04:1,y:highlighted?-1:0}} transition={{type:"spring",stiffness:620,damping:34}}>
-                  <Icon size={23} strokeWidth={highlighted?2.35:1.8}/>
+                  <Icon size={34} strokeWidth={highlighted?2.35:1.8}/>
                 </motion.span>
                 {to==="/"&&unreadTotal>0&&<motion.span initial={{scale:0}} animate={{scale:1}} className="absolute -top-1 -right-3 min-w-[17px] h-[17px] px-1 rounded-full tcy-gradient-accent text-[10px] font-bold flex items-center justify-center" style={{color:"var(--tcy-on-accent)"}}>{unreadTotal>99?"99+":unreadTotal}</motion.span>}
                 {highlighted&&<motion.span className="absolute -right-2 -top-0.5 tcy-tab-spark" initial={{opacity:0,scale:0.4,rotate:-35}} animate={{opacity:1,scale:1,rotate:0}} transition={{type:"spring",stiffness:420,damping:22}}><Sparkles size={10}/></motion.span>}
