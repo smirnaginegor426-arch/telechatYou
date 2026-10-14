@@ -20,7 +20,7 @@ export function SettingsRow({
   const content = (
     <>
       <span
-        className="w-9 h-9 rounded-[13px] flex items-center justify-center shrink-0"
+        className="tcy-settings-item-icon flex items-center justify-center shrink-0"
         style={{
           background: danger
             ? "color-mix(in srgb, var(--tcy-danger) 14%, transparent)"
@@ -34,7 +34,7 @@ export function SettingsRow({
       <span className="flex-1 min-w-0">
         <span
           className={cn(
-            "block text-[14.5px] font-semibold",
+            "tcy-settings-item-title block",
             danger ? "tcy-danger" : "tcy-text",
           )}
         >
@@ -42,7 +42,7 @@ export function SettingsRow({
         </span>
 
         {subtitle && (
-          <span className="block text-[12px] tcy-faint mt-0.5 truncate">
+          <span className="tcy-settings-item-subtitle tcy-faint">
             {subtitle}
           </span>
         )}
@@ -51,12 +51,12 @@ export function SettingsRow({
   );
 
   return (
-    <div className="w-full flex items-center gap-3.5 px-4 py-3.5">
+    <div className="tcy-settings-item w-full flex items-center gap-3.5 px-4 py-[17px] rounded-[27px] border">
       {onClick ? (
         <button
           type="button"
           onClick={onClick}
-          className="flex flex-1 min-w-0 items-center gap-3.5 text-left active:bg-[color:var(--tcy-card)] transition-colors"
+          className="flex flex-1 min-w-0 items-center gap-3.5 text-left rounded-[20px] transition-colors"
         >
           {content}
 
@@ -126,7 +126,7 @@ export function SettingsGroup({
         {title}
       </h4>
 
-      <div className="tcy-settings-panel mx-4 rounded-[24px] tcy-card border tcy-line overflow-hidden divide-y divide-[color:var(--tcy-line)]">
+      <div className="tcy-settings-panel mx-4 flex flex-col gap-1.5">
         {children}
       </div>
     </div>
