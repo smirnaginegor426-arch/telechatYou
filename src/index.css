@@ -416,3 +416,154 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* ---- full-palette theming, liquid glass surfaces and typography ---- */
+html,
+body,
+.tcy-app-shell,
+.tcy-bg,
+.tcy-bg-2,
+.tcy-card,
+.tcy-card-strong,
+.tcy-solid,
+.tcy-solid-2,
+.tcy-header-blur {
+  transition:
+    background-color 420ms cubic-bezier(.2,.8,.2,1),
+    border-color 420ms cubic-bezier(.2,.8,.2,1),
+    color 420ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 420ms cubic-bezier(.2,.8,.2,1);
+}
+
+#root,
+#root * {
+  font-weight: 700 !important;
+}
+
+#root input::placeholder,
+#root textarea::placeholder {
+  font-weight: 700 !important;
+}
+
+.tcy-glass-surface {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--tcy-card);
+  border: 1px solid var(--tcy-glass-line);
+  -webkit-backdrop-filter: blur(22px) saturate(1.65);
+  backdrop-filter: blur(22px) saturate(1.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 -1px 0 rgba(255,255,255,.035),
+    0 14px 34px -24px color-mix(in srgb, var(--tcy-accent) 68%, transparent);
+  transition:
+    background-color 420ms cubic-bezier(.2,.8,.2,1),
+    border-color 420ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 420ms cubic-bezier(.2,.8,.2,1),
+    transform 240ms cubic-bezier(.2,.8,.2,1);
+}
+
+.tcy-glass-surface::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.13), transparent 36%),
+    radial-gradient(100% 90% at 50% 120%, color-mix(in srgb, var(--tcy-accent) 16%, transparent), transparent 75%);
+  opacity: .9;
+  z-index: -1;
+}
+
+.tcy-card:not(.tcy-settings-panel),
+.tcy-card-strong:not(.tcy-settings-panel),
+.tcy-solid:not(.tcy-settings-panel),
+.tcy-solid-2:not(.tcy-settings-panel) {
+  -webkit-backdrop-filter: blur(18px) saturate(1.45);
+  backdrop-filter: blur(18px) saturate(1.45);
+}
+
+.tcy-settings-panel {
+  background: var(--tcy-solid-2) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.tcy-island {
+  background: var(--tcy-header);
+  -webkit-backdrop-filter: blur(28px) saturate(1.9);
+  backdrop-filter: blur(28px) saturate(1.9);
+  border-color: var(--tcy-glass-line);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.19),
+    0 14px 38px -18px color-mix(in srgb, var(--tcy-accent) 68%, transparent);
+}
+
+.tcy-tab-orb {
+  background: color-mix(in srgb, var(--tcy-accent) 32%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tcy-accent) 48%, rgba(255,255,255,.15));
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(255,255,255,.045),
+    0 6px 22px -10px var(--tcy-accent);
+}
+
+#root input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+#root textarea,
+#root select {
+  background: var(--tcy-input) !important;
+  border-color: var(--tcy-glass-line) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  backdrop-filter: blur(22px) saturate(1.7);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+  transition:
+    background-color 420ms cubic-bezier(.2,.8,.2,1),
+    border-color 420ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 240ms ease;
+}
+
+#root input:focus,
+#root textarea:focus,
+#root select:focus {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    0 0 0 3px color-mix(in srgb, var(--tcy-accent) 22%, transparent);
+}
+
+.tcy-glass-own,
+.tcy-glass-peer {
+  -webkit-backdrop-filter: blur(18px) saturate(1.65);
+  backdrop-filter: blur(18px) saturate(1.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.17),
+    inset 0 -1px 0 rgba(255,255,255,.045),
+    0 8px 22px -18px color-mix(in srgb, var(--tcy-accent) 72%, transparent);
+}
+
+.tcy-glass-own {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tcy-accent) 88%, rgba(255,255,255,.2)),
+    color-mix(in srgb, var(--tcy-accent-deep) 92%, transparent)
+  ) !important;
+  border: 1px solid color-mix(in srgb, var(--tcy-accent) 72%, rgba(255,255,255,.28));
+}
+
+.tcy-glass-peer {
+  background: var(--tcy-bubble-in) !important;
+  border: 1px solid var(--tcy-glass-line) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, body, .tcy-app-shell, .tcy-bg, .tcy-bg-2,
+  .tcy-card, .tcy-card-strong, .tcy-solid, .tcy-solid-2,
+  .tcy-header-blur, .tcy-glass-surface, #root input, #root textarea, #root select {
+    transition-duration: .01ms !important;
+  }
+}
