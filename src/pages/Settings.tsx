@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import {
   Bell,
   Check,
+  Palette,
   Copy,
   Database,
   Eye,
@@ -35,7 +36,7 @@ import { getMediaSendPreferences, saveMediaSendPreferences, type MediaSendPrefer
 export default function Settings() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
-  const { theme, setTheme, accent, setAccent } = useTheme();
+  const { theme, setTheme, accent } = useTheme();
   const me = trpc.profile.me.useQuery();
   const settingsQuery = trpc.settings.get.useQuery();
   const recoverySecretStatus = trpc.auth.recoverySecretStatus.useQuery();
@@ -102,7 +103,7 @@ export default function Settings() {
   const totalSize = files.reduce((sum, f) => sum + Number(f.size), 0);
 
   return (
-    <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
+    <div className="tcy-settings-page relative h-full overflow-y-auto no-scrollbar pb-32">
       <header className="relative z-10 px-5 pt-5 safe-top pb-4">
         <h1 className="text-[24px] font-extrabold tcy-text">Настройки</h1>
       </header>
@@ -153,43 +154,25 @@ export default function Settings() {
           }
         />
 
-        <div className="px-4 py-4">
-          <div className="mb-3">
-            <p className="text-[14px] font-semibold tcy-text">Акцентный цвет</p>
-            <p className="mt-0.5 text-[12px] tcy-faint">
-              Цвет кнопок, выделений и навигации
-            </p>
-          </div>
-          <div className="flex items-center justify-between gap-1">
-            {ACCENTS.map((option) => {
-              const selected = accent === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  aria-label={`Акцентный цвет: ${option.name}`}
-                  aria-pressed={selected}
-                  title={option.name}
-                  onClick={() => setAccent(option.id)}
-                  className={`flex shrink-0 items-center justify-center rounded-full transition-transform duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 ${selected ? "h-10 w-10" : "h-7 w-7"}`}
-                  style={{
-                    backgroundColor: option.color,
-                    boxShadow: selected
-                      ? `0 0 0 2px var(--tcy-bg), 0 0 0 4px ${option.color}, 0 8px 20px -10px ${option.color}`
-                      : "0 3px 10px rgba(0, 0, 0, 0.22)",
-                    transform: selected ? "scale(1.05)" : "scale(1)",
-                    outlineColor: "var(--tcy-accent)",
-                  }}
-                >
-                  {selected && <Check size={17} strokeWidth={3} color={option.onAccent} />}
-                </button>
-              );
-            })}
-          </div>
-          <p className="mt-3 text-[11px] leading-relaxed tcy-faint">
-            Цвет сразу применится ко всему мессенджеру и сохранится на этом устройстве.
-          </p>
-        </div>
+        <SettingsRow
+          icon={<Palette size={17} />}
+          title="Акцент"
+          subtitle={`Текущий цвет: ${ACCENTS.find((option) => option.id === accent)?.name ?? "Фиолетовый"}`}
+          onClick={() => navigate("/accent")}
+          right={
+            <span
+              aria-hidden="true"
+              className="h-7 w-7 rounded-full border flex items-center justify-center"
+              style={{
+                background: "var(--tcy-accent)",
+                borderColor: "var(--tcy-glass-line)",
+                boxShadow: "0 0 0 3px color-mix(in srgb, var(--tcy-accent) 18%, transparent)",
+              }}
+            >
+              <Check size={14} strokeWidth={3} color="var(--tcy-on-accent)" />
+            </span>
+          }
+        />
       </SettingsGroup>
 
       <SettingsGroup title="Уведомления">
