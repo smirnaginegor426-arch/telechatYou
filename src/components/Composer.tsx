@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, SendHorizonal, Smile, Trash2, X } from "lucide-react";
-import { EmojiPicker } from "./EmojiPicker";
+import { FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, SendHorizonal, Sticker, Trash2, X } from "lucide-react";
+import { StickerPicker } from "./StickerPicker";
+import type { StickerAsset } from "@/lib/stickers";
 import { formatDuration } from "@/lib/format";
 import { compressPhoto, getMediaSendPreferences } from "@/lib/media-send-preferences";
 import { cn } from "@/lib/utils";
@@ -21,6 +23,7 @@ type Props = {
   onAttachFile: (file: File, caption?: string) => void;
   sending?: boolean;
   enterToSend?: boolean;
+  onSendSticker?: (sticker: StickerAsset, packName: string) => void;
 };
 
 export function Composer({
@@ -30,9 +33,19 @@ export function Composer({
   onAttachFile,
   sending,
   enterToSend,
+  onSendSticker,
 }: Props) {
+  const navigate = useNavigate();
   const [text, setText] = useState("");
-  const [emojiOpen, setEmojiOpen] = useState(false);
+  const [stickerOpen, setStickerOpen] = useState(() => {
+    try {
+      const shouldOpen = sessionStorage.getItem("tcy-open-stickers-after-create") === "1";
+      sessionStorage.removeItem("tcy-open-stickers-after-create");
+      return shouldOpen;
+    } catch {
+      return false;
+    }
+  });
   const [attachOpen, setAttachOpen] = useState(false);
   const [preparingImage, setPreparingImage] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
@@ -172,7 +185,7 @@ export function Composer({
 
     setPendingAttachments([]);
     setText("");
-    setEmojiOpen(false);
+    setStickerOpen(false);
     setAttachOpen(false);
   };
 
@@ -259,6 +272,20 @@ export function Composer({
           handleFileSelection(files);
         }}
       />
+
+      <AnimatePresence>
+        {stickerOpen && !recording && (
+          <StickerPicker
+            onSelect={(sticker, packName) => onSendSticker?.(sticker, packName)}
+            onCreatePack={() => {
+              try { sessionStorage.setItem("tcy-open-stickers-after-create", "1"); } catch { /* session state is optional */ }
+              setStickerOpen(false);
+              navigate("/stickers/new");
+            }}
+            onClose={() => setStickerOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* compact attachment chooser */}
       <AnimatePresence>
@@ -355,7 +382,7 @@ export function Composer({
               <button
                 onClick={() => {
                   setAttachOpen((v) => !v);
-                  setEmojiOpen(false);
+                  setStickerOpen(false);
                 }}
                 className={cn(
                   "tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform",
@@ -372,7 +399,7 @@ export function Composer({
                 value={text}
                 rows={1}
                 onChange={(e) => setText(e.target.value)}
-                onFocus={() => setEmojiOpen(false)}
+                onFocus={() => setStickerOpen(false)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey && enterToSend) {
                     e.preventDefault();
@@ -383,12 +410,13 @@ export function Composer({
                 className="tcy-composer-input flex-1 bg-transparent outline-none resize-none text-[15px] tcy-text placeholder:text-[color:var(--tcy-faint)] py-2.5 max-h-[120px] no-scrollbar leading-[1.4]"
               />
               <button
-                onClick={() => setEmojiOpen((v) => !v)}
+                onClick={() => setStickerOpen((value) => !value)}
                 className="tcy-press w-10 h-11 flex items-center justify-center shrink-0"
-                style={{ color: emojiOpen ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
-                aria-label="Эмодзи"
+                style={{ color: stickerOpen ? "var(--tcy-selected-accent)" : "var(--tcy-faint)" }}
+                aria-label="Стикеры"
+                aria-expanded={stickerOpen}
               >
-                <Smile size={22} />
+                <Sticker size={22} />
               </button>
               {hasContent ? (
                 <motion.button
@@ -430,24 +458,7 @@ export function Composer({
         </div>
       </div>
 
-      <AnimatePresence>
-        {emojiOpen && !recording && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 38 }}
-            className="overflow-hidden border-t tcy-line tcy-header-blur"
-          >
-            <EmojiPicker
-              onPick={(e) => {
-                setText((t) => t + e);
-                inputRef.current?.focus();
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }
