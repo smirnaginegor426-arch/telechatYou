@@ -37,9 +37,16 @@ async function buildChatListItem(m: typeof chatMembers.$inferSelect, userId: num
   const lastSender = lastMessage
     ? (await getProfilesByIds([lastMessage.senderId]))[0] ?? null
     : null;
+  const selfKey = `${userId}:${userId}`;
+  const isFavorites = chat.type === "direct" && chat.directKey === selfKey;
+  if (isFavorites && !peer) peer = (await getProfilesByIds([userId]))[0] ?? null;
   const channel = chat.type === "group"
     ? await getDb().query.channels.findFirst({ where: eq(channels.chatId, chat.id) }) ?? null
     : null;
+  if (isFavorites && chat.title !== "Избранное") {
+    await getDb().update(chats).set({ title: "Избранное" }).where(eq(chats.id, chat.id));
+    chat.title = "Избранное";
+  }
   return { chat, membership: m, lastMessage, lastSender, unread, peer, membersCount, channel };
 }
 
@@ -59,6 +66,37 @@ export const chatsRouter = createRouter({
       );
     });
     return items;
+  }),
+
+  ensureFavorites: authedQuery.mutation(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    const key = directKey(userId, userId);
+    const existing = await getDb().query.chats.findFirst({ where: eq(chats.directKey, key) });
+    if (existing) {
+      const membership = await getMembership(existing.id, userId);
+      if (membership) {
+        await getDb().update(chatMembers)
+          .set({ cleared: false, pinned: true, archived: false })
+          .where(and(eq(chatMembers.chatId, existing.id), eq(chatMembers.userId, userId)));
+      } else {
+        await getDb().insert(chatMembers).values({
+          chatId: existing.id, userId, role: "member", pinned: true, cleared: false,
+        });
+      }
+      await getDb().update(chats).set({ title: "Избранное" }).where(eq(chats.id, existing.id));
+      return { chatId: existing.id };
+    }
+
+    const [{ id }] = await getDb().insert(chats).values({
+      type: "direct",
+      title: "Избранное",
+      directKey: key,
+      createdById: userId,
+    }).$returningId();
+    await getDb().insert(chatMembers).values({
+      chatId: id, userId, role: "member", pinned: true,
+    });
+    return { chatId: id };
   }),
 
   createDirect: authedQuery
