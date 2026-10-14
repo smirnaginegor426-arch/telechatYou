@@ -1,11 +1,11 @@
 export const ACCENTS = [
-  { id: "purple", name: "Фиолетовый", color: "#8e79b5", deep: "#68548f", onAccent: "#ffffff", glow1: "rgba(155, 93, 229, 0.22)", glow2: "rgba(59, 130, 246, 0.12)" },
-  { id: "blue", name: "Синий", color: "#5b87b8", deep: "#3f6391", onAccent: "#ffffff", glow1: "rgba(22, 133, 248, 0.22)", glow2: "rgba(14, 165, 233, 0.12)" },
-  { id: "cyan", name: "Бирюзовый", color: "#5699a3", deep: "#3d747d", onAccent: "#ffffff", glow1: "rgba(8, 171, 194, 0.22)", glow2: "rgba(6, 182, 212, 0.12)" },
-  { id: "green", name: "Зелёный", color: "#609a81", deep: "#40705b", onAccent: "#062b20", glow1: "rgba(16, 185, 129, 0.22)", glow2: "rgba(5, 150, 105, 0.12)" },
-  { id: "orange", name: "Оранжевый", color: "#b98962", deep: "#8e6846", onAccent: "#1c1004", glow1: "rgba(255, 138, 36, 0.22)", glow2: "rgba(126, 34, 206, 0.12)" },
-  { id: "red", name: "Красный", color: "#bd7480", deep: "#884e5a", onAccent: "#ffffff", glow1: "rgba(244, 63, 94, 0.22)", glow2: "rgba(225, 29, 72, 0.12)" },
-  { id: "pink", name: "Розовый", color: "#ba7b9e", deep: "#86516f", onAccent: "#ffffff", glow1: "rgba(236, 72, 153, 0.22)", glow2: "rgba(190, 24, 93, 0.12)" },
+  { id: "purple", name: "Фиолетовый", color: "#8e79b5", deep: "#68548f", onAccent: "#ffffff", glow1: "rgba(142, 121, 181, 0.12)", glow2: "rgba(91, 135, 184, 0.07)" },
+  { id: "blue", name: "Синий", color: "#5b87b8", deep: "#3f6391", onAccent: "#ffffff", glow1: "rgba(91, 135, 184, 0.12)", glow2: "rgba(86, 153, 163, 0.07)" },
+  { id: "cyan", name: "Бирюзовый", color: "#5699a3", deep: "#3d747d", onAccent: "#ffffff", glow1: "rgba(86, 153, 163, 0.12)", glow2: "rgba(86, 153, 163, 0.07)" },
+  { id: "green", name: "Зелёный", color: "#609a81", deep: "#40705b", onAccent: "#062b20", glow1: "rgba(96, 154, 129, 0.12)", glow2: "rgba(96, 154, 129, 0.07)" },
+  { id: "orange", name: "Оранжевый", color: "#b98962", deep: "#8e6846", onAccent: "#1c1004", glow1: "rgba(185, 137, 98, 0.12)", glow2: "rgba(142, 121, 181, 0.07)" },
+  { id: "red", name: "Красный", color: "#bd7480", deep: "#884e5a", onAccent: "#ffffff", glow1: "rgba(189, 116, 128, 0.12)", glow2: "rgba(189, 116, 128, 0.07)" },
+  { id: "pink", name: "Розовый", color: "#ba7b9e", deep: "#86516f", onAccent: "#ffffff", glow1: "rgba(186, 123, 158, 0.12)", glow2: "rgba(186, 123, 158, 0.07)" },
 ] as const;
 
 export type AccentId = (typeof ACCENTS)[number]["id"];
