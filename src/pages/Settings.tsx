@@ -36,7 +36,7 @@ import { getMediaSendPreferences, saveMediaSendPreferences, type MediaSendPrefer
 export default function Settings() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
-  const { theme, setTheme, accent, setAccent } = useTheme();
+  const { theme, setTheme, accent } = useTheme();
   const me = trpc.profile.me.useQuery();
   const settingsQuery = trpc.settings.get.useQuery();
   const recoverySecretStatus = trpc.auth.recoverySecretStatus.useQuery();
@@ -47,7 +47,6 @@ export default function Settings() {
   const [rotationOpen, setRotationOpen] = useState(false);
   const [currentPasswordForRotation, setCurrentPasswordForRotation] = useState("");
   const [aboutOpen, setAboutOpen] = useState(false);
-  const [accentOpen, setAccentOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
 
@@ -104,7 +103,7 @@ export default function Settings() {
   const totalSize = files.reduce((sum, f) => sum + Number(f.size), 0);
 
   return (
-    <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
+    <div className="tcy-settings-page relative h-full overflow-y-auto no-scrollbar pb-32">
       <header className="relative z-10 px-5 pt-5 safe-top pb-4">
         <h1 className="text-[24px] font-extrabold tcy-text">Настройки</h1>
       </header>
@@ -159,7 +158,7 @@ export default function Settings() {
           icon={<Palette size={17} />}
           title="Акцент"
           subtitle={`Текущий цвет: ${ACCENTS.find((option) => option.id === accent)?.name ?? "Фиолетовый"}`}
-          onClick={() => setAccentOpen(true)}
+          onClick={() => navigate("/accent")}
           right={
             <span
               aria-hidden="true"
@@ -380,58 +379,6 @@ export default function Settings() {
       <p className="text-center text-[11px] tcy-faint pt-2">
         TeleChatYou · сделано с любовью к общению
       </p>
-
-      {/* accent picker */}
-      <BottomSheet open={accentOpen} onClose={() => setAccentOpen(false)} title="Акцент">
-        <div className="px-5 pb-5">
-          <p className="text-[13px] tcy-dim text-center mb-5">
-            Выбери цвет — весь интерфейс перестроится под него
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            {ACCENTS.map((option) => {
-              const selected = accent === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => setAccent(option.id)}
-                  className="tcy-glass-surface flex items-center gap-3 rounded-[20px] px-3.5 py-3 text-left transition-transform active:scale-[0.98]"
-                  style={{
-                    borderColor: selected ? option.color : "var(--tcy-line)",
-                    boxShadow: selected ? `0 0 0 1px ${option.color}, 0 8px 26px -16px ${option.color}` : undefined,
-                  }}
-                >
-                  <span className="h-9 w-9 rounded-full shrink-0 flex items-center justify-center"
-                    style={{ background: option.color, color: option.onAccent }}>
-                    {selected && <Check size={17} strokeWidth={3} />}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-[13px] font-bold tcy-text">{option.name}</span>
-                    <span className="block text-[10px] tcy-faint">{selected ? "Выбран" : "Нажми для выбора"}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="tcy-glass-surface rounded-[22px] p-4 mt-5">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="h-3 w-3 rounded-full" style={{ background: "var(--tcy-accent)" }} />
-              <span className="text-[12px] tcy-text">Пример выбранной темы</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-2 rounded-[15px] text-[12px] font-bold"
-                style={{ background: "var(--tcy-accent)", color: "var(--tcy-on-accent)" }}>
-                Привет!
-              </span>
-              <span className="px-3 py-2 rounded-[15px] text-[12px] font-bold border tcy-line"
-                style={{ background: "var(--tcy-bubble-in)", color: "var(--tcy-text)" }}>
-                Как дела?
-              </span>
-            </div>
-          </div>
-        </div>
-      </BottomSheet>
 
       {/* about */}
       <BottomSheet open={aboutOpen} onClose={() => setAboutOpen(false)} title="О TeleChatYou">
