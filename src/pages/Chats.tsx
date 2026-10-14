@@ -107,8 +107,17 @@ export default function Chats() {
   const remove = trpc.chats.remove.useMutation({ onSuccess: invalidate });
 
   const items = list.data ?? [];
-  const active = items.filter((i) => !i.membership.archived);
-  const archived = items.filter((i) => i.membership.archived);
+  const isFavoritesChat = (item: (typeof items)[number]) => {
+    if (item.chat.type !== "direct" || !item.chat.directKey) return false;
+    const participants = item.chat.directKey.split(":");
+    return participants.length === 2 && participants[0] === participants[1];
+  };
+  const active = items.filter((i) => !i.membership.archived).sort((a, b) =>
+    Number(isFavoritesChat(b)) - Number(isFavoritesChat(a)),
+  );
+  const archived = items.filter((i) => i.membership.archived).sort((a, b) =>
+    Number(isFavoritesChat(b)) - Number(isFavoritesChat(a)),
+  );
   const shown = showArchived ? archived : active;
   const showBotRow = showArchived ? botArchived : !botArchived;
   const hasArchived = archived.length > 0 || botArchived;
