@@ -193,7 +193,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                     transition={{ type: "spring", stiffness: 220, damping: 27, mass: 0.85 }}
                   />
                 )}
-                <span className="relative z-[1] flex h-10 items-center justify-center pointer-events-none">
+                <span className="tcy-tab-icon-wrap relative z-[1] flex h-10 items-center justify-center pointer-events-none">
                   <motion.span
                     animate={{ scale: highlighted ? 1.04 : 1, y: highlighted ? -1 : 0 }}
                     transition={{ type: "spring", stiffness: 320, damping: 30, mass: 0.8 }}
