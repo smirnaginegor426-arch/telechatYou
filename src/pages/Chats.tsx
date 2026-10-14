@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Archive, ArchiveRestore, MessageCirclePlus, MessagesSquare, Search } from "lucide-react";
+import { Archive, ArchiveRestore, MessageCirclePlus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { ChatItem } from "@/components/ChatItem";
-import { SwipeableRow } from "@/components/SwipeableRow";
 import { Logo, Wordmark } from "@/components/Logo";
 import { EmptyState } from "@/components/EmptyState";
 import { TcButton } from "@/components/TcButton";
@@ -27,6 +26,7 @@ export default function Chats() {
   const [avatarPreview, setAvatarPreview] = useState<{ key: string | null; name: string; username?: string | null } | null>(null);
   const utils = trpc.useUtils();
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedChatIds, setSelectedChatIds] = useState<number[]>([]);
   const [botArchived, setBotArchived] = useState(() => {
     try {
       return typeof window !== "undefined" && window.localStorage.getItem("tcy-telechatyou-bot-archived") === "true";
@@ -97,7 +97,6 @@ export default function Chats() {
   const invalidate = () => utils.chats.list.invalidate();
   const flags = trpc.chats.setFlags.useMutation({ onSuccess: invalidate });
   const remove = trpc.chats.remove.useMutation({ onSuccess: invalidate });
-  const markRead = trpc.chats.markRead.useMutation({ onSuccess: invalidate });
 
   const items = list.data ?? [];
   const active = items.filter((i) => !i.membership.archived);
@@ -107,89 +106,157 @@ export default function Chats() {
   const hasArchived = archived.length > 0 || botArchived;
   const archivedUnread = archived.reduce((s, i) => s + i.unread, 0);
 
-  const actions = useMemo(
-    () => ({
-      onPin: (id: number, pinned: boolean) =>
-        flags.mutate({ chatId: id, pinned: !pinned }),
-      onMute: (id: number, muted: boolean) =>
-        flags.mutate({ chatId: id, muted: !muted }),
-      onRead: (id: number) => markRead.mutate({ chatId: id }),
-      onDelete: (id: number, archivedFlag: boolean) => {
-        if (archivedFlag) flags.mutate({ chatId: id, archived: false });
-        else remove.mutate({ chatId: id, leave: false });
-      },
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  const selectedItems = shown.filter((item) => selectedChatIds.includes(item.chat.id));
+  const allSelectedMuted = selectedItems.length > 0 && selectedItems.every((item) => item.membership.muted);
+
+  const toggleSelectedChat = (chatId: number) => {
+    setSelectedChatIds((current) =>
+      current.includes(chatId) ? current.filter((id) => id !== chatId) : [...current, chatId],
+    );
+  };
+
+  const toggleSelectedSound = () => {
+    if (!selectedItems.length) return;
+    const muted = !allSelectedMuted;
+    selectedItems.forEach((item) => flags.mutate({ chatId: item.chat.id, muted }));
+    setSelectedChatIds([]);
+  };
+
+  const toggleSelectedArchive = () => {
+    if (!selectedItems.length) return;
+    const archived = !showArchived;
+    selectedItems.forEach((item) => flags.mutate({ chatId: item.chat.id, archived }));
+    setSelectedChatIds([]);
+  };
+
+  const deleteSelectedChats = () => {
+    if (!selectedItems.length) return;
+    const count = selectedItems.length;
+    const suffix = count === 1 ? "чат" : count < 5 ? "чата" : "чатов";
+    if (!window.confirm(`Удалить ${count} ${suffix}? `)) return;
+    selectedItems.forEach((item) => remove.mutate({ chatId: item.chat.id, leave: false }));
+    setSelectedChatIds([]);
+  };
 
   return (
     <div className="relative h-full flex flex-col">
-      {/* header */}
+      {/* header / bulk selection toolbar */}
       <header className="relative z-10 px-5 pt-5 safe-top pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <Logo size={34} />
-            {brandPhase === "ready" ? (
-              <Wordmark />
-            ) : (
-              <motion.div
-                key={brandPhase}
-                initial={{ opacity: 0, y: 3 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="flex items-center font-extrabold tracking-tight text-[18px] tcy-text select-none"
-                aria-live="polite"
-                aria-label={brandPhase === "connecting" ? "Соединение" : "Обновление"}
+        {selectedChatIds.length > 0 ? (
+          <div className="min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedChatIds([])}
+                className="flex shrink-0 items-center gap-1.5 py-2 text-[14px] font-extrabold"
+                style={{ color: "#f05262" }}
               >
-                <span>{brandPhase === "connecting" ? "Соединение" : "Обновление"}</span>
-                <span className="ml-1.5 inline-flex items-center gap-[3px]" aria-hidden="true">
-                  {[0, 1, 2].map((dot) => (
-                    <motion.span
-                      key={dot}
-                      className="inline-block h-[4px] w-[4px] rounded-full tcy-accent-bg"
-                      animate={{ opacity: [0.25, 1, 0.25], y: [0, -2, 0] }}
-                      transition={{
-                        duration: 0.8,
-                        delay: dot * 0.15,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    />
-                  ))}
+                <X size={19} strokeWidth={2.7} /> Закрыть
+              </button>
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className="flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[14px] font-black"
+                  style={{ background: "var(--tcy-selected-accent)", color: "var(--tcy-selected-on-accent)" }}
+                >
+                  {selectedChatIds.length}
                 </span>
-              </motion.div>
-            )}
+                <span className="truncate text-[14px] font-extrabold tcy-text">выбрано</span>
+              </div>
+            </div>
+            <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              <button
+                type="button"
+                onClick={toggleSelectedSound}
+                className="flex shrink-0 items-center gap-2 rounded-[15px] border tcy-line tcy-card px-3 py-2.5 text-[12px] font-extrabold tcy-text"
+              >
+                {allSelectedMuted ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                {allSelectedMuted ? "Включить звук" : "Выключить звук"}
+              </button>
+              <button
+                type="button"
+                onClick={toggleSelectedArchive}
+                className="flex shrink-0 items-center gap-2 rounded-[15px] border tcy-line tcy-card px-3 py-2.5 text-[12px] font-extrabold tcy-text"
+              >
+                {showArchived ? <ArchiveRestore size={16} /> : <Archive size={16} />}
+                {showArchived ? "Из архива" : "В архив"}
+              </button>
+              <button
+                type="button"
+                onClick={deleteSelectedChats}
+                className="flex shrink-0 items-center gap-2 rounded-[15px] border px-3 py-2.5 text-[12px] font-extrabold"
+                style={{ color: "#f05262", borderColor: "color-mix(in srgb, #f05262 35%, var(--tcy-line))", background: "color-mix(in srgb, #f05262 8%, var(--tcy-card))" }}
+              >
+                <Trash2 size={16} /> Удалить чат
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Logo size={34} />
+                {brandPhase === "ready" ? (
+                  <Wordmark />
+                ) : (
+                  <motion.div
+                    key={brandPhase}
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="flex items-center font-extrabold tracking-tight text-[18px] tcy-text select-none"
+                    aria-live="polite"
+                    aria-label={brandPhase === "connecting" ? "Соединение" : "Обновление"}
+                  >
+                    <span>{brandPhase === "connecting" ? "Соединение" : "Обновление"}</span>
+                    <span className="ml-1.5 inline-flex items-center gap-[3px]" aria-hidden="true">
+                      {[0, 1, 2].map((dot) => (
+                        <motion.span
+                          key={dot}
+                          className="inline-block h-[4px] w-[4px] rounded-full tcy-accent-bg"
+                          animate={{ opacity: [0.25, 1, 0.25], y: [0, -2, 0] }}
+                          transition={{
+                            duration: 0.8,
+                            delay: dot * 0.15,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                        />
+                      ))}
+                    </span>
+                  </motion.div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate("/search")}
+                  className="tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
+                  aria-label="Поиск"
+                >
+                  <Search size={18} />
+                </button>
+                <button
+                  onClick={() => navigate("/new")}
+                  className="tcy-press w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
+                  style={{ color: "var(--tcy-selected-on-accent)" }}
+                  aria-label="Новый чат"
+                >
+                  <MessageCirclePlus size={19} />
+                </button>
+              </div>
+            </div>
             <button
               onClick={() => navigate("/search")}
-              className="tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
-              aria-label="Поиск"
+              className="mt-4 w-full h-11 rounded-[18px] tcy-card border tcy-line flex items-center gap-3 px-4 text-left tcy-press"
             >
-              <Search size={18} />
+              <Search size={16} className="tcy-faint" />
+              <span className="text-[13.5px] tcy-faint font-medium">Поиск чатов, людей, сообщений…</span>
             </button>
-            <button
-              onClick={() => navigate("/new")}
-              className="tcy-press w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
-              style={{ color: "var(--tcy-on-accent)" }}
-              aria-label="Новый чат"
-            >
-              <MessageCirclePlus size={19} />
-            </button>
-          </div>
-        </div>
-        <button
-          onClick={() => navigate("/search")}
-          className="mt-4 w-full h-11 rounded-[18px] tcy-card border tcy-line flex items-center gap-3 px-4 text-left tcy-press"
-        >
-          <Search size={16} className="tcy-faint" />
-          <span className="text-[13.5px] tcy-faint font-medium">Поиск чатов, людей, сообщений…</span>
-        </button>
+          </>
+        )}
       </header>
 
       {/* archived entry */}
-      {!showArchived && hasArchived && (
+      {!selectedChatIds.length && !showArchived && hasArchived && (
         <button
           onClick={() => setShowArchived(true)}
           className="mx-4 mb-1 flex items-center gap-3 px-4 py-3 rounded-[18px] tcy-card border tcy-line tcy-press"
@@ -201,7 +268,7 @@ export default function Chats() {
           )}
         </button>
       )}
-      {showArchived && (
+      {!selectedChatIds.length && showArchived && (
         <button
           onClick={() => setShowArchived(false)}
           className="mx-4 mb-1 flex items-center gap-3 px-4 py-2.5 tcy-press"
@@ -213,20 +280,11 @@ export default function Chats() {
       {/* Built-in bot can be archived and restored like other chats. */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
         {showBotRow && (
-          <SwipeableRow
-            actions={[
-              {
-                key: botArchived ? "restore" : "archive",
-                icon: botArchived ? <ArchiveRestore size={19} /> : <Archive size={19} />,
-                color: botArchived ? "#0e9f76" : "#64748b",
-                onTrigger: () => setBotArchived((value) => !value),
-              },
-            ]}
-          >
+          <div className="tcy-chat-list-item flex items-center gap-2 px-3 py-2.5">
             <button
               type="button"
               onClick={() => navigate("/chat/telechatyou")}
-              className="w-full flex items-center gap-3.5 px-4 py-3 text-left tcy-bg active:bg-[color:var(--tcy-card)] transition-colors"
+              className="flex min-w-0 flex-1 items-center gap-3.5 py-0.5 text-left"
             >
               <img
                 src="/telechatyou-bot-avatar.svg"
@@ -237,14 +295,23 @@ export default function Chats() {
               <div className="flex-1 min-w-0">
                 <div className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-2">
                   <span>TeleChatYou</span>
-                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md tcy-gradient-accent" style={{ color: "var(--tcy-on-accent)" }}>BOT</span>
+                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md tcy-gradient-accent" style={{ color: "var(--tcy-selected-on-accent)" }}>BOT</span>
                 </div>
                 <div className="text-[13.5px] tcy-dim truncate mt-0.5">
                   {botArchived ? "В архиве" : "Официальный бот · напишите start"}
                 </div>
               </div>
             </button>
-          </SwipeableRow>
+            <button
+              type="button"
+              aria-label={botArchived ? "Вернуть бота из архива" : "Архивировать бота"}
+              title={botArchived ? "Вернуть из архива" : "В архив"}
+              onClick={() => setBotArchived((value) => !value)}
+              className="tcy-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-dim"
+            >
+              {botArchived ? <ArchiveRestore size={17} /> : <Archive size={17} />}
+            </button>
+          </div>
         )}
         {list.isLoading ? (
           <div className="pt-1">
@@ -285,6 +352,12 @@ export default function Chats() {
                 <ChatItem
                   item={item}
                   index={i}
+                  selected={selectedChatIds.includes(item.chat.id)}
+                  selecting={selectedChatIds.length > 0}
+                  onToggleSelect={() => toggleSelectedChat(item.chat.id)}
+                  onLongPress={() => setSelectedChatIds((current) =>
+                    current.includes(item.chat.id) ? current : [...current, item.chat.id],
+                  )}
                   onClick={() => navigate(`/chat/${item.chat.id}`)}
                   onAvatarClick={() => {
                     const direct = item.chat.type === "direct";
@@ -294,10 +367,6 @@ export default function Chats() {
                       username: direct && item.peer?.username ? `@${item.peer.username}` : null,
                     });
                   }}
-                  onPin={() => actions.onPin(item.chat.id, item.membership.pinned)}
-                  onMute={() => actions.onMute(item.chat.id, item.membership.muted)}
-                  onRead={() => actions.onRead(item.chat.id)}
-                  onDelete={() => actions.onDelete(item.chat.id, showArchived)}
                 />
               </motion.div>
             ))}
