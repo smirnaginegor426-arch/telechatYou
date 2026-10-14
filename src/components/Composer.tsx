@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, SendHorizonal, Sticker, Trash2, X } from "lucide-react";
 import { StickerPicker } from "./StickerPicker";
-import type { StickerAsset } from "@/lib/stickers";
+import type { StickerAsset, StickerPack } from "@/lib/stickers";
 import { formatDuration } from "@/lib/format";
 import { compressPhoto, getMediaSendPreferences, MEDIA_SEND_PREFERENCES_CHANGED_EVENT } from "@/lib/media-send-preferences";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,7 @@ type Props = {
   onAttachFile: (file: File, caption?: string) => void;
   sending?: boolean;
   enterToSend?: boolean;
-  onSendSticker?: (sticker: StickerAsset, packName: string) => void;
+  onSendSticker?: (sticker: StickerAsset, packName: string, pack?: StickerPack) => void;
 };
 
 export function Composer({
@@ -291,7 +291,7 @@ export function Composer({
       <AnimatePresence>
         {stickerOpen && !recording && (
           <StickerPicker
-            onSelect={(sticker, packName) => onSendSticker?.(sticker, packName)}
+            onSelect={(sticker, packName, pack) => onSendSticker?.(sticker, packName, pack)}
             onCreatePack={() => {
               try { sessionStorage.setItem("tcy-open-stickers-after-create", "1"); } catch { /* session state is optional */ }
               setStickerOpen(false);
