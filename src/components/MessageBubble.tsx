@@ -36,6 +36,55 @@ function groupReactions(reactions: MessageItem["reactions"], myId: number) {
   return [...map.entries()];
 }
 
+function MessageMeta({
+  m,
+  own,
+  peerLastReadId,
+  isImage,
+  isStickerMessage,
+  inCaptionFrame = false,
+}: {
+  m: MessageItem;
+  own: boolean;
+  peerLastReadId?: number;
+  isImage: boolean;
+  isStickerMessage: boolean;
+  inCaptionFrame?: boolean;
+}) {
+  return (
+    <span
+      className="flex items-center justify-end gap-1 text-[10.5px] font-semibold mt-1 select-none"
+      style={{
+        color: inCaptionFrame
+          ? own
+            ? "color-mix(in srgb, var(--tcy-on-accent) 68%, transparent)"
+            : "var(--tcy-faint)"
+          : isImage || isStickerMessage
+            ? "var(--tcy-faint)"
+            : own
+              ? "color-mix(in srgb, var(--tcy-on-accent) 62%, transparent)"
+              : "var(--tcy-faint)",
+      }}
+    >
+      {m.editedAt && (
+        <span className="inline-flex items-center gap-0.5">
+          <Pencil size={9} /> ред.
+        </span>
+      )}
+      {formatMessageTime(m.createdAt)}
+      {own && (
+        <span className="ml-0.5 -mr-0.5">
+          {(peerLastReadId ?? 0) >= m.id ? (
+            <CheckCheck size={13} strokeWidth={2.4} />
+          ) : (
+            <Check size={13} strokeWidth={2.4} />
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
 function FileAttachment({
   m,
   own,
@@ -113,6 +162,7 @@ export function MessageBubble({
 }) {
   const imgUrl = useFileUrl(m.kind === "image" ? m.attachmentKey : null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
+  const [attachmentWidth, setAttachmentWidth] = useState<number | null>(null);
   const imageRetryKeyRef = useRef<string | null>(null);
 
   if (m.kind === "system") {
@@ -144,6 +194,13 @@ export function MessageBubble({
   const isImage = m.kind === "image";
   const isPoll = !!m.poll;
   const isStickerMessage = m.kind === "text" && !isPoll && isStandaloneEmoji(m.body ?? "");
+  const hasMediaCaption = !!m.body && !m.poll && (isImage || m.kind === "file");
+
+  const measureAttachment = (element: HTMLDivElement | null) => {
+    if (!element) return;
+    const width = Math.round(element.getBoundingClientRect().width);
+    if (width > 0) setAttachmentWidth((current) => current === width ? current : width);
+  };
 
   return (
     <motion.div
@@ -182,14 +239,14 @@ export function MessageBubble({
           onDoubleClick={() => onReaction(m, "❤️")}
           className={cn(
             "relative select-none cursor-default tcy-no-select",
-            isImage || isPoll || isStickerMessage ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
-            !isImage && !isPoll && !isStickerMessage &&
+            isImage || isPoll || isStickerMessage || hasMediaCaption ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
+            !isImage && !isPoll && !isStickerMessage && !hasMediaCaption &&
               (own
                 ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
                 : "rounded-[22px] rounded-bl-[8px] border tcy-line"),
           )}
           style={
-            isImage || isPoll || isStickerMessage
+            isImage || isPoll || isStickerMessage || hasMediaCaption
               ? {
                   background: "transparent",
                   color: "var(--tcy-text)",
@@ -289,7 +346,8 @@ export function MessageBubble({
                     imageRetryKeyRef.current = key;
                     refreshFileUrl(key);
                   }}
-                  onLoad={() => {
+                  onLoad={(event) => {
+                    setAttachmentWidth(Math.round(event.currentTarget.getBoundingClientRect().width));
                     imageRetryKeyRef.current = null;
                     setImageUnavailable(false);
                   }}
@@ -306,7 +364,19 @@ export function MessageBubble({
             </button>
           )}
 
-          {m.kind === "file" && <FileAttachment m={m} own={own} />}
+          {m.kind === "file" && (
+            <div
+              ref={hasMediaCaption ? measureAttachment : undefined}
+              className={hasMediaCaption ? "w-fit max-w-full rounded-[18px] border tcy-line px-3.5 py-2.5" : undefined}
+              style={hasMediaCaption
+                ? own
+                  ? { background: "var(--tcy-accent)", color: "var(--tcy-on-accent)" }
+                  : { background: "#ffffff", color: "#171717" }
+                : undefined}
+            >
+              <FileAttachment m={m} own={own} />
+            </div>
+          )}
 
           {m.kind === "voice" && (
             <VoiceMessage
@@ -323,6 +393,29 @@ export function MessageBubble({
               <div className="px-1 py-1">
                 <AppleEmoji emoji={m.body.trim()} size={58} />
               </div>
+            ) : hasMediaCaption ? (
+              <div
+                className="mt-1.5 rounded-[14px] border tcy-line px-3 py-2.5 tcy-shadow-soft"
+                style={{
+                  width: attachmentWidth ?? (isImage ? 220 : 200),
+                  maxWidth: "100%",
+                  boxSizing: "border-box",
+                  background: own ? "var(--tcy-accent)" : "#ffffff",
+                  color: own ? "var(--tcy-on-accent)" : "#171717",
+                }}
+              >
+                <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
+                  <EmojiText text={m.body} />
+                </p>
+                <MessageMeta
+                  m={m}
+                  own={own}
+                  peerLastReadId={peerLastReadId}
+                  isImage={isImage}
+                  isStickerMessage={isStickerMessage}
+                  inCaptionFrame
+                />
+              </div>
             ) : (
               <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
                 <EmojiText text={m.body} />
@@ -330,37 +423,15 @@ export function MessageBubble({
             )
           )}
 
-          <span
-            className={cn(
-              "flex items-center gap-1 text-[10.5px] font-semibold mt-0.5 select-none",
-              "justify-end",
-            )}
-            style={{
-              color: isImage || isStickerMessage
-                ? "var(--tcy-faint)"
-                : own
-                  ? "color-mix(in srgb, var(--tcy-on-accent) 62%, transparent)"
-                  : "var(--tcy-faint)",
-            }}
-          >
-            {m.editedAt && (
-              <span className="inline-flex items-center gap-0.5">
-                <Pencil size={9} /> ред.
-              </span>
-            )}
-
-            {formatMessageTime(m.createdAt)}
-
-            {own && (
-              <span className="ml-0.5 -mr-0.5">
-                {(peerLastReadId ?? 0) >= m.id ? (
-                  <CheckCheck size={13} strokeWidth={2.4} />
-                ) : (
-                  <Check size={13} strokeWidth={2.4} />
-                )}
-              </span>
-            )}
-          </span>
+          {!hasMediaCaption && (
+            <MessageMeta
+              m={m}
+              own={own}
+              peerLastReadId={peerLastReadId}
+              isImage={isImage}
+              isStickerMessage={isStickerMessage}
+            />
+          )}
 
           {reactions.length > 0 && (
             <div
