@@ -37,18 +37,20 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
     "--tcy-on-accent": dark ? "#09090b" : "#fafafa",
 
     /* User-selected accent is scoped to navigation, inputs, settings and chat-list UI. */
-    "--tcy-selected-accent": dark ? selected.color : selected.deep,
+    "--tcy-selected-accent": dark
+      ? mix(78, "#a19aaa")
+      : `color-mix(in srgb, ${selected.deep} 72%, #ffffff)`,
     "--tcy-selected-accent-deep": dark ? selected.deep : mix(18, "#27272a"),
     "--tcy-selected-on-accent": selected.onAccent,
     "--tcy-selected-header": dark
-      ? mix(17, "rgba(5, 5, 6, 0.90)")
-      : mix(10, "rgba(250, 250, 252, 0.92)"),
+      ? mix(12, "rgba(5, 5, 6, 0.90)")
+      : mix(7, "rgba(250, 250, 252, 0.92)"),
     "--tcy-selected-glass-line": dark
-      ? mix(38, "rgba(255, 255, 255, 0.19)")
-      : mix(26, "rgba(24, 24, 27, 0.14)"),
+      ? mix(28, "rgba(255, 255, 255, 0.19)")
+      : mix(18, "rgba(24, 24, 27, 0.14)"),
     "--tcy-selected-input": dark
-      ? mix(13, "rgba(10, 11, 18, 0.58)")
-      : mix(10, "rgba(255, 255, 255, 0.62)"),
+      ? mix(9, "rgba(10, 11, 18, 0.58)")
+      : mix(7, "rgba(255, 255, 255, 0.62)"),
 
     /* Keep the overall application background and ordinary surfaces neutral. */
     "--tcy-bg": dark ? "#050506" : "#f5f5f7",
