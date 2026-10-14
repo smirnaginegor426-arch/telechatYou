@@ -210,7 +210,6 @@ export default function App() {
   return (
     <div className="tcy-app-shell">
       <div className="tcy-aurora" />
-      <div className="tcy-halloween-decor" aria-hidden="true" />
       <CustomLanguageBridge />
 
       <div className="relative z-10 h-full">
