@@ -43,6 +43,7 @@ export default function ChatFolders() {
   const folderItems = folder
     ? folder.chatIds.map((id) => items.find((item) => item.chat.id === id)).filter((item): item is ChatListItem => !!item)
     : [];
+  const selectedDirectIds = selectedIds.filter((id) => peopleChats.some((item) => item.chat.id === id));
 
   const toggleChat = (id: number) => {
     setSelectedIds((current) =>
@@ -62,7 +63,7 @@ export default function ChatFolders() {
       const saved = await saveFolder.mutateAsync({
         id: newId.current,
         name: cleanName,
-        chatIds: selectedIds,
+        chatIds: selectedDirectIds,
       });
       await utils.accountData.folders.list.invalidate();
       const created = saved.find((item) => item.id === newId.current);
@@ -151,7 +152,7 @@ export default function ChatFolders() {
         <>
           <div className="mx-4 mb-2 flex items-center justify-between rounded-[18px] border tcy-line tcy-card px-4 py-3">
             <span className="text-[13.5px] font-extrabold tcy-text">Выбрано чатов</span>
-            <span className="flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[13px] font-black" style={{ background: "var(--tcy-selected-accent)", color: "var(--tcy-selected-on-accent)" }}>{selectedIds.length}</span>
+            <span className="flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-[13px] font-black" style={{ background: "var(--tcy-selected-accent)", color: "var(--tcy-selected-on-accent)" }}>{selectedDirectIds.length}</span>
           </div>
           <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3">
             {chatsQuery.isLoading ? (
