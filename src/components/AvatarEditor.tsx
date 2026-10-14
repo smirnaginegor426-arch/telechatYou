@@ -36,11 +36,17 @@ export function AvatarEditor({
   onCancel,
   onSave,
   saving = false,
+  title = "Редактор аватарки",
+  subtitle = "Рисуйте, добавляйте текст и эффекты",
+  saveLabel = "Сохранить аватарку",
 }: {
   file: File | null;
   onCancel: () => void;
   onSave: (editedFile: File) => Promise<void> | void;
   saving?: boolean;
+  title?: string;
+  subtitle?: string;
+  saveLabel?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -281,7 +287,7 @@ export function AvatarEditor({
       style={{ background: "var(--tcy-bg, #101014)", color: "var(--tcy-text, #fff)" }}
       role="dialog"
       aria-modal="true"
-      aria-label="Редактор аватарки"
+      aria-label={title}
     >
       <header className="shrink-0 flex items-center gap-3 px-4 pt-3 safe-top pb-3 border-b tcy-line">
         <button
@@ -294,8 +300,8 @@ export function AvatarEditor({
           <ArrowLeft size={19} />
         </button>
         <div className="min-w-0 flex-1">
-          <h2 className="text-[17px] font-extrabold tcy-text">Редактор аватарки</h2>
-          <p className="text-[11.5px] tcy-faint">Рисуйте, добавляйте текст и эффекты</p>
+          <h2 className="text-[17px] font-extrabold tcy-text">{title}</h2>
+          <p className="text-[11.5px] tcy-faint">{subtitle}</p>
         </div>
         <button
           type="button"
@@ -458,7 +464,7 @@ export function AvatarEditor({
           className="w-full max-w-[420px] mx-auto h-12 rounded-[17px] tcy-gradient-accent flex items-center justify-center gap-2 text-[14px] font-extrabold tcy-press disabled:opacity-50"
           style={{ color: "var(--tcy-on-accent)" }}
         >
-          <Check size={18} /> {saving || exporting ? "Сохраняем…" : "Сохранить аватарку"}
+          <Check size={18} /> {saving || exporting ? "Сохраняем…" : saveLabel}
         </button>
       </footer>
     </div>
