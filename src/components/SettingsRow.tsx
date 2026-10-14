@@ -126,7 +126,7 @@ export function SettingsGroup({
         {title}
       </h4>
 
-      <div className="mx-4 rounded-[24px] tcy-card border tcy-line overflow-hidden divide-y divide-[color:var(--tcy-line)]">
+      <div className="tcy-settings-panel mx-4 rounded-[24px] tcy-card border tcy-line overflow-hidden divide-y divide-[color:var(--tcy-line)]">
         {children}
       </div>
     </div>
