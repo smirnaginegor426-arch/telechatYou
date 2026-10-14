@@ -9,6 +9,11 @@ import { cn } from "@/lib/utils";
 
 type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
 
+function isImageAttachment(file: File) {
+  return file.type.toLowerCase().startsWith("image/") ||
+    /\.(avif|bmp|gif|heic|heif|jpe?g|png|tiff?|webp)$/i.test(file.name);
+}
+
 type Props = {
   onSendText: (text: string) => void;
   onSendVoice: (blob: Blob, duration: number) => void;
@@ -223,7 +228,9 @@ export function Composer({
     const queued = files.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`,
       file,
-      kind: "file" as const,
+      // Selecting a picture from the general file picker should still send it
+      // as an image message, not as a generic downloadable file.
+      kind: isImageAttachment(file) ? "image" as const : "file" as const,
     }));
     setPendingAttachments((current) => [...current, ...queued]);
   };
