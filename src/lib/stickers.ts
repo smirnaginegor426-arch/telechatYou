@@ -21,12 +21,15 @@ export const STICKERS_CHANGED_EVENT = "tcy-stickers-changed";
 
 let memoryPacks: StickerPack[] | null = null;
 let memoryFavorites: FavoriteSticker[] | null = null;
+let preferMemoryPacks = false;
+let preferMemoryFavorites = false;
 
 function notifyChanged() {
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(STICKERS_CHANGED_EVENT));
 }
 
 export function readStickerPacks(): StickerPack[] {
+  if (preferMemoryPacks && memoryPacks) return memoryPacks;
   try {
     const raw = localStorage.getItem(PACKS_KEY);
     if (raw) {
@@ -50,7 +53,12 @@ export function saveStickerPack(pack: StickerPack): void {
   if (index >= 0) packs[index] = pack;
   else packs.unshift(pack);
   memoryPacks = packs;
-  try { localStorage.setItem(PACKS_KEY, JSON.stringify(packs)); } catch { /* Account sync is the durable copy; keep the in-memory cache if storage is full. */ }
+  try {
+    localStorage.setItem(PACKS_KEY, JSON.stringify(packs));
+    preferMemoryPacks = false;
+  } catch {
+    preferMemoryPacks = true;
+  }
   notifyChanged();
 }
 
@@ -77,8 +85,18 @@ export function updateStickerPackAttachments(packId: string, uploaded: StickerAs
 export function replaceStickerLibrary(packs: StickerPack[], favorites: FavoriteSticker[]): void {
   memoryPacks = packs;
   memoryFavorites = favorites.slice(0, 80);
-  try { localStorage.setItem(PACKS_KEY, JSON.stringify(memoryPacks)); } catch { /* Remote account copy remains durable. */ }
-  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(memoryFavorites)); } catch { /* Remote account copy remains durable. */ }
+  try {
+    localStorage.setItem(PACKS_KEY, JSON.stringify(memoryPacks));
+    preferMemoryPacks = false;
+  } catch {
+    preferMemoryPacks = true;
+  }
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(memoryFavorites));
+    preferMemoryFavorites = false;
+  } catch {
+    preferMemoryFavorites = true;
+  }
   notifyChanged();
 }
 
@@ -107,6 +125,7 @@ export function saveSharedStickerPack(name: string, sharedStickers: StickerAsset
 }
 
 export function readFavoriteStickers(): FavoriteSticker[] {
+  if (preferMemoryFavorites && memoryFavorites) return memoryFavorites;
   try {
     const raw = localStorage.getItem(FAVORITES_KEY);
     if (raw) {
@@ -129,7 +148,12 @@ export function saveFavoriteSticker(sticker: FavoriteSticker): void {
   if (!favorites.some((item) => item.id === sticker.id && item.attachmentKey === sticker.attachmentKey && item.dataUrl === sticker.dataUrl)) {
     favorites.unshift(sticker);
     memoryFavorites = favorites.slice(0, 80);
-    try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(memoryFavorites)); } catch { /* Keep the account-synced memory copy if local storage is full. */ }
+    try {
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(memoryFavorites));
+      preferMemoryFavorites = false;
+    } catch {
+      preferMemoryFavorites = true;
+    }
     notifyChanged();
   }
 }
