@@ -1,11 +1,11 @@
 export const ACCENTS = [
-  { id: "purple", name: "Фиолетовый", color: "#8e79b5", deep: "#68548f", onAccent: "#ffffff", glow1: "rgba(142, 121, 181, 0.12)", glow2: "rgba(91, 135, 184, 0.07)" },
-  { id: "blue", name: "Синий", color: "#5b87b8", deep: "#3f6391", onAccent: "#ffffff", glow1: "rgba(91, 135, 184, 0.12)", glow2: "rgba(86, 153, 163, 0.07)" },
-  { id: "cyan", name: "Бирюзовый", color: "#5699a3", deep: "#3d747d", onAccent: "#ffffff", glow1: "rgba(86, 153, 163, 0.12)", glow2: "rgba(86, 153, 163, 0.07)" },
-  { id: "green", name: "Зелёный", color: "#609a81", deep: "#40705b", onAccent: "#062b20", glow1: "rgba(96, 154, 129, 0.12)", glow2: "rgba(96, 154, 129, 0.07)" },
-  { id: "orange", name: "Оранжевый", color: "#b98962", deep: "#8e6846", onAccent: "#1c1004", glow1: "rgba(185, 137, 98, 0.12)", glow2: "rgba(142, 121, 181, 0.07)" },
-  { id: "red", name: "Красный", color: "#bd7480", deep: "#884e5a", onAccent: "#ffffff", glow1: "rgba(189, 116, 128, 0.12)", glow2: "rgba(189, 116, 128, 0.07)" },
-  { id: "pink", name: "Розовый", color: "#ba7b9e", deep: "#86516f", onAccent: "#ffffff", glow1: "rgba(186, 123, 158, 0.12)", glow2: "rgba(186, 123, 158, 0.07)" },
+  { id: "purple", name: "Фиолетовый", color: "#9b8bb3", deep: "#78678f", onAccent: "#ffffff", glow1: "rgba(142, 121, 181, 0.12)", glow2: "rgba(91, 135, 184, 0.07)" },
+  { id: "blue", name: "Синий", color: "#7898ba", deep: "#58799c", onAccent: "#ffffff", glow1: "rgba(91, 135, 184, 0.12)", glow2: "rgba(86, 153, 163, 0.07)" },
+  { id: "cyan", name: "Бирюзовый", color: "#78a3a8", deep: "#5f898e", onAccent: "#ffffff", glow1: "rgba(86, 153, 163, 0.12)", glow2: "rgba(86, 153, 163, 0.07)" },
+  { id: "green", name: "Зелёный", color: "#7da18f", deep: "#5f806f", onAccent: "#062b20", glow1: "rgba(96, 154, 129, 0.12)", glow2: "rgba(96, 154, 129, 0.07)" },
+  { id: "orange", name: "Оранжевый", color: "#b99a7d", deep: "#92775d", onAccent: "#1c1004", glow1: "rgba(185, 137, 98, 0.12)", glow2: "rgba(142, 121, 181, 0.07)" },
+  { id: "red", name: "Красный", color: "#b98991", deep: "#916873", onAccent: "#ffffff", glow1: "rgba(189, 116, 128, 0.12)", glow2: "rgba(189, 116, 128, 0.07)" },
+  { id: "pink", name: "Розовый", color: "#b58da5", deep: "#906e84", onAccent: "#ffffff", glow1: "rgba(186, 123, 158, 0.12)", glow2: "rgba(186, 123, 158, 0.07)" },
 ] as const;
 
 export type AccentId = (typeof ACCENTS)[number]["id"];
@@ -33,7 +33,7 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
     /* Default decorative accents stay neutral outside the requested surfaces. */
     "--tcy-accent": dark
       ? `color-mix(in srgb, ${selected.color} 54%, #a1a1aa)`
-      : `color-mix(in srgb, ${selected.deep} 48%, #ffffff)`,
+      : `color-mix(in srgb, ${selected.deep} 42%, #ffffff)`,
     "--tcy-accent-deep": dark
       ? `color-mix(in srgb, ${selected.deep} 46%, #71717a)`
       : `color-mix(in srgb, ${selected.deep} 42%, #d4d4d8)`,
@@ -48,14 +48,14 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
       : `color-mix(in srgb, ${selected.deep} 40%, #d4d4d8)`,
     "--tcy-selected-on-accent": selected.onAccent,
     "--tcy-selected-header": dark
-      ? mix(12, "rgba(5, 5, 6, 0.90)")
-      : mix(7, "rgba(250, 250, 252, 0.92)"),
+      ? mix(8, "rgba(5, 5, 6, 0.90)")
+      : mix(4, "rgba(250, 250, 252, 0.92)"),
     "--tcy-selected-glass-line": dark
-      ? mix(28, "rgba(255, 255, 255, 0.19)")
-      : mix(18, "rgba(24, 24, 27, 0.14)"),
+      ? mix(18, "rgba(255, 255, 255, 0.19)")
+      : mix(12, "rgba(24, 24, 27, 0.14)"),
     "--tcy-selected-input": dark
-      ? mix(9, "rgba(10, 11, 18, 0.58)")
-      : mix(7, "rgba(255, 255, 255, 0.62)"),
+      ? mix(5, "rgba(10, 11, 18, 0.58)")
+      : mix(4, "rgba(255, 255, 255, 0.62)"),
 
     /* Keep the overall application background and ordinary surfaces neutral. */
     "--tcy-bg": dark ? "#050506" : "#f5f5f7",
