@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import {
   Bell,
   Check,
+  Palette,
   Copy,
   Database,
   Eye,
@@ -46,6 +47,7 @@ export default function Settings() {
   const [rotationOpen, setRotationOpen] = useState(false);
   const [currentPasswordForRotation, setCurrentPasswordForRotation] = useState("");
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [accentOpen, setAccentOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
 
@@ -153,43 +155,25 @@ export default function Settings() {
           }
         />
 
-        <div className="px-4 py-4">
-          <div className="mb-3">
-            <p className="text-[14px] font-semibold tcy-text">Акцентный цвет</p>
-            <p className="mt-0.5 text-[12px] tcy-faint">
-              Цвет кнопок, выделений и навигации
-            </p>
-          </div>
-          <div className="flex items-center justify-between gap-1">
-            {ACCENTS.map((option) => {
-              const selected = accent === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  aria-label={`Акцентный цвет: ${option.name}`}
-                  aria-pressed={selected}
-                  title={option.name}
-                  onClick={() => setAccent(option.id)}
-                  className={`flex shrink-0 items-center justify-center rounded-full transition-transform duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 ${selected ? "h-10 w-10" : "h-7 w-7"}`}
-                  style={{
-                    backgroundColor: option.color,
-                    boxShadow: selected
-                      ? `0 0 0 2px var(--tcy-bg), 0 0 0 4px ${option.color}, 0 8px 20px -10px ${option.color}`
-                      : "0 3px 10px rgba(0, 0, 0, 0.22)",
-                    transform: selected ? "scale(1.05)" : "scale(1)",
-                    outlineColor: "var(--tcy-accent)",
-                  }}
-                >
-                  {selected && <Check size={17} strokeWidth={3} color={option.onAccent} />}
-                </button>
-              );
-            })}
-          </div>
-          <p className="mt-3 text-[11px] leading-relaxed tcy-faint">
-            Цвет сразу применится ко всему мессенджеру и сохранится на этом устройстве.
-          </p>
-        </div>
+        <SettingsRow
+          icon={<Palette size={17} />}
+          title="Акцент"
+          subtitle={`Текущий цвет: ${ACCENTS.find((option) => option.id === accent)?.name ?? "Фиолетовый"}`}
+          onClick={() => setAccentOpen(true)}
+          right={
+            <span
+              aria-hidden="true"
+              className="h-7 w-7 rounded-full border flex items-center justify-center"
+              style={{
+                background: "var(--tcy-accent)",
+                borderColor: "var(--tcy-glass-line)",
+                boxShadow: "0 0 0 3px color-mix(in srgb, var(--tcy-accent) 18%, transparent)",
+              }}
+            >
+              <Check size={14} strokeWidth={3} color="var(--tcy-on-accent)" />
+            </span>
+          }
+        />
       </SettingsGroup>
 
       <SettingsGroup title="Уведомления">
@@ -396,6 +380,58 @@ export default function Settings() {
       <p className="text-center text-[11px] tcy-faint pt-2">
         TeleChatYou · сделано с любовью к общению
       </p>
+
+      {/* accent picker */}
+      <BottomSheet open={accentOpen} onClose={() => setAccentOpen(false)} title="Акцент">
+        <div className="px-5 pb-5">
+          <p className="text-[13px] tcy-dim text-center mb-5">
+            Выбери цвет — весь интерфейс перестроится под него
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {ACCENTS.map((option) => {
+              const selected = accent === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setAccent(option.id)}
+                  className="tcy-glass-surface flex items-center gap-3 rounded-[20px] px-3.5 py-3 text-left transition-transform active:scale-[0.98]"
+                  style={{
+                    borderColor: selected ? option.color : "var(--tcy-line)",
+                    boxShadow: selected ? `0 0 0 1px ${option.color}, 0 8px 26px -16px ${option.color}` : undefined,
+                  }}
+                >
+                  <span className="h-9 w-9 rounded-full shrink-0 flex items-center justify-center"
+                    style={{ background: option.color, color: option.onAccent }}>
+                    {selected && <Check size={17} strokeWidth={3} />}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[13px] font-bold tcy-text">{option.name}</span>
+                    <span className="block text-[10px] tcy-faint">{selected ? "Выбран" : "Нажми для выбора"}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="tcy-glass-surface rounded-[22px] p-4 mt-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="h-3 w-3 rounded-full" style={{ background: "var(--tcy-accent)" }} />
+              <span className="text-[12px] tcy-text">Пример выбранной темы</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-2 rounded-[15px] text-[12px] font-bold"
+                style={{ background: "var(--tcy-accent)", color: "var(--tcy-on-accent)" }}>
+                Привет!
+              </span>
+              <span className="px-3 py-2 rounded-[15px] text-[12px] font-bold border tcy-line"
+                style={{ background: "var(--tcy-bubble-in)", color: "var(--tcy-text)" }}>
+                Как дела?
+              </span>
+            </div>
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* about */}
       <BottomSheet open={aboutOpen} onClose={() => setAboutOpen(false)} title="О TeleChatYou">
