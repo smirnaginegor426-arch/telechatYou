@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
+import { Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic, Star } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { formatChatTime } from "@/lib/format";
 import type { RouterOutput } from "@/types/api";
@@ -60,8 +60,10 @@ export function ChatItem({
   onLongPress?: () => void;
 }) {
   const isDirect = item.chat.type === "direct";
-  const title = isDirect ? item.peer?.displayName ?? "Пользователь" : item.chat.title ?? "Группа";
-  const subtitle = isDirect ? `@${item.peer?.username ?? ""}` : `${item.membersCount} участн.`;
+  const directParts = item.chat.directKey?.split(":") ?? [];
+  const isFavorites = isDirect && directParts.length === 2 && directParts[0] === directParts[1];
+  const title = isFavorites ? "Избранное" : isDirect ? item.peer?.displayName ?? "Пользователь" : item.chat.title ?? "Группа";
+  const subtitle = isFavorites ? "Личные сохранённые сообщения" : isDirect ? `@${item.peer?.username ?? ""}` : `${item.membersCount} участн.`;
   const own =
     item.lastMessage && item.peer && item.lastMessage.senderId !== item.peer.userId;
   const pressTimer = useRef<number | null>(null);
@@ -163,13 +165,19 @@ export function ChatItem({
         onClick={handleAvatarClick}
         className="tcy-press rounded-full shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--tcy-selected-accent)]"
       >
-        <Avatar
-          name={title}
-          avatarKey={isDirect ? item.peer?.avatarKey : item.chat.avatarKey}
-          size={54}
-          lastSeenAt={isDirect ? item.peer?.lastSeenAt : null}
-          showOnline={isDirect}
-        />
+        {isFavorites ? (
+          <span className="tcy-favorite-chat-avatar flex h-[54px] w-[54px] items-center justify-center rounded-[30%]">
+            <Star size={25} fill="currentColor" strokeWidth={1.6} />
+          </span>
+        ) : (
+          <Avatar
+            name={title}
+            avatarKey={isDirect ? item.peer?.avatarKey : item.chat.avatarKey}
+            size={54}
+            lastSeenAt={isDirect ? item.peer?.lastSeenAt : null}
+            showOnline={isDirect}
+          />
+        )}
       </button>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
