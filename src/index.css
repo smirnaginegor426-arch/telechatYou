@@ -8,48 +8,51 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
+    --background: 270 70% 63%;
+    --foreground: 0 0% 100%;
+    --card: 270 65% 48%;
+    --card-foreground: 0 0% 100%;
+    --popover: 270 65% 48%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 270 70% 63%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 60% 70%;
+    --secondary-foreground: 270 55% 20%;
+    --muted: 270 60% 70%;
+    --muted-foreground: 0 0% 100%;
+    --accent: 270 65% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 270 50% 70%;
+    --input: 270 50% 70%;
+    --ring: 270 70% 63%;
     --radius: 0.625rem;
   }
 
   /* ---- TeleChatYou semantic tokens ---- */
   :root {
-    --tcy-bg: #050506;
-    --tcy-bg-2: #09090b;
-    --tcy-card: rgba(244, 244, 245, 0.035);
-    --tcy-card-strong: rgba(244, 244, 245, 0.075);
-    --tcy-solid: #0b0b0d;
-    --tcy-solid-2: #111114;
-    --tcy-line: rgba(244, 244, 245, 0.085);
-    --tcy-line-strong: rgba(244, 244, 245, 0.14);
-    --tcy-text: #f4f4f5;
-    --tcy-dim: #a1a1aa;
-    --tcy-faint: #71717a;
-    --tcy-danger: #fb7185;
-    --tcy-bubble-in: rgba(244, 244, 245, 0.045);
-    --tcy-header: rgba(5, 5, 6, 0.82);
-    --tcy-glass-line: rgba(244, 244, 245, 0.19);
-    --tcy-input: rgba(10, 11, 18, 0.58);
-    --tcy-glow-1: rgba(255, 255, 255, 0.035);
-    --tcy-glow-2: rgba(148, 163, 184, 0.035);
+    --tcy-accent: #9b5de5;
+    --tcy-accent-deep: #6d28d9;
+    --tcy-on-accent: #ffffff;
+    --tcy-bg: #9b5de5;
+    --tcy-bg-2: #6d28d9;
+    --tcy-card: rgba(5, 4, 12, 0.22);
+    --tcy-card-strong: rgba(5, 4, 12, 0.34);
+    --tcy-solid: #7542b2;
+    --tcy-solid-2: #6135a0;
+    --tcy-line: rgba(255, 255, 255, 0.20);
+    --tcy-line-strong: rgba(255, 255, 255, 0.34);
+    --tcy-text: #ffffff;
+    --tcy-dim: rgba(255, 255, 255, 0.78);
+    --tcy-faint: rgba(255, 255, 255, 0.62);
+    --tcy-danger: #fecdd3;
+    --tcy-bubble-in: rgba(5, 4, 12, 0.22);
+    --tcy-header: rgba(4, 4, 10, 0.18);
+    --tcy-glass-line: rgba(255, 255, 255, 0.30);
+    --tcy-input: rgba(4, 4, 10, 0.20);
+    --tcy-glow-1: rgba(155, 93, 229, 0.22);
+    --tcy-glow-2: rgba(59, 130, 246, 0.12);
     color-scheme: dark;
   }
 
