@@ -179,7 +179,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                   highlighted && "tcy-tab-highlight",
                   dragTarget === to && "scale-[1.035]",
                 )}
-                style={{ color: highlighted ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
+                style={{ color: highlighted ? "var(--tcy-selected-accent)" : "var(--tcy-faint)" }}
               >
                 {highlighted && (
                   <motion.span
@@ -200,7 +200,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       className="absolute -top-1 -right-3 min-w-[17px] h-[17px] px-1 rounded-full tcy-gradient-accent text-[10px] font-bold flex items-center justify-center"
-                      style={{ color: "var(--tcy-on-accent)" }}
+                      style={{ color: "var(--tcy-selected-on-accent)" }}
                     >
                       {unreadTotal > 99 ? "99+" : unreadTotal}
                     </motion.span>
