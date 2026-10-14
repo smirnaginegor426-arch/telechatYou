@@ -12,8 +12,8 @@ type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
 type Props = {
   onSendText: (text: string) => void;
   onSendVoice: (blob: Blob, duration: number) => void;
-  onAttachImage: (file: File) => void;
-  onAttachFile: (file: File) => void;
+  onAttachImage: (file: File, caption?: string) => void;
+  onAttachFile: (file: File, caption?: string) => void;
   sending?: boolean;
   enterToSend?: boolean;
 };
@@ -153,10 +153,16 @@ export function Composer({
       return;
     }
 
-    if (t) onSendText(t);
-    for (const attachment of pendingAttachments) {
-      if (attachment.kind === "image") onAttachImage(attachment.file);
-      else onAttachFile(attachment.file);
+    if (pendingAttachments.length === 0) {
+      if (t) onSendText(t);
+    } else {
+      // Keep the caption in the same message as the first attachment rather than
+      // sending it as a separate text-only message.
+      pendingAttachments.forEach((attachment, index) => {
+        const caption = index === 0 ? (t || undefined) : undefined;
+        if (attachment.kind === "image") onAttachImage(attachment.file, caption);
+        else onAttachFile(attachment.file, caption);
+      });
     }
 
     setPendingAttachments([]);
