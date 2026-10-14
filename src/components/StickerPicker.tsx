@@ -57,15 +57,19 @@ export function StickerPicker({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 7, scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 440, damping: 34 }}
-      className="tcy-sticker-panel absolute bottom-[76px] left-3 right-3 z-40 overflow-hidden rounded-[23px] border tcy-line tcy-solid tcy-shadow-soft"
+      initial={{ opacity: 0, y: "100%" }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: "100%" }}
+      transition={{ type: "spring", stiffness: 380, damping: 36 }}
+      className="tcy-sticker-panel absolute bottom-[calc(100%-1px)] left-0 right-0 z-40 flex flex-col overflow-hidden rounded-t-[26px] border border-b-0 tcy-line tcy-solid"
+      style={{ height: "min(52dvh, calc(100dvh - 210px))" }}
       role="dialog"
       aria-label="Стикеры"
     >
-      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+      <div className="flex justify-center pt-2 pb-1 shrink-0" aria-hidden="true">
+        <span className="h-1.5 w-10 rounded-full" style={{ background: "var(--tcy-line-strong)" }} />
+      </div>
+      <div className="flex items-center gap-2 px-3 pt-1 pb-2 shrink-0">
         {selectedPack && tab === "packs" ? (
           <button type="button" onClick={() => setSelectedPackId(null)} aria-label="К списку стикер-паков" className="tcy-press flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] tcy-card tcy-dim">
             <ChevronLeft size={19} />
@@ -91,7 +95,7 @@ export function StickerPicker({
         </button>
       </div>
 
-      <div className="tcy-sticker-grid max-h-[205px] overflow-y-auto px-3 pb-3">
+      <div className="tcy-sticker-grid min-h-0 flex-1 overflow-y-auto px-3 pb-3">
         {tab === "packs" && !selectedPack && (
           <>
             <button type="button" onClick={onCreatePack} className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-[17px] border border-dashed tcy-line tcy-card tcy-press" aria-label="Создать стикер-пак">
