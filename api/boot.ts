@@ -10,6 +10,7 @@ import { getSessionToken, getSessionUser } from "./lib/session";
 import { ensureCommunitySchema } from "./lib/community-schema";
 import { ensureRecoverySecretSchema } from "./lib/recovery-secret-schema";
 import { ensurePinnedMessageSchema } from "./lib/pinned-message-schema";
+import { ensureUserCustomDataSchema } from "./lib/user-custom-data-schema";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -71,6 +72,7 @@ if (env.isProduction) {
   await ensureCommunitySchema();
   await ensureRecoverySecretSchema();
   await ensurePinnedMessageSchema();
+  await ensureUserCustomDataSchema();
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);
