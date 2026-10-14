@@ -185,7 +185,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                   <motion.span
                     layoutId="tcy-tab-orb"
                     className="absolute inset-0 rounded-[20px] tcy-tab-orb pointer-events-none"
-                    transition={{ type: "spring", stiffness: 265, damping: 31, mass: 0.9 }}
+                    transition={{ type: "spring", stiffness: 220, damping: 27, mass: 0.85 }}
                   />
                 )}
                 <span className="relative z-[1] flex h-10 items-center justify-center pointer-events-none">
@@ -193,7 +193,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                     animate={{ scale: highlighted ? 1.04 : 1, y: highlighted ? -1 : 0 }}
                     transition={{ type: "spring", stiffness: 320, damping: 30, mass: 0.8 }}
                   >
-                    <Icon size={32} strokeWidth={highlighted ? 2.35 : 1.8} />
+                    <Icon size={23} strokeWidth={highlighted ? 2.35 : 1.8} />
                   </motion.span>
                   {to === "/" && unreadTotal > 0 && (
                     <motion.span
@@ -217,7 +217,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                   )}
                 </span>
                 <AnimatePresence initial={false}>
-                  {active && (
+                  {highlighted && (
                     <motion.span
                       key={to + "-label"}
                       initial={{ opacity: 0, y: 5, height: 0 }}
