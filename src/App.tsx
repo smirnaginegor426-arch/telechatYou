@@ -18,6 +18,7 @@ import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
+import AccentSettings from "@/pages/Accent";
 import CustomLanguage from "@/pages/CustomLanguage";
 import SystemUpdate from "@/pages/SystemUpdate";
 import Admin from "@/pages/Admin";
@@ -165,6 +166,7 @@ useEffect(() => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/accent" element={<AccentSettings />} />
             <Route path="/language" element={<CustomLanguage />} />
             <Route path="/system-update" element={<SystemUpdate />} />
             <Route path="/admin" element={<Admin />} />
