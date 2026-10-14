@@ -117,24 +117,19 @@ useEffect(() => {
     0,
   );
 
-  // Each primary section has its own visual entry point.
-  const isPeopleRoute = location.pathname.startsWith("/contacts");
-  const isProfileRoute = location.pathname.startsWith("/profile");
-  const isSettingsRoute = location.pathname.startsWith("/settings");
-  const transitionOrigin = isPeopleRoute
-    ? "0% 0%"
-    : isProfileRoute
-      ? "50% 0%"
-      : isSettingsRoute
-        ? "0% 100%"
-        : "50% 50%";
-  const entryOffset = isPeopleRoute
-    ? { x: -24, y: -22 }
-    : isProfileRoute
-      ? { x: 0, y: -30 }
-      : isSettingsRoute
-        ? { x: -24, y: 24 }
-        : { x: 20, y: 10 };
+  // Each screen enters from its own corner.
+  const path = location.pathname;
+  const routeMotion = path.startsWith("/contacts")
+    ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
+    : path.startsWith("/profile") || path.startsWith("/user/")
+      ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
+      : ["/settings", "/accent", "/language", "/system-update"].some((route) => path.startsWith(route))
+        ? { origin: "0% 100%", x: -26, y: 22, exitX: -18, exitY: 16 }
+        : path.startsWith("/chat/")
+          ? { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 }
+          : path.startsWith("/search") || path.startsWith("/new") || path.startsWith("/channels")
+            ? { origin: "100% 50%", x: 28, y: 0, exitX: 20, exitY: 0 }
+            : { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 };
 
   return (
     <div className="relative h-full">
@@ -145,16 +140,16 @@ useEffect(() => {
               ? location.pathname
               : location.pathname.split("/")[1] || "/"
           }
-          initial={{ opacity: 0, x: entryOffset.x, y: entryOffset.y, scale: 0.91 }}
+          initial={{ opacity: 0, x: routeMotion.x, y: routeMotion.y, scale: 0.88 }}
           animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.965, x: -10, y: 8 }}
+          exit={{ opacity: 0, scale: 0.94, x: routeMotion.exitX, y: routeMotion.exitY }}
           transition={{
             type: "spring",
             stiffness: 240,
             damping: 29,
             mass: 0.86,
           }}
-          style={{ transformOrigin: transitionOrigin }}
+          style={{ transformOrigin: routeMotion.origin }}
           className="absolute inset-0"
         >
           <Routes location={location}>
