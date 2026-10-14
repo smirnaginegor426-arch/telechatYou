@@ -192,8 +192,29 @@ export default function Chats() {
         </button>
       )}
 
-      {/* list */}
+      {/* built-in official bot */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
+        {!showArchived && (
+          <button
+            type="button"
+            onClick={() => navigate("/chat/telechatyou")}
+            className="w-full flex items-center gap-3.5 px-4 py-3 text-left tcy-bg active:bg-[color:var(--tcy-card)] transition-colors"
+          >
+            <img
+              src="/telechatyou-bot-avatar.svg"
+              alt=""
+              draggable={false}
+              className="w-[54px] h-[54px] shrink-0 object-cover rounded-[30%]"
+            />
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-2">
+                <span>TeleChatYou</span>
+                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md tcy-gradient-accent" style={{ color: "var(--tcy-on-accent)" }}>BOT</span>
+              </div>
+              <div className="text-[13.5px] tcy-dim truncate mt-0.5">Официальный бот · напишите start</div>
+            </div>
+          </button>
+        )}
         {list.isLoading ? (
           <div className="pt-1">
             {[...Array(6)].map((_, i) => (
