@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router";
 import { MessageCircle, Users, UserRound, Settings2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useDeviceMode } from "@/hooks/useDeviceMode";
 
 const tabs = [
   { to: "/", label: "Чаты", icon: MessageCircle },
@@ -24,15 +25,17 @@ type Gesture = {
 export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const deviceMode = useDeviceMode();
   const [dragTarget, setDragTarget] = useState<string | null>(null);
   const gestureRef = useRef<Gesture | null>(null);
   const longPressTimer = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
-  const hidden =
+  const hiddenOnMobile =
     /^\/chat\/(?:\d+|telechatyou)(?:\/info)?\/?$/.test(location.pathname) ||
     location.pathname.startsWith("/setup") ||
     location.pathname.startsWith("/folders") ||
     location.pathname.startsWith("/stickers");
+  const hidden = deviceMode !== "desktop" && hiddenOnMobile;
   const activeTo =
     location.pathname === "/"
       ? "/"
@@ -154,7 +157,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   return (
     <nav
       aria-label="Основная навигация"
-      className="absolute bottom-0 left-0 right-0 z-30 safe-bottom tcy-no-select"
+      className="tcy-main-nav absolute bottom-0 left-0 right-0 z-30 safe-bottom tcy-no-select"
     >
       <div className="tcy-island mx-5 mb-2 rounded-[22px] border tcy-line tcy-header-blur">
         <div className="grid grid-cols-4 h-[56px]">
