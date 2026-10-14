@@ -31,7 +31,7 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
   const tokens: Record<string, string> = {
     "--tcy-accent": dark ? selected.color : mix(8, selected.deep),
     "--tcy-accent-deep": dark ? selected.deep : mix(18, "#27272a"),
-    "--tcy-on-accent": selected.onAccent,
+    "--tcy-on-accent": dark ? selected.onAccent : "#ffffff",
     "--tcy-bg": mix(dark ? 22 : 8, dark ? "#050506" : "#f5f5f7"),
     "--tcy-bg-2": mix(dark ? 28 : 10, dark ? "#09090b" : "#ededf0"),
     "--tcy-card": dark
