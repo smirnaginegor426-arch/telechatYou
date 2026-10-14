@@ -495,7 +495,7 @@ export function MessageBubble({
                 }}
               >
                 <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
-                  <EmojiText text={m.body} />
+                  <EmojiText text={m.body ?? ""} />
                 </p>
                 <MessageMeta
                   m={m}
