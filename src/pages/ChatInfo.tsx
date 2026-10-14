@@ -19,6 +19,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
+import { useTheme } from "@/hooks/useTheme";
 import { Avatar } from "@/components/Avatar";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -52,7 +53,7 @@ function readWallpaperImage(chatId: number) {
   }
 }
 
-function compressWallpaperImage(file: File): Promise<string> {
+function compressWallpaperImage(file: File, theme: "dark" | "light"): Promise<string> {
   const objectUrl = URL.createObjectURL(file);
   return new Promise((resolve, reject) => {
     const image = new Image();
@@ -65,7 +66,7 @@ function compressWallpaperImage(file: File): Promise<string> {
         canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
         const context = canvas.getContext("2d");
         if (!context) throw new Error("Не удалось обработать изображение.");
-        context.fillStyle = "#050506";
+        context.fillStyle = theme === "light" ? "#f5f5f7" : "#050506";
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.drawImage(image, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL("image/jpeg", 0.76));
@@ -88,6 +89,7 @@ export default function ChatInfo() {
   const chatId = Number(id);
   const navigate = useNavigate();
   const utils = trpc.useUtils();
+  const { theme } = useTheme();
 
   const info = trpc.chats.info.useQuery({ chatId });
   const me = trpc.profile.me.useQuery();
@@ -204,7 +206,7 @@ export default function ChatInfo() {
     }
 
     try {
-      const dataUrl = await compressWallpaperImage(file);
+      const dataUrl = await compressWallpaperImage(file, theme);
       localStorage.setItem(chatWallpaperImageKey(chatId), dataUrl);
       localStorage.setItem(chatWallpaperKey(chatId), "custom");
       setWallpaperImage(dataUrl);
