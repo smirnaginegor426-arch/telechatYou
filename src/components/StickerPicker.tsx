@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Sticker, Star, X } from "lucide-react";
+import { ChevronLeft, Plus, Sticker, Star, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { useFileUrl } from "@/hooks/useFileUrl";
 import {
@@ -31,6 +31,7 @@ export function StickerPicker({
   onClose: () => void;
 }) {
   const [tab, setTab] = useState<"packs" | "favorites">("packs");
+  const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
   const [packs, setPacks] = useState<StickerPack[]>(() => readStickerPacks());
   const [favorites, setFavorites] = useState<FavoriteSticker[]>(() => readFavoriteStickers());
 
@@ -47,9 +48,12 @@ export function StickerPicker({
     };
   }, []);
 
+  const selectedPack = packs.find((pack) => pack.id === selectedPackId) ?? null;
   const items = tab === "favorites"
     ? favorites.map((sticker) => ({ sticker, packName: sticker.packName }))
-    : packs.flatMap((pack) => pack.stickers.map((sticker) => ({ sticker, packName: pack.name })));
+    : selectedPack
+      ? selectedPack.stickers.map((sticker) => ({ sticker, packName: selectedPack.name }))
+      : [];
 
   return (
     <motion.div
@@ -62,12 +66,18 @@ export function StickerPicker({
       aria-label="Стикеры"
     >
       <div className="flex items-center gap-2 px-3 pt-3 pb-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-[13px]" style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 14%, var(--tcy-card))", color: "var(--tcy-selected-accent)" }}>
-          <Sticker size={19} />
-        </div>
+        {selectedPack && tab === "packs" ? (
+          <button type="button" onClick={() => setSelectedPackId(null)} aria-label="К списку стикер-паков" className="tcy-press flex h-9 w-9 shrink-0 items-center justify-center rounded-[13px] tcy-card tcy-dim">
+            <ChevronLeft size={19} />
+          </button>
+        ) : (
+          <div className="flex h-9 w-9 items-center justify-center rounded-[13px]" style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 14%, var(--tcy-card))", color: "var(--tcy-selected-accent)" }}>
+            <Sticker size={19} />
+          </div>
+        )}
         <div className="min-w-0 flex-1">
-          <p className="text-[13.5px] font-extrabold tcy-text">Стикеры</p>
-          <p className="text-[10.5px] tcy-faint">Твои паки и избранное</p>
+          <p className="truncate text-[13.5px] font-extrabold tcy-text">{selectedPack && tab === "packs" ? selectedPack.name : "Стикеры"}</p>
+          <p className="text-[10.5px] tcy-faint">{selectedPack && tab === "packs" ? `${selectedPack.stickers.length} стикеров в паке` : "Твои паки и избранное"}</p>
         </div>
         <button type="button" onClick={onClose} aria-label="Закрыть панель" className="tcy-press flex h-8 w-8 items-center justify-center rounded-full tcy-card tcy-dim">
           <X size={16} />
@@ -82,11 +92,28 @@ export function StickerPicker({
       </div>
 
       <div className="tcy-sticker-grid max-h-[205px] overflow-y-auto px-3 pb-3">
-        {tab === "packs" && (
-          <button type="button" onClick={onCreatePack} className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-[17px] border border-dashed tcy-line tcy-card tcy-press" aria-label="Создать стикер-пак">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 17%, var(--tcy-card))", color: "var(--tcy-selected-accent)" }}><Plus size={22} /></span>
-            <span className="text-[10px] font-extrabold tcy-dim">Создать</span>
-          </button>
+        {tab === "packs" && !selectedPack && (
+          <>
+            <button type="button" onClick={onCreatePack} className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-[17px] border border-dashed tcy-line tcy-card tcy-press" aria-label="Создать стикер-пак">
+              <span className="flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 17%, var(--tcy-card))", color: "var(--tcy-selected-accent)" }}><Plus size={22} /></span>
+              <span className="text-[10px] font-extrabold tcy-dim">Создать</span>
+            </button>
+            {packs.map((pack) => (
+              <button
+                type="button"
+                key={pack.id}
+                onClick={() => setSelectedPackId(pack.id)}
+                className="tcy-press flex aspect-square min-w-0 flex-col items-center justify-center gap-1 rounded-[16px] p-1.5 hover:bg-[color:var(--tcy-card-strong)]"
+                aria-label={`Открыть стикер-пак ${pack.name}`}
+                title={pack.name}
+              >
+                <span className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden rounded-[11px]">
+                  {pack.stickers[0] ? <StickerImage sticker={pack.stickers[0]} className="h-full w-full object-contain" /> : <Sticker size={22} className="tcy-faint" />}
+                </span>
+                <span className="w-full truncate text-center text-[9px] font-extrabold tcy-dim">{pack.name}</span>
+              </button>
+            ))}
+          </>
         )}
         {items.map(({ sticker, packName }) => (
           <button
@@ -101,10 +128,14 @@ export function StickerPicker({
           </button>
         ))}
       </div>
-      {items.length === 0 && (
-        <p className="px-5 pb-4 text-center text-[11.5px] tcy-faint">
-          {tab === "favorites" ? "Пока нет избранных стикеров" : "Нажми на плюс, чтобы создать свой стикер-пак"}
-        </p>
+      {tab === "favorites" && items.length === 0 && (
+        <p className="px-5 pb-4 text-center text-[11.5px] tcy-faint">Пока нет избранных стикеров</p>
+      )}
+      {tab === "packs" && selectedPack && items.length === 0 && (
+        <p className="px-5 pb-4 text-center text-[11.5px] tcy-faint">В этом паке пока нет стикеров</p>
+      )}
+      {tab === "packs" && !selectedPack && packs.length === 0 && (
+        <p className="px-5 pb-4 text-center text-[11.5px] tcy-faint">Нажми на плюс, чтобы создать свой стикер-пак</p>
       )}
     </motion.div>
   );
