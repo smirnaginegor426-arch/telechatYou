@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
 import { Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
 import { Avatar } from "./Avatar";
@@ -111,7 +111,7 @@ export function ChatItem({
     else onClick();
   };
 
-  const handleAvatarClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAvatarClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     if (longPressTriggered.current) {
       longPressTriggered.current = false;
