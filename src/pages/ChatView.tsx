@@ -33,6 +33,12 @@ import { fileToBase64, formatDayLabel, formatLastSeen, isOnline, sameDay } from 
 import type { ChatListItem, MessageItem } from "@/types/api";
 import { addStickerToPack, saveFavoriteSticker, type StickerAsset } from "@/lib/stickers";
 import { cn } from "@/lib/utils";
+import {
+  CHAT_WALLPAPER_CHANGE_EVENT,
+  DEFAULT_CHAT_WALLPAPER,
+  chatWallpaperImageKey,
+  chatWallpaperKey,
+} from "@/lib/chat-wallpapers";
 type LocalPinnedSnapshot = {
   id: number;
   kind: string;
@@ -57,13 +63,6 @@ function stickerDetails(attachmentName?: string | null) {
     return { packName: "Сохранённые стикеры", stickerName: "Стикер" };
   }
 }
-
-import {
-  CHAT_WALLPAPER_CHANGE_EVENT,
-  DEFAULT_CHAT_WALLPAPER,
-  chatWallpaperImageKey,
-  chatWallpaperKey,
-} from "@/lib/chat-wallpapers";
 
 export default function ChatView() {
   const { id } = useParams<{ id: string }>();
@@ -319,7 +318,7 @@ export default function ChatView() {
         chatId,
         kind: "image",
         attachmentKey,
-        attachmentName: `tcy-sticker:${encodeURIComponent(packName)}:${encodeURIComponent(sticker.name)}`,
+        attachmentName: `tcy-sticker:${encodeURIComponent(packName.slice(0, 20))}:${encodeURIComponent(sticker.name.slice(0, 12))}`,
         attachmentSize: attachmentSize || undefined,
         attachmentMime,
       });
