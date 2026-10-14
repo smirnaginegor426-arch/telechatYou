@@ -503,8 +503,6 @@ body,
   width: 52px !important;
   height: 52px !important;
   border-radius: 9999px !important;
-  background: color-mix(in srgb, var(--tcy-selected-accent) 24%, transparent) !important;
-  color: var(--tcy-selected-accent) !important;
 }
 
 .tcy-settings-item-title {
@@ -536,6 +534,10 @@ body,
 #root input[type="checkbox"],
 #root input[type="radio"] {
   accent-color: var(--tcy-selected-accent);
+}
+
+.tcy-island .tcy-gradient-accent {
+  background: linear-gradient(135deg, var(--tcy-selected-accent), var(--tcy-selected-accent-deep));
 }
 
 .tcy-island {
