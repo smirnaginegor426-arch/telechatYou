@@ -412,8 +412,12 @@ export function MessageBubble({
                 "inline-flex max-w-full flex-col overflow-hidden",
                 isStickerAttachment
                   ? "items-center justify-center rounded-none border-0 p-0 shadow-none"
-                  : "rounded-[18px] border tcy-line p-px tcy-shadow-soft",
+                  : "rounded-[18px] border-solid p-0 tcy-shadow-soft",
               )}
+              style={isStickerAttachment ? undefined : {
+                borderWidth: "1mm",
+                borderColor: "var(--tcy-line)",
+              }}
             >
             <button
               type="button"
@@ -433,7 +437,7 @@ export function MessageBubble({
               }}
               className={cn(
                 "block max-w-full p-0 border-0 bg-transparent appearance-none text-left",
-                isStickerAttachment ? "rounded-[18px]" : "rounded-t-[15px] rounded-b-none",
+                isStickerAttachment ? "rounded-[18px]" : "rounded-none",
               )}
               aria-label={imageUnavailable ? "Повторить загрузку фотографии" : isStickerAttachment ? "Открыть действия стикера" : "Открыть фотографию"}
             >
@@ -445,7 +449,7 @@ export function MessageBubble({
                     "block",
                     isStickerAttachment
                       ? "h-[180px] w-[180px] object-contain"
-                      : "rounded-t-[14px] rounded-b-none max-w-[240px] max-h-[300px] object-cover",
+                      : "max-w-[240px] max-h-[300px] object-cover",
                   )}
                   loading="lazy"
                   decoding="async"
@@ -483,7 +487,7 @@ export function MessageBubble({
             </button>
             {hasMediaCaption && (
               <div
-                className="relative -mt-px w-full min-w-0 rounded-b-[16px] px-3 py-2.5"
+                className="relative block w-full min-w-0 px-3 py-2.5"
                 style={{
                   boxSizing: "border-box",
                   background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
