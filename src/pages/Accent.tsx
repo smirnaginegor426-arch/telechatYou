@@ -20,7 +20,7 @@ export default function AccentSettings() {
           <ArrowLeft size={19} />
         </button>
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-[15px] tcy-gradient-accent" style={{ color: "var(--tcy-selected-on-accent)" }}>
+          <span className="flex h-11 w-11 items-center justify-center rounded-[15px]" style={{ background: selected.color, color: selected.onAccent }}>
             <Palette size={21} />
           </span>
           <div>
