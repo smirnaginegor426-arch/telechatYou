@@ -212,6 +212,23 @@ export const pinnedMessages = mysqlTable(
   }),
 );
 
+/** Personal pin, visible only to its owner across their devices. */
+export const personalPinnedMessages = mysqlTable(
+  "personal_pinned_messages",
+  {
+    id: serial("id").primaryKey(),
+    chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull(),
+    userId: userId(),
+    messageId: bigint("messageId", { mode: "number", unsigned: true }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    personalPinUniq: uniqueIndex("personal_pinned_chat_user_uniq").on(t.chatId, t.userId),
+    personalPinMessageIdx: index("personal_pinned_message_idx").on(t.messageId),
+    personalPinUserIdx: index("personal_pinned_user_idx").on(t.userId),
+  }),
+);
+
 /** Poll attached to an ordinary message so existing message history remains compatible. */
 export const polls = mysqlTable(
   "polls",
