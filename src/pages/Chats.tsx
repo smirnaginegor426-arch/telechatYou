@@ -229,10 +229,10 @@ export default function Chats() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate("/search")}
-                  className="tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
+                  className="tcy-search-control tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
                   aria-label="Поиск"
                 >
-                  <Search size={18} />
+                  <Search size={18} className="tcy-search-control-icon" />
                 </button>
                 <button
                   onClick={() => navigate("/new")}
@@ -246,9 +246,9 @@ export default function Chats() {
             </div>
             <button
               onClick={() => navigate("/search")}
-              className="mt-4 w-full h-11 rounded-[18px] tcy-card border tcy-line flex items-center gap-3 px-4 text-left tcy-press"
+              className="tcy-search-control mt-4 w-full h-11 rounded-[18px] tcy-card border tcy-line flex items-center gap-3 px-4 text-left tcy-press"
             >
-              <Search size={16} className="tcy-faint" />
+              <Search size={16} className="tcy-search-control-icon" />
               <span className="text-[13.5px] tcy-faint font-medium">Поиск чатов, людей, сообщений…</span>
             </button>
           </>
