@@ -483,7 +483,7 @@ export function MessageBubble({
             </button>
             {hasMediaCaption && (
               <div
-                className="w-full min-w-0 rounded-none px-3 py-2.5"
+                className="relative -mt-px w-full min-w-0 rounded-b-[16px] px-3 py-2.5"
                 style={{
                   boxSizing: "border-box",
                   background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
