@@ -1,7 +1,8 @@
 
 import { useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil } from "lucide-react";
+import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil, Reply } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
 import { AudioFilePlayer } from "./AudioFilePlayer";
@@ -149,6 +150,7 @@ export function MessageBubble({
   onImageOpen,
   onStickerOpen,
   onReaction,
+  onSwipeReply,
   highlighted = false,
 }: {
   m: MessageItem;
@@ -162,12 +164,68 @@ export function MessageBubble({
   onImageOpen: (key: string) => void;
   onStickerOpen?: (m: MessageItem) => void;
   onReaction: (m: MessageItem, emoji: string) => void;
+  onSwipeReply?: (m: MessageItem) => void;
   highlighted?: boolean;
 }) {
   const imgUrl = useFileUrl(m.kind === "image" ? m.attachmentKey : null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
   const [attachmentWidth, setAttachmentWidth] = useState<number | null>(null);
   const imageRetryKeyRef = useRef<string | null>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const bubbleRef = useRef<HTMLDivElement | null>(null);
+  const swipeRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const swipeProgressRef = useRef(0);
+  const [swipeProgress, setSwipeProgress] = useState(0);
+  const [swipeIndicatorX, setSwipeIndicatorX] = useState<number | null>(null);
+  const swipeDirection = own ? 1 : -1;
+
+  const handleSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" || event.button !== 0) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest("button, a, input, textarea, video, audio")) return;
+    swipeRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    swipeProgressRef.current = 0;
+    setSwipeProgress(0);
+    setSwipeIndicatorX(null);
+  };
+
+  const handleSwipeMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const start = swipeRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    const dx = event.clientX - start.x;
+    const dy = event.clientY - start.y;
+    if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx) * 0.9) {
+      swipeRef.current = null;
+      swipeProgressRef.current = 0;
+      setSwipeProgress(0);
+      setSwipeIndicatorX(null);
+      return;
+    }
+    const directedDistance = dx * swipeDirection;
+    const progress = Math.max(0, Math.min(1, directedDistance / 78));
+    swipeProgressRef.current = progress;
+    setSwipeProgress(progress);
+    const rowRect = rowRef.current?.getBoundingClientRect();
+    const bubbleRect = bubbleRef.current?.getBoundingClientRect();
+    if (rowRect && bubbleRect && progress > 0.04) {
+      setSwipeIndicatorX(own
+        ? bubbleRect.left - rowRect.left - 36
+        : bubbleRect.right - rowRect.left + 8);
+      if (directedDistance > 8) event.preventDefault();
+    } else {
+      setSwipeIndicatorX(null);
+    }
+  };
+
+  const finishSwipe = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!swipeRef.current || swipeRef.current.pointerId !== event.pointerId) return;
+    const shouldReply = swipeProgressRef.current >= 0.94;
+    swipeRef.current = null;
+    swipeProgressRef.current = 0;
+    setSwipeProgress(0);
+    setSwipeIndicatorX(null);
+    if (shouldReply) onSwipeReply?.(m);
+  };
 
   if (m.kind === "system") {
     return (
@@ -214,12 +272,34 @@ export function MessageBubble({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 420, damping: 34 }}
       data-message-id={m.id}
+      ref={rowRef}
       className={cn(
-        "flex px-3 my-[3px] w-full",
+        "relative flex px-3 my-[3px] w-full overflow-visible touch-pan-y",
         own ? "justify-end" : "justify-start",
         highlighted && "tcy-message-highlight",
       )}
     >
+      {swipeProgress > 0.03 && swipeIndicatorX !== null && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute z-20"
+          style={{ left: swipeIndicatorX, top: "50%", transform: "translateY(-50%)" }}
+        >
+          <span
+            className="flex h-8 w-8 items-center justify-center rounded-full border transition-colors"
+            style={{
+              background: swipeProgress >= 0.94
+                ? "var(--tcy-selected-accent)"
+                : `color-mix(in srgb, var(--tcy-selected-accent) ${Math.round(swipeProgress * 30)}%, var(--tcy-card))`,
+              borderColor: swipeProgress >= 0.94 ? "var(--tcy-selected-accent)" : "var(--tcy-line-strong)",
+              color: swipeProgress >= 0.94 ? "var(--tcy-selected-on-accent)" : "var(--tcy-dim)",
+            }}
+          >
+            <Reply size={17} strokeWidth={2.4} />
+          </span>
+        </span>
+      )}
+
       {isGroup && showSender && (!own || isChannel) && (
         <div className="w-8 mr-1.5 shrink-0 flex items-end">
           {showSender && (
@@ -233,10 +313,19 @@ export function MessageBubble({
       )}
 
       <div
+        ref={bubbleRef}
+        onPointerDown={handleSwipeStart}
+        onPointerMove={handleSwipeMove}
+        onPointerUp={finishSwipe}
+        onPointerCancel={finishSwipe}
         className={cn(
           "max-w-[78%] flex flex-col",
           own ? "items-end" : "items-start",
         )}
+        style={{
+          transform: swipeProgress > 0.015 ? `translateX(${swipeDirection * swipeProgress * 54}px)` : "translateX(0)",
+          transition: swipeRef.current ? "none" : "transform 160ms ease-out",
+        }}
       >
         <div
           onContextMenu={(e) => {
