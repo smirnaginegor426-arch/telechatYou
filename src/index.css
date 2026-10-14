@@ -378,8 +378,8 @@
 }
 .tcy-island > div { position: relative; z-index: 1; }
 .tcy-tab-orb {
-  background: color-mix(in srgb, var(--tcy-selected-accent) 12%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tcy-selected-accent) 12%, transparent),
+  background: color-mix(in srgb, var(--tcy-selected-accent) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tcy-selected-accent) 7%, transparent),
     0 4px 18px -10px var(--tcy-selected-accent);
 }
 .tcy-tab-spark { color: var(--tcy-selected-accent); filter: drop-shadow(0 1px 4px color-mix(in srgb, var(--tcy-selected-accent) 65%, transparent)); }
@@ -528,9 +528,9 @@ body,
   -webkit-touch-callout: none;
   margin: 3px 10px;
   width: calc(100% - 20px) !important;
-  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 12%, var(--tcy-line));
+  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 7%, var(--tcy-line));
   border-radius: 22px;
-  background: color-mix(in srgb, var(--tcy-selected-accent) 5%, var(--tcy-bg)) !important;
+  background: color-mix(in srgb, var(--tcy-selected-accent) 3%, var(--tcy-bg)) !important;
   transition: background-color 360ms ease, border-color 360ms ease;
 }
 
@@ -555,8 +555,8 @@ body,
 }
 
 .tcy-tab-orb {
-  background: color-mix(in srgb, var(--tcy-selected-accent) 32%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 48%, rgba(255,255,255,.15));
+  background: color-mix(in srgb, var(--tcy-selected-accent) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 34%, rgba(255,255,255,.15));
   -webkit-backdrop-filter: blur(20px) saturate(1.6);
   backdrop-filter: blur(20px) saturate(1.6);
   box-shadow:
@@ -658,18 +658,25 @@ body,
 
 
 .tcy-chat-list-item-selected {
-  background: color-mix(in srgb, var(--tcy-selected-accent) 20%, var(--tcy-card)) !important;
+  background: color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card)) !important;
   border-color: var(--tcy-selected-accent) !important;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--tcy-selected-accent) 26%, transparent);
 }
 
 
 .tcy-search-control {
-  background: color-mix(in srgb, var(--tcy-selected-accent) 9%, var(--tcy-card)) !important;
-  border-color: color-mix(in srgb, var(--tcy-selected-accent) 20%, var(--tcy-line)) !important;
+  background: color-mix(in srgb, var(--tcy-selected-accent) 5%, var(--tcy-card)) !important;
+  border-color: color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-line)) !important;
   transition: background-color 360ms ease, border-color 360ms ease;
 }
 
 .tcy-search-control-icon {
   color: var(--tcy-selected-accent) !important;
+}
+
+
+.tcy-favorite-chat-avatar {
+  background: color-mix(in srgb, var(--tcy-selected-accent) 17%, var(--tcy-card-strong));
+  color: color-mix(in srgb, var(--tcy-selected-accent) 86%, white);
+  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 22%, var(--tcy-line));
 }
