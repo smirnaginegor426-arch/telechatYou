@@ -130,6 +130,10 @@ export default function ChatView() {
   myIdRef.current = myId;
 
   const info = trpc.chats.info.useQuery({ chatId }, { refetchInterval: 8000 });
+  const personalPinned = trpc.messages.pinnedPersonal.useQuery({ chatId }, {
+    refetchInterval: 6000,
+    refetchIntervalInBackground: false,
+  });
   const sharedPinned = trpc.messages.pinned.useQuery({ chatId }, {
     refetchInterval: 6000,
     refetchIntervalInBackground: false,
@@ -215,6 +219,12 @@ export default function ChatView() {
     utils.chats.list.invalidate();
   };
   const send = trpc.messages.send.useMutation({ onSuccess: invalidateLists });
+  const pinPersonal = trpc.messages.pinPersonal.useMutation({
+    onSuccess: () => utils.messages.pinnedPersonal.invalidate({ chatId }),
+  });
+  const unpinPersonal = trpc.messages.unpinPersonal.useMutation({
+    onSuccess: () => utils.messages.pinnedPersonal.invalidate({ chatId }),
+  });
   const pinShared = trpc.messages.pin.useMutation({
     onSuccess: () => utils.messages.pinned.invalidate({ chatId }),
   });
@@ -355,7 +365,7 @@ export default function ChatView() {
             ? formatLastSeen(peer.lastSeenAt)
             : "";
   const visibleMessages = isChannel ? messages.filter((message) => message.kind !== "system") : messages;
-  const activePinnedMessage = localPinned ?? sharedPinned.data?.message ?? null;
+  const activePinnedMessage = localPinned ?? personalPinned.data?.message ?? sharedPinned.data?.message ?? null;
   const activePinnedId = activePinnedMessage?.id ?? null;
 
   const jumpToMessage = async (targetId: number) => {
@@ -501,7 +511,9 @@ export default function ChatView() {
             onClick={() => {
               if (localPinned) {
                 setLocalPinned(null);
-                try { localStorage.removeItem(localPinnedKey); } catch { /* local pin is optional */ }
+                try { localStorage.removeItem(localPinnedKey); } catch { /* legacy local pin is optional */ }
+              } else if (personalPinned.data) {
+                unpinPersonal.mutate({ chatId });
               } else {
                 unpinShared.mutate({ chatId });
               }
@@ -837,16 +849,16 @@ export default function ChatView() {
             <button
               type="button"
               onClick={() => {
-                const snapshot: LocalPinnedSnapshot = {
-                  id: pinTarget.id,
-                  kind: pinTarget.kind,
-                  body: pinTarget.body,
-                  attachmentName: pinTarget.attachmentName,
-                  senderName: pinTarget.sender?.displayName ?? (pinTarget.senderId === myId ? "Вы" : title),
-                };
-                setLocalPinned(snapshot);
-                try { localStorage.setItem(localPinnedKey, JSON.stringify(snapshot)); } catch { /* local pins are optional */ }
-                setPinTarget(null);
+                void (async () => {
+                  try {
+                    await pinPersonal.mutateAsync({ chatId, messageId: pinTarget.id });
+                    setLocalPinned(null);
+                    try { localStorage.removeItem(localPinnedKey); } catch { /* legacy local pin is optional */ }
+                    setPinTarget(null);
+                  } catch (error) {
+                    alert("Не удалось закрепить сообщение: " + (error instanceof Error ? error.message : "ошибка"));
+                  }
+                })();
               }}
               className="tcy-press flex w-full items-center gap-3 rounded-[16px] border tcy-line tcy-card px-4 py-3.5 text-left"
             >
@@ -860,9 +872,16 @@ export default function ChatView() {
               type="button"
               disabled={pinShared.isPending}
               onClick={() => {
-                try { localStorage.removeItem(localPinnedKey); } catch { /* local pin is optional */ }
-                setLocalPinned(null);
-                pinShared.mutate({ chatId, messageId: pinTarget.id }, { onSuccess: () => setPinTarget(null) });
+                void (async () => {
+                  try {
+                    await unpinPersonal.mutateAsync({ chatId });
+                    try { localStorage.removeItem(localPinnedKey); } catch { /* legacy local pin is optional */ }
+                    setLocalPinned(null);
+                    pinShared.mutate({ chatId, messageId: pinTarget.id }, { onSuccess: () => setPinTarget(null) });
+                  } catch (error) {
+                    alert("Не удалось закрепить сообщение: " + (error instanceof Error ? error.message : "ошибка"));
+                  }
+                })();
               }}
               className="tcy-press flex w-full items-center gap-3 rounded-[16px] border tcy-line tcy-card px-4 py-3.5 text-left disabled:opacity-50"
             >
