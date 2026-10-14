@@ -121,7 +121,7 @@ export default function Profile() {
             />
           </button>
           <button
-            onClick={() => fileRef.current?.click()
+            onClick={() => fileRef.current?.click()}
             className="tcy-press absolute -bottom-1 -right-1 w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
             style={{ color: "var(--tcy-on-accent)" }}
           >
