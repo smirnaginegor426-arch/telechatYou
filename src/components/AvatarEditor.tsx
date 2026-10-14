@@ -39,6 +39,7 @@ export function AvatarEditor({
   title = "Редактор аватарки",
   subtitle = "Рисуйте, добавляйте текст и эффекты",
   saveLabel = "Сохранить аватарку",
+  outputType = "image/jpeg",
 }: {
   file: File | null;
   onCancel: () => void;
@@ -47,6 +48,7 @@ export function AvatarEditor({
   title?: string;
   subtitle?: string;
   saveLabel?: string;
+  outputType?: "image/jpeg" | "image/png" | "image/webp";
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -243,11 +245,13 @@ export function AvatarEditor({
     setError("");
     setExporting(true);
     try {
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.93));
+      const quality = outputType === "image/jpeg" ? 0.93 : undefined;
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, outputType, quality));
       if (!blob) throw new Error("Не удалось подготовить изображение.");
       const baseName = file.name.replace(/\.[^.]+$/, "") || "avatar";
-      const editedFile = new File([blob], baseName + "-edited.jpg", {
-        type: "image/jpeg",
+      const extension = outputType === "image/png" ? "png" : outputType === "image/webp" ? "webp" : "jpg";
+      const editedFile = new File([blob], baseName + "-edited." + extension, {
+        type: outputType,
         lastModified: Date.now(),
       });
       await onSave(editedFile);
