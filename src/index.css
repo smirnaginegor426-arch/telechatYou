@@ -733,3 +733,53 @@ body,
 .tcy-shadow-accent {
   box-shadow: 0 8px 22px -14px color-mix(in srgb, var(--tcy-selected-accent) 36%, transparent) !important;
 }
+
+
+/* Match the conversation wallpaper family to the current app theme. */
+html[data-theme="light"] .tcy-wallpaper,
+html[data-theme="light"] .tcy-wallpaper-preview {
+  background-color: #f4f5f8;
+}
+html[data-theme="light"] .tcy-wallpaper-bg--black {
+  background-color: #eef0f5 !important;
+  background-image: radial-gradient(ellipse at 50% 0%, #ffffff 0%, #f1f3f7 52%, #e3e7ee 100%) !important;
+}
+html[data-theme="light"] .tcy-wallpaper-bg--graphite {
+  background-color: #eef0f4 !important;
+  background-image:
+    linear-gradient(135deg, rgba(40, 50, 65, .035) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(40, 50, 65, .025) 25%, transparent 25%),
+    radial-gradient(ellipse at 80% 10%, rgba(148, 163, 184, .13), transparent 42%),
+    linear-gradient(160deg, #fbfcfe, #e9edf3 72%) !important;
+}
+html[data-theme="light"] .tcy-wallpaper-bg--stars {
+  background-color: #f6f8fd !important;
+  background-image:
+    radial-gradient(1.4px 1.4px at 20px 30px, rgba(100, 116, 139, .25) 60%, transparent 100%),
+    radial-gradient(1px 1px at 105px 82px, rgba(100, 116, 139, .18) 60%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 70px 145px, rgba(100, 116, 139, .16) 60%, transparent 100%),
+    radial-gradient(ellipse at 78% 18%, rgba(129, 140, 248, .12), transparent 45%),
+    linear-gradient(180deg, #ffffff, #edf1fa 75%) !important;
+}
+html[data-theme="light"] .tcy-wallpaper-bg--space {
+  background-color: #f3f7ff !important;
+  background-image:
+    radial-gradient(ellipse at 18% 12%, rgba(96, 165, 250, .17), transparent 44%),
+    radial-gradient(ellipse at 85% 75%, rgba(167, 139, 250, .15), transparent 48%),
+    radial-gradient(ellipse at 50% 105%, rgba(103, 232, 249, .10), transparent 42%),
+    linear-gradient(155deg, #ffffff, #edf3ff 72%) !important;
+}
+html[data-theme="light"] .tcy-wallpaper-bg--violet {
+  background-color: #f7f2ff !important;
+  background-image:
+    radial-gradient(ellipse at 0% 0%, rgba(167, 139, 250, .18), transparent 48%),
+    radial-gradient(ellipse at 100% 100%, rgba(196, 181, 253, .15), transparent 44%),
+    linear-gradient(150deg, #ffffff, #f3edfc 78%) !important;
+}
+html[data-theme="light"] .tcy-wallpaper-bg--wine {
+  background-color: #fff5f6 !important;
+  background-image:
+    radial-gradient(ellipse at 100% 0%, rgba(251, 113, 133, .13), transparent 46%),
+    radial-gradient(ellipse at 0% 100%, rgba(253, 186, 116, .10), transparent 48%),
+    linear-gradient(150deg, #fffafb, #f8eff0 76%) !important;
+}
