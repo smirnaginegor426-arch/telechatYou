@@ -25,10 +25,13 @@ async function hydrate(rows: (typeof messages.$inferSelect)[], viewerId: number)
   const replySenderIds = [...new Set(replyRows.map((r) => r.senderId))];
   const replySenders = await getProfilesByIds(replySenderIds);
   const replySenderMap = new Map(replySenders.map((p) => [p.userId, p]));
-  const reactionMap = new Map<number, { emoji: string; userId: number }[]>();
+  const reactionUsers = await getProfilesByIds([...new Set(reactionRows.map((r) => r.userId))]);
+  const reactionUserMap = new Map(reactionUsers.map((p) => [p.userId, p]));
+  const reactionMap = new Map<number, { emoji: string; userId: number; displayName: string; avatarKey: string | null }[]>();
   for (const r of reactionRows) {
     const arr = reactionMap.get(r.messageId) ?? [];
-    arr.push({ emoji: r.emoji, userId: r.userId });
+    const profile = reactionUserMap.get(r.userId);
+    arr.push({ emoji: r.emoji, userId: r.userId, displayName: profile?.displayName ?? "Пользователь", avatarKey: profile?.avatarKey ?? null });
     reactionMap.set(r.messageId, arr);
   }
 
@@ -378,6 +381,10 @@ export const messagesRouter = createRouter({
         await getDb().delete(reactions).where(eq(reactions.id, existing.id));
         return { added: false };
       }
+      const mine = await getDb().select({ id: reactions.id }).from(reactions).where(
+        and(eq(reactions.messageId, input.messageId), eq(reactions.userId, ctx.user.id)),
+      );
+      if (mine.length >= 3) throw new TRPCError({ code: "BAD_REQUEST", message: "Можно поставить не больше 3 реакций на одно сообщение" });
       await getDb()
         .insert(reactions)
         .values({ messageId: input.messageId, userId: ctx.user.id, emoji: input.emoji });

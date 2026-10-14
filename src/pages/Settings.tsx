@@ -336,7 +336,7 @@ export default function Settings() {
           subtitle={`${files.length} файлов · ${formatFileSize(totalSize)}`}
           onClick={() => setStorageOpen(true)}
         />
-        <SettingsRow icon={<Globe size={17} />} title="Язык" subtitle="Русский" />
+        <SettingsRow icon={<Globe size={17} />} title="Мой язык" subtitle="Создать, изменить и сохранить свой язык" onClick={() => navigate("/language")} />
       </SettingsGroup>
 
       <SettingsGroup title="О приложении">

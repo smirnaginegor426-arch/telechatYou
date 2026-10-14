@@ -24,20 +24,15 @@ function isStandaloneEmoji(text: string) {
     && !/[A-Za-z0-9]/.test(value);
 }
 
-function groupReactions(
-  reactions: { emoji: string; userId: number }[],
-  myId: number,
-) {
-  const map = new Map<string, { count: number; mine: boolean }>();
-
+function groupReactions(reactions: MessageItem["reactions"], myId: number) {
+  type Reaction = MessageItem["reactions"][number];
+  const map = new Map<string, { count: number; mine: boolean; reactors: Reaction[] }>();
   for (const r of reactions) {
-    const cur = map.get(r.emoji) ?? { count: 0, mine: false };
-    cur.count++;
-
+    const cur = map.get(r.emoji) ?? { count: 0, mine: false, reactors: [] };
+    cur.count++; cur.reactors.push(r);
     if (r.userId === myId) cur.mine = true;
     map.set(r.emoji, cur);
   }
-
   return [...map.entries()];
 }
 
@@ -202,8 +197,8 @@ export function MessageBubble({
               : own
                 ? { color: "var(--tcy-on-accent)" }
                 : {
-                    background: "var(--tcy-bubble-in)",
-                    color: "var(--tcy-text)",
+                    background: "#ffffff",
+                    color: "#171717",
                   }
           }
         >
@@ -389,6 +384,9 @@ export function MessageBubble({
                       : { color: "var(--tcy-text)" }
                   }
                 >
+                  <span className="flex items-center -space-x-1 mr-0.5" aria-label="Кто поставил реакцию">
+                    {info.reactors.slice(0, 2).map((reactor) => <Avatar key={reactor.userId} name={reactor.displayName} avatarKey={reactor.avatarKey} size={16} className="border-2 border-[color:var(--tcy-solid)]" />)}
+                  </span>
                   <AppleEmoji emoji={emoji} size={15} />
                   {info.count > 1 && (
                     <span className="text-[10px] font-bold">

@@ -290,11 +290,22 @@ export default function ChatView() {
   const onReaction = (m: MessageItem, emoji: string) => {
     const mine = m.reactions.filter((r) => r.userId === myIdRef.current);
     const already = mine.some((r) => r.emoji === emoji);
+    if (!already && mine.length >= 3) {
+      alert("Можно поставить не больше 3 реакций на одно сообщение.");
+      return;
+    }
     applyLocal(
       m.id,
       already
         ? { reactions: m.reactions.filter((r) => !(r.userId === myIdRef.current && r.emoji === emoji)) }
-        : { reactions: [...m.reactions, { emoji, userId: myIdRef.current }] },
+        : {
+            reactions: [...m.reactions, {
+              emoji,
+              userId: myIdRef.current,
+              displayName: me.data?.profile?.displayName ?? "Вы",
+              avatarKey: me.data?.profile?.avatarKey ?? null,
+            }],
+          },
     );
     react.mutate({ messageId: m.id, emoji });
   };
