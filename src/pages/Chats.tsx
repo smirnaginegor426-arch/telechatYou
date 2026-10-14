@@ -93,6 +93,14 @@ export default function Chats() {
     refetchInterval: 4000,
     refetchIntervalInBackground: false,
   });
+  const ensureFavorites = trpc.chats.ensureFavorites.useMutation({
+    onSuccess: () => utils.chats.list.invalidate(),
+  });
+  useEffect(() => {
+    ensureFavorites.mutate();
+    // Create or restore the personal Saved Messages chat once when opening the chat list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const invalidate = () => utils.chats.list.invalidate();
   const flags = trpc.chats.setFlags.useMutation({ onSuccess: invalidate });
