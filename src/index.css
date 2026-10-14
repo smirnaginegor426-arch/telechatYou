@@ -433,7 +433,7 @@ body,
 #root h2,
 #root h3,
 #root [role="heading"] {
-  font-weight: 900 !important;
+  font-weight: var(--tcy-font-weight-heading, 900) !important;
   letter-spacing: -0.025em;
 }
 
@@ -650,4 +650,11 @@ body,
 #root textarea.tcy-composer-input::placeholder {
   color: var(--tcy-faint) !important;
   opacity: .82;
+}
+
+
+.tcy-chat-list-item-selected {
+  background: color-mix(in srgb, var(--tcy-selected-accent) 20%, var(--tcy-card)) !important;
+  border-color: var(--tcy-selected-accent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--tcy-selected-accent) 26%, transparent);
 }
