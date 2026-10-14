@@ -147,7 +147,9 @@ export function MessageBubble({
   peerLastReadId,
   onLongPress,
   onImageOpen,
+  onStickerOpen,
   onReaction,
+  highlighted = false,
 }: {
   m: MessageItem;
   own: boolean;
@@ -158,7 +160,9 @@ export function MessageBubble({
   peerLastReadId?: number;
   onLongPress: (m: MessageItem) => void;
   onImageOpen: (key: string) => void;
+  onStickerOpen?: (m: MessageItem) => void;
   onReaction: (m: MessageItem, emoji: string) => void;
+  highlighted?: boolean;
 }) {
   const imgUrl = useFileUrl(m.kind === "image" ? m.attachmentKey : null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
@@ -208,9 +212,11 @@ export function MessageBubble({
       initial={{ opacity: 0, y: 14, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", stiffness: 420, damping: 34 }}
+      data-message-id={m.id}
       className={cn(
         "flex px-3 my-[3px] w-full",
         own ? "justify-end" : "justify-start",
+        highlighted && "tcy-message-highlight",
       )}
     >
       {isGroup && showSender && (!own || isChannel) && (
@@ -322,6 +328,10 @@ export function MessageBubble({
                   imageRetryKeyRef.current = null;
                   setImageUnavailable(false);
                   refreshFileUrl(m.attachmentKey);
+                  return;
+                }
+                if (m.attachmentName?.startsWith("tcy-sticker:")) {
+                  onStickerOpen?.(m);
                   return;
                 }
                 onImageOpen(m.attachmentKey);
