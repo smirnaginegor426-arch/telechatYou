@@ -347,7 +347,7 @@ export default function Settings() {
         <SettingsRow
           icon={<Smile size={17} />}
           title="Стикеры"
-          subtitle="Показывать панель стикеров у кнопки +"
+          subtitle="Показывать кнопку стикеров рядом с полем ввода"
           right={<Toggle checked={mediaPreferences.stickersEnabled} onChange={(v) => updateMediaPreference("stickersEnabled", v)} />}
         />
         <SettingsRow
