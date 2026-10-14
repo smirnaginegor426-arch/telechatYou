@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FileText, Image as ImageIcon, Mic, Plus, SendHorizonal, Smile, Trash2, X } from "lucide-react";
 import { EmojiPicker } from "./EmojiPicker";
-import { formatDuration, formatFileSize } from "@/lib/format";
+import { formatDuration } from "@/lib/format";
 import { AppleEmoji } from "./AppleEmoji";
 import { compressPhoto, getMediaSendPreferences } from "@/lib/media-send-preferences";
 import { cn } from "@/lib/utils";
