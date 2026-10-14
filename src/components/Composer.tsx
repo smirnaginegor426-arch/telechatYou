@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Mic, Plus, SendHorizonal, Smile, Trash2, X } from "lucide-react";
+import { FileText, Image as ImageIcon, Mic, Plus, SendHorizonal, Smile, Trash2, X } from "lucide-react";
 import { EmojiPicker } from "./EmojiPicker";
 import { formatDuration, formatFileSize } from "@/lib/format";
 import { AppleEmoji } from "./AppleEmoji";
@@ -8,6 +8,8 @@ import { compressPhoto, getMediaSendPreferences } from "@/lib/media-send-prefere
 import { cn } from "@/lib/utils";
 
 const STICKERS = ["😀", "😂", "🥹", "😍", "😎", "😭", "🥳", "🤔", "😴", "🥰", "🤯", "🙄", "❤️", "🔥", "👍", "👎", "👏", "🙏", "💀", "✨", "🎉", "🤝", "🫶", "💔", "🐱", "🐶", "🦊", "🐸", "🐼", "🦄"];
+
+type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
 
 type Props = {
   onSendText: (text: string) => void;
@@ -31,6 +33,7 @@ export function Composer({
   const [attachOpen, setAttachOpen] = useState(false);
   const [stickerOpen, setStickerOpen] = useState(false);
   const [preparingImage, setPreparingImage] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [stickersEnabled] = useState(() => getMediaSendPreferences().stickersEnabled);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
@@ -143,10 +146,28 @@ export function Composer({
 
   const submit = () => {
     const t = text.trim();
-    if (!t) return;
-    onSendText(t);
+    if (!t && pendingAttachments.length === 0) return;
+
+    const preferences = getMediaSendPreferences();
+    if (
+      pendingAttachments.length > 0 &&
+      preferences.confirmBeforeSend &&
+      !window.confirm(`Отправить вложения (${pendingAttachments.length} шт.)?`)
+    ) {
+      return;
+    }
+
+    if (t) onSendText(t);
+    for (const attachment of pendingAttachments) {
+      if (attachment.kind === "image") onAttachImage(attachment.file);
+      else onAttachFile(attachment.file);
+    }
+
+    setPendingAttachments([]);
     setText("");
     setEmojiOpen(false);
+    setStickerOpen(false);
+    setAttachOpen(false);
   };
 
   const onMicDown = (e: React.PointerEvent) => {
@@ -171,22 +192,25 @@ export function Composer({
   };
 
   const hasText = text.trim().length > 0;
+  const hasContent = hasText || pendingAttachments.length > 0;
 
   const handleImageSelection = async (files: File[]) => {
     setAttachOpen(false);
     if (files.length === 0) return;
     const preferences = getMediaSendPreferences();
-    const prompt = files.length === 1
-      ? `Отправить фотографию «${files[0].name}» (${formatFileSize(files[0].size)})?`
-      : `Отправить ${files.length} фотографий?`;
-    if (preferences.confirmBeforeSend && !window.confirm(prompt)) return;
 
     setPreparingImage(true);
     try {
+      const preparedFiles: PendingAttachment[] = [];
       for (const file of files) {
         const prepared = preferences.compressPhotos ? await compressPhoto(file) : file;
-        onAttachImage(prepared);
+        preparedFiles.push({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          file: prepared,
+          kind: "image",
+        });
       }
+      setPendingAttachments((current) => [...current, ...preparedFiles]);
     } finally {
       setPreparingImage(false);
     }
@@ -195,13 +219,12 @@ export function Composer({
   const handleFileSelection = (files: File[]) => {
     setAttachOpen(false);
     if (files.length === 0) return;
-    const preferences = getMediaSendPreferences();
-    const prompt = files.length === 1
-      ? `Отправить файл «${files[0].name}» (${formatFileSize(files[0].size)})?`
-      : `Отправить ${files.length} файлов?`;
-    if (preferences.confirmBeforeSend && !window.confirm(prompt)) return;
-
-    for (const file of files) onAttachFile(file);
+    const queued = files.map((file) => ({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`,
+      file,
+      kind: "file" as const,
+    }));
+    setPendingAttachments((current) => [...current, ...queued]);
   };
 
   return (
@@ -296,6 +319,31 @@ export function Composer({
       </AnimatePresence>
 
       <div className="px-3 pb-3 pt-1.5 safe-bottom">
+        {pendingAttachments.length > 0 && !recording && (
+          <div className="flex flex-wrap gap-2 px-1 pb-2">
+            {pendingAttachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="max-w-full flex items-center gap-2 rounded-[14px] tcy-card border tcy-line px-2.5 py-2"
+              >
+                {attachment.kind === "image"
+                  ? <ImageIcon size={16} className="tcy-accent shrink-0" />
+                  : <FileText size={16} className="tcy-accent shrink-0" />}
+                <span className="max-w-[160px] truncate text-[11.5px] tcy-text">
+                  {attachment.file.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPendingAttachments((current) => current.filter((item) => item.id !== attachment.id))}
+                  aria-label={`Удалить вложение ${attachment.file.name}`}
+                  className="tcy-press w-5 h-5 rounded-full flex items-center justify-center tcy-faint shrink-0"
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div
           className={cn(
             "flex items-end gap-2 rounded-[26px] border tcy-line tcy-header-blur px-2 py-2 tcy-shadow-soft transition-colors",
@@ -367,7 +415,7 @@ export function Composer({
               >
                 <Smile size={22} />
               </button>
-              {hasText ? (
+              {hasContent ? (
                 <motion.button
                   key="send"
                   initial={{ scale: 0.5, opacity: 0 }}
