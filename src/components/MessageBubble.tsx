@@ -409,8 +409,10 @@ export function MessageBubble({
               ref={hasMediaCaption ? measureAttachment : undefined}
               data-photo-frame="true"
               className={cn(
-                "inline-flex max-w-full",
-                isStickerAttachment ? "items-center justify-center rounded-none border-0 p-0 shadow-none" : "rounded-[18px] border tcy-line p-[3px] tcy-shadow-soft",
+                "inline-flex max-w-full flex-col overflow-hidden",
+                isStickerAttachment
+                  ? "items-center justify-center rounded-none border-0 p-0 shadow-none"
+                  : "rounded-[18px] border tcy-line p-px tcy-shadow-soft",
               )}
             >
             <button
@@ -429,7 +431,10 @@ export function MessageBubble({
                 }
                 onImageOpen(m.attachmentKey);
               }}
-              className={cn("block p-0 border-0 bg-transparent appearance-none text-left", isStickerAttachment && "rounded-[18px]")}
+              className={cn(
+                "block max-w-full p-0 border-0 bg-transparent appearance-none text-left",
+                isStickerAttachment ? "rounded-[18px]" : "rounded-t-[15px] rounded-b-none",
+              )}
               aria-label={imageUnavailable ? "Повторить загрузку фотографии" : isStickerAttachment ? "Открыть действия стикера" : "Открыть фотографию"}
             >
               {imgUrl && !imageUnavailable ? (
@@ -438,7 +443,9 @@ export function MessageBubble({
                   alt={m.attachmentName ?? "Фото"}
                   className={cn(
                     "block",
-                    isStickerAttachment ? "h-[180px] w-[180px] object-contain" : "rounded-[13px] max-w-[240px] max-h-[300px] object-cover",
+                    isStickerAttachment
+                      ? "h-[180px] w-[180px] object-contain"
+                      : "rounded-t-[14px] rounded-b-none max-w-[240px] max-h-[300px] object-cover",
                   )}
                   loading="lazy"
                   decoding="async"
@@ -474,6 +481,28 @@ export function MessageBubble({
                 <div className={cn("tcy-skeleton rounded-[13px]", isStickerAttachment ? "w-[180px] h-[180px]" : "w-[220px] h-[160px]")} />
               )}
             </button>
+            {hasMediaCaption && (
+              <div
+                className="w-full min-w-0 rounded-none px-3 py-2.5"
+                style={{
+                  boxSizing: "border-box",
+                  background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
+                  color: own ? "var(--tcy-on-accent)" : "var(--tcy-text)",
+                }}
+              >
+                <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
+                  <EmojiText text={m.body} />
+                </p>
+                <MessageMeta
+                  m={m}
+                  own={own}
+                  peerLastReadId={peerLastReadId}
+                  isImage={isImage}
+                  isStickerMessage={isStickerMessage}
+                  inCaptionFrame
+                />
+              </div>
+            )}
             </div>
           )}
 
@@ -506,11 +535,11 @@ export function MessageBubble({
               <div className="px-1 py-1">
                 <AppleEmoji emoji={m.body.trim()} size={58} />
               </div>
-            ) : hasMediaCaption ? (
+            ) : hasMediaCaption && !isImage ? (
               <div
-                className="mt-0 rounded-b-[14px] rounded-t-none border-x border-b border-t-0 tcy-line px-3 py-2.5 tcy-shadow-soft"
+                className="mt-0 w-fit max-w-full rounded-b-[14px] rounded-t-none border-x border-b border-t-0 tcy-line px-3 py-2.5 tcy-shadow-soft"
                 style={{
-                  width: attachmentWidth ?? (isImage ? 228 : 200),
+                  width: attachmentWidth ?? 200,
                   maxWidth: "100%",
                   boxSizing: "border-box",
                   background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
