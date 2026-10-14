@@ -31,7 +31,7 @@ import { QUICK_REACTIONS } from "@/lib/emoji";
 import { AppleEmoji } from "@/components/AppleEmoji";
 import { fileToBase64, formatDayLabel, formatLastSeen, isOnline, sameDay } from "@/lib/format";
 import type { ChatListItem, MessageItem } from "@/types/api";
-import { addStickerToPack, saveFavoriteSticker, type StickerAsset } from "@/lib/stickers";
+import { addStickerToPack, saveFavoriteSticker, saveSharedStickerPack, updateStickerPackAttachments, type StickerAsset, type StickerPack } from "@/lib/stickers";
 import { cn } from "@/lib/utils";
 import {
   CHAT_WALLPAPER_CHANGE_EVENT,
@@ -61,6 +61,36 @@ function stickerDetails(attachmentName?: string | null) {
     return { packName: decodeURIComponent(match[1]) || "Сохранённые стикеры", stickerName: decodeURIComponent(match[2]) || "Стикер" };
   } catch {
     return { packName: "Сохранённые стикеры", stickerName: "Стикер" };
+  }
+}
+
+type SharedStickerPackManifest = {
+  type: "tcy-sticker-pack-v1";
+  name: string;
+  stickers: StickerAsset[];
+};
+
+function readStickerPackManifest(raw?: string | null): SharedStickerPackManifest | null {
+  if (!raw) return null;
+  try {
+    const value = JSON.parse(raw) as {
+      type?: unknown;
+      name?: unknown;
+      stickers?: unknown;
+    };
+    if (value.type !== "tcy-sticker-pack-v1" || typeof value.name !== "string" || !Array.isArray(value.stickers)) {
+      return null;
+    }
+    const stickers = value.stickers.filter((item): item is StickerAsset => {
+      if (!item || typeof item !== "object") return false;
+      const sticker = item as Partial<StickerAsset>;
+      return typeof sticker.id === "string" &&
+        typeof sticker.name === "string" &&
+        typeof sticker.attachmentKey === "string";
+    });
+    return stickers.length ? { type: "tcy-sticker-pack-v1", name: value.name, stickers } : null;
+  } catch {
+    return null;
   }
 }
 
@@ -301,25 +331,56 @@ export default function ChatView() {
     }
   };
 
-  const sendStickerAsset = async (sticker: StickerAsset, packName: string) => {
+  const sendStickerAsset = async (sticker: StickerAsset, packName: string, sourcePack?: StickerPack) => {
     try {
-      let attachmentKey = sticker.attachmentKey;
-      let attachmentSize = 0;
-      let attachmentMime = sticker.contentType ?? "image/webp";
-      if (!attachmentKey && sticker.dataUrl) {
-        const response = await fetch(sticker.dataUrl);
+      const ensureUploaded = async (asset: StickerAsset): Promise<StickerAsset> => {
+        if (asset.attachmentKey) return asset;
+        if (!asset.dataUrl) return asset;
+        const response = await fetch(asset.dataUrl);
+        if (!response.ok) throw new Error("Не удалось прочитать стикер из пака");
         const blob = await response.blob();
         const base64 = await fileToBase64(blob);
+        const uploadName = `sticker-${asset.id.replace(/[^a-zA-Z0-9_-]/g, "").slice(-28)}-${Date.now()}.webp`;
         const uploaded = await upload.mutateAsync({
-          name: `sticker-${Date.now()}.webp`,
+          name: uploadName.slice(0, 190),
           contentBase64: base64,
-          contentType: blob.type || "image/webp",
+          contentType: blob.type || asset.contentType || "image/webp",
           folder: "uploads",
         });
-        attachmentKey = uploaded.key;
-        attachmentSize = uploaded.size;
-        attachmentMime = uploaded.contentType ?? blob.type ?? "image/webp";
+        return {
+          ...asset,
+          attachmentKey: uploaded.key,
+          contentType: uploaded.contentType ?? blob.type ?? asset.contentType ?? "image/webp",
+        };
+      };
+
+      let selectedAsset: StickerAsset = sticker;
+      let voiceMeta: string | undefined;
+      if (sourcePack?.stickers.length) {
+        const uploadedStickers = (await Promise.all(sourcePack.stickers.slice(0, 12).map(ensureUploaded)))
+          .filter((asset): asset is StickerAsset & { attachmentKey: string } => !!asset.attachmentKey);
+        selectedAsset = uploadedStickers.find((asset) => asset.id === sticker.id) ?? await ensureUploaded(sticker);
+        const manifest: SharedStickerPackManifest = {
+          type: "tcy-sticker-pack-v1",
+          name: sourcePack.name.slice(0, 48),
+          stickers: uploadedStickers.map((asset) => ({
+            id: asset.id.slice(0, 64),
+            name: asset.name.slice(0, 40),
+            attachmentKey: asset.attachmentKey,
+            contentType: asset.contentType?.slice(0, 128),
+          })),
+        };
+        voiceMeta = JSON.stringify(manifest);
+        try {
+          updateStickerPackAttachments(sourcePack.id, uploadedStickers);
+        } catch {
+          // Sending should continue even when this device can't cache remote asset keys.
+        }
+      } else {
+        selectedAsset = await ensureUploaded(sticker);
       }
+
+      const attachmentKey = selectedAsset.attachmentKey;
       if (!attachmentKey) {
         alert("Не удалось открыть стикер. Попробуй выбрать его ещё раз.");
         return;
@@ -329,8 +390,9 @@ export default function ChatView() {
         kind: "image",
         attachmentKey,
         attachmentName: `tcy-sticker:${encodeURIComponent(packName.slice(0, 20))}:${encodeURIComponent(sticker.name.slice(0, 12))}`,
-        attachmentSize: attachmentSize || undefined,
-        attachmentMime,
+        attachmentSize: undefined,
+        attachmentMime: selectedAsset.contentType ?? sticker.contentType ?? "image/webp",
+        voiceMeta,
       });
       setMessages((current) => current.some((message) => message.id === sent.id) ? current : [...current, sent].sort((a, b) => a.id - b.id));
       stickToBottomRef.current = true;
@@ -919,7 +981,9 @@ export default function ChatView() {
                     attachmentKey: stickerActionMsg.attachmentKey ?? undefined,
                     contentType: stickerActionMsg.attachmentMime ?? undefined,
                   };
-                  addStickerToPack(details.packName, sticker);
+                  const manifest = readStickerPackManifest(stickerActionMsg.voiceMeta);
+                  if (manifest) saveSharedStickerPack(manifest.name, manifest.stickers);
+                  else addStickerToPack(details.packName, sticker);
                   setStickerActionMsg(null);
                 }}
                 className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[13.5px] font-extrabold tcy-text"
