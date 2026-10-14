@@ -112,7 +112,7 @@ export function ChatItem({
         <button type="button"
           aria-label={isDirect ? `Открыть аватар пользователя ${title}` : `Открыть аватар ${title}`}
           onClick={(event) => { event.stopPropagation(); onAvatarClick?.(); }}
-          className="tcy-press rounded-full shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--tcy-accent)]">
+          className="tcy-press rounded-full shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--tcy-selected-accent)]">
           <Avatar
             name={title}
             avatarKey={isDirect ? item.peer?.avatarKey : item.chat.avatarKey}
@@ -133,7 +133,7 @@ export function ChatItem({
               <span
                 className="text-[11.5px] font-semibold shrink-0"
                 style={{
-                  color: item.unread > 0 && !item.membership.muted ? "var(--tcy-accent)" : "var(--tcy-faint)",
+                  color: item.unread > 0 && !item.membership.muted ? "var(--tcy-selected-accent)" : "var(--tcy-faint)",
                 }}
               >
                 {formatChatTime(item.lastMessage.createdAt)}
@@ -146,7 +146,7 @@ export function ChatItem({
             </span>
             <span className="flex items-center gap-1.5 shrink-0">
               {own && !item.unread && (
-                <CheckCheck size={15} style={{ color: "var(--tcy-accent)" }} />
+                <CheckCheck size={15} style={{ color: "var(--tcy-selected-accent)" }} />
               )}
               {item.membership.muted && (
                 <VolumeX size={14} style={{ color: "var(--tcy-faint)" }} />
@@ -159,7 +159,7 @@ export function ChatItem({
                   style={
                     item.membership.muted
                       ? { background: "var(--tcy-card-strong)", color: "var(--tcy-dim)" }
-                      : { background: "var(--tcy-accent)", color: "var(--tcy-on-accent)" }
+                      : { background: "var(--tcy-selected-accent)", color: "var(--tcy-selected-on-accent)" }
                   }
                 >
                   {item.unread > 99 ? "99+" : item.unread}
