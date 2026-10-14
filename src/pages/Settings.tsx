@@ -143,8 +143,8 @@ export default function Settings() {
                   onClick={() => setTheme(value)}
                   className="px-3 py-1.5 rounded-full text-[11.5px] font-bold transition-colors"
                   style={{
-                    background: theme === value ? "var(--tcy-accent)" : "transparent",
-                    color: theme === value ? "var(--tcy-on-accent)" : "var(--tcy-dim)",
+                    background: theme === value ? "var(--tcy-selected-accent)" : "transparent",
+                    color: theme === value ? "var(--tcy-selected-on-accent)" : "var(--tcy-dim)",
                   }}
                 >
                   {value === "dark" ? "Тёмная" : "Светлая"}
@@ -164,12 +164,12 @@ export default function Settings() {
               aria-hidden="true"
               className="h-7 w-7 rounded-full border flex items-center justify-center"
               style={{
-                background: "var(--tcy-accent)",
+                background: "var(--tcy-selected-accent)",
                 borderColor: "var(--tcy-glass-line)",
-                boxShadow: "0 0 0 3px color-mix(in srgb, var(--tcy-accent) 18%, transparent)",
+                boxShadow: "0 0 0 3px color-mix(in srgb, var(--tcy-selected-accent) 18%, transparent)",
               }}
             >
-              <Check size={14} strokeWidth={3} color="var(--tcy-on-accent)" />
+              <Check size={14} strokeWidth={3} color="var(--tcy-selected-on-accent)" />
             </span>
           }
         />
@@ -384,7 +384,7 @@ export default function Settings() {
       <BottomSheet open={aboutOpen} onClose={() => setAboutOpen(false)} title="О TeleChatYou">
         <div className="px-6 text-center space-y-3 pb-4">
           <div className="flex justify-center">
-            <span className="w-16 h-16 rounded-[22px] tcy-gradient-accent flex items-center justify-center text-[26px] font-black" style={{ color: "var(--tcy-on-accent)" }}>
+            <span className="w-16 h-16 rounded-[22px] tcy-gradient-accent flex items-center justify-center text-[26px] font-black" style={{ color: "var(--tcy-selected-on-accent)" }}>
               T
             </span>
           </div>
