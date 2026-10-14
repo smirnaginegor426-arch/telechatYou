@@ -244,19 +244,23 @@ export default function ChatView() {
   const isChannel = !!channel;
   const canPublish = !channel || info.data?.me.role === "owner" || info.data?.me.role === "admin";
   const isGroup = chat?.type === "group";
-  const title = isGroup ? chat?.title ?? "Группа" : peer?.displayName ?? "…";
+  const directParts = chat?.directKey?.split(":") ?? [];
+  const isFavoritesChat = chat?.type === "direct" && directParts.length === 2 && directParts[0] === directParts[1];
+  const title = isFavoritesChat ? "Избранное" : isGroup ? chat?.title ?? "Группа" : peer?.displayName ?? "…";
   const peerMember = info.data?.members.find((m) => m.userId !== myId);
   const peerLastReadId = !isGroup ? peerMember?.lastReadMessageId ?? 0 : 0;
   const online = !isGroup && isOnline(peer?.lastSeenAt);
-  const status = channel
-    ? channel.isPublic ? `Публичный канал · @${channel.username}` : "Приватный канал"
-    : isGroup
-      ? `${info.data?.members.length ?? 0} участн.`
-      : online
-        ? "в сети"
-        : peer
-          ? formatLastSeen(peer.lastSeenAt)
-          : "";
+  const status = isFavoritesChat
+    ? "Личные сохранённые сообщения"
+    : channel
+      ? channel.isPublic ? `Публичный канал · @${channel.username}` : "Приватный канал"
+      : isGroup
+        ? `${info.data?.members.length ?? 0} участн.`
+        : online
+          ? "в сети"
+          : peer
+            ? formatLastSeen(peer.lastSeenAt)
+            : "";
   const visibleMessages = isChannel ? messages.filter((message) => message.kind !== "system") : messages;
 
   const submitPoll = () => {
