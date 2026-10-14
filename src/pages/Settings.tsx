@@ -160,7 +160,7 @@ export default function Settings() {
               Цвет кнопок, выделений и навигации
             </p>
           </div>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-1">
             {ACCENTS.map((option) => {
               const selected = accent === option.id;
               return (
@@ -171,7 +171,7 @@ export default function Settings() {
                   aria-pressed={selected}
                   title={option.name}
                   onClick={() => setAccent(option.id)}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-transform duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"
+                  className={`flex shrink-0 items-center justify-center rounded-full transition-transform duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 ${selected ? "h-10 w-10" : "h-7 w-7"}`}
                   style={{
                     backgroundColor: option.color,
                     boxShadow: selected
