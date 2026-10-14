@@ -196,6 +196,7 @@ export function MessageBubble({
 
   const reactions = groupReactions(m.reactions, myId);
   const isImage = m.kind === "image";
+  const isStickerAttachment = isImage && !!m.attachmentName?.startsWith("tcy-sticker:");
   const isPoll = !!m.poll;
   const isStickerMessage = m.kind === "text" && !isPoll && isStandaloneEmoji(m.body ?? "");
   const hasMediaCaption = !!m.body && !m.poll && (isImage || m.kind === "file");
@@ -318,7 +319,10 @@ export function MessageBubble({
             <div
               ref={hasMediaCaption ? measureAttachment : undefined}
               data-photo-frame="true"
-              className="inline-flex max-w-full rounded-[18px] border tcy-line p-[3px] tcy-shadow-soft"
+              className={cn(
+                "inline-flex max-w-full",
+                isStickerAttachment ? "items-center justify-center rounded-none border-0 p-0 shadow-none" : "rounded-[18px] border tcy-line p-[3px] tcy-shadow-soft",
+              )}
             >
             <button
               type="button"
@@ -336,14 +340,17 @@ export function MessageBubble({
                 }
                 onImageOpen(m.attachmentKey);
               }}
-              className="block p-0 border-0 bg-transparent appearance-none text-left"
-              aria-label={imageUnavailable ? "Повторить загрузку фотографии" : "Открыть фотографию"}
+              className={cn("block p-0 border-0 bg-transparent appearance-none text-left", isStickerAttachment && "rounded-[18px]")}
+              aria-label={imageUnavailable ? "Повторить загрузку фотографии" : isStickerAttachment ? "Открыть действия стикера" : "Открыть фотографию"}
             >
               {imgUrl && !imageUnavailable ? (
                 <img
                   src={imgUrl}
                   alt={m.attachmentName ?? "Фото"}
-                  className="block rounded-[13px] max-w-[240px] max-h-[300px] object-cover"
+                  className={cn(
+                    "block",
+                    isStickerAttachment ? "h-[180px] w-[180px] object-contain" : "rounded-[13px] max-w-[240px] max-h-[300px] object-cover",
+                  )}
                   loading="lazy"
                   decoding="async"
                   onError={() => {
@@ -375,7 +382,7 @@ export function MessageBubble({
                   <span className="text-[11px] tcy-faint">Нажмите, чтобы повторить</span>
                 </div>
               ) : (
-                <div className="tcy-skeleton w-[220px] h-[160px] rounded-[13px]" />
+                <div className={cn("tcy-skeleton rounded-[13px]", isStickerAttachment ? "w-[180px] h-[180px]" : "w-[220px] h-[160px]")} />
               )}
             </button>
             </div>
