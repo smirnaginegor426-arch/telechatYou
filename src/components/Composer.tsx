@@ -9,11 +9,16 @@ import { cn } from "@/lib/utils";
 
 type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
 
+function isImageAttachment(file: File) {
+  return file.type.toLowerCase().startsWith("image/") ||
+    /\.(avif|bmp|gif|heic|heif|jpe?g|png|tiff?|webp)$/i.test(file.name);
+}
+
 type Props = {
   onSendText: (text: string) => void;
   onSendVoice: (blob: Blob, duration: number) => void;
-  onAttachImage: (file: File) => void;
-  onAttachFile: (file: File) => void;
+  onAttachImage: (file: File, caption?: string) => void;
+  onAttachFile: (file: File, caption?: string) => void;
   sending?: boolean;
   enterToSend?: boolean;
 };
@@ -153,10 +158,16 @@ export function Composer({
       return;
     }
 
-    if (t) onSendText(t);
-    for (const attachment of pendingAttachments) {
-      if (attachment.kind === "image") onAttachImage(attachment.file);
-      else onAttachFile(attachment.file);
+    if (pendingAttachments.length === 0) {
+      if (t) onSendText(t);
+    } else {
+      // Put the caption on the first attachment message so text and media
+      // appear together instead of as two separate chat messages.
+      pendingAttachments.forEach((attachment, index) => {
+        const caption = index === 0 ? (t || undefined) : undefined;
+        if (attachment.kind === "image") onAttachImage(attachment.file, caption);
+        else onAttachFile(attachment.file, caption);
+      });
     }
 
     setPendingAttachments([]);
@@ -217,7 +228,8 @@ export function Composer({
     const queued = files.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`,
       file,
-      kind: "file" as const,
+      // Images selected via "Загрузить файл" should be rendered as photos too.
+      kind: isImageAttachment(file) ? "image" as const : "file" as const,
     }));
     setPendingAttachments((current) => [...current, ...queued]);
   };
