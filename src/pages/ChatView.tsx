@@ -206,7 +206,7 @@ export default function ChatView() {
     setReplyTo(null);
   };
 
-  const sendAttachment = async (file: File | Blob, kind: "image" | "file" | "voice") => {
+  const sendAttachment = async (file: File | Blob, kind: "image" | "file" | "voice", caption?: string) => {
     stickToBottomRef.current = true;
     try {
       const name = file instanceof File ? file.name : `voice-${Date.now()}.webm`;
@@ -224,6 +224,7 @@ export default function ChatView() {
       send.mutate({
         chatId,
         kind,
+        body: caption?.trim() || undefined,
         attachmentKey: res.key,
         attachmentName: name,
         attachmentSize: res.size,
@@ -478,8 +479,8 @@ export default function ChatView() {
         <Composer
           onSendText={sendText}
           onSendVoice={(blob) => void sendAttachment(blob, "voice")}
-          onAttachImage={(f) => void sendAttachment(f, "image")}
-          onAttachFile={(f) => void sendAttachment(f, "file")}
+          onAttachImage={(f, caption) => void sendAttachment(f, "image", caption)}
+          onAttachFile={(f, caption) => void sendAttachment(f, "file", caption)}
           sending={send.isPending || upload.isPending || createPoll.isPending}
           enterToSend
         />
