@@ -70,7 +70,6 @@ export const profileRouter = createRouter({
         bio: z.string().max(280).optional(),
         username: z.string().regex(usernameRe).optional(),
         avatarKey: z.string().max(255).nullable().optional(),
-        bannerKey: z.string().max(255).nullable().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -80,7 +79,6 @@ export const profileRouter = createRouter({
       if (input.displayName) patch.displayName = input.displayName.trim();
       if (input.bio !== undefined) patch.bio = input.bio.trim();
       if (input.avatarKey !== undefined) patch.avatarKey = input.avatarKey;
-      if (input.bannerKey !== undefined) patch.bannerKey = input.bannerKey;
       if (input.username) {
         const username = input.username.toLowerCase();
         const taken = await getDb().query.profiles.findFirst({
