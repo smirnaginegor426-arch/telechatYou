@@ -3,7 +3,7 @@ import { ArrowLeft, Check, Images, Plus, Sticker, X } from "lucide-react";
 import { useNavigate } from "react-router";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { TcInput } from "@/components/TcInput";
-import { compressStickerFile, fileToDataUrl, saveStickerPack, type StickerAsset } from "@/lib/stickers";
+import { compressStickerFile, saveStickerPack, type StickerAsset } from "@/lib/stickers";
 
 const REOPEN_STICKERS_KEY = "tcy-open-stickers-after-create";
 
@@ -154,7 +154,14 @@ export default function StickerPackCreate() {
       )}
 
       {editingFile && (
-        <AvatarEditor file={editingFile} onCancel={finishEditor} onSave={saveEditedSticker} />
+        <AvatarEditor
+          file={editingFile}
+          onCancel={finishEditor}
+          onSave={saveEditedSticker}
+          title="Редактор стикера"
+          subtitle="Обрежь изображение и добавь свои эффекты"
+          saveLabel="Готово!"
+        />
       )}
     </div>
   );
