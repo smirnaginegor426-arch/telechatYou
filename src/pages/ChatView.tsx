@@ -316,7 +316,7 @@ export default function ChatView() {
         contentType,
         folder: kind === "voice" ? "voices" : "uploads",
       });
-      send.mutate({
+      const sent = await send.mutateAsync({
         chatId,
         kind,
         body: caption?.trim() || undefined,
@@ -327,9 +327,12 @@ export default function ChatView() {
         voiceMeta: voiceMeta ? JSON.stringify(voiceMeta) : undefined,
         replyToId: replyTo?.id,
       });
+      setMessages((current) => current.some((message) => message.id === sent.id) ? current : [...current, sent].sort((a, b) => a.id - b.id));
       setReplyTo(null);
+      await utils.chats.list.invalidate();
     } catch (e) {
-      alert("Не удалось отправить файл: " + (e as Error).message);
+      const message = e instanceof Error && e.message ? e.message : "Неизвестная ошибка. Попробуйте ещё раз.";
+      alert("Не удалось отправить файл: " + message);
     }
   };
 
