@@ -9,6 +9,10 @@ import {
   Forward,
   Info,
   Pencil,
+  Pin,
+  Bookmark,
+  Star,
+  Sticker,
   Reply,
   SmilePlus,
   Trash2,
@@ -21,12 +25,39 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { MessageBubble, ReplyPreviewBar } from "@/components/MessageBubble";
 import { Lightbox } from "@/components/Lightbox";
 import { computePeaks } from "@/components/VoiceMessage";
+import { useFileUrl } from "@/hooks/useFileUrl";
 import { EmptyState } from "@/components/EmptyState";
 import { QUICK_REACTIONS } from "@/lib/emoji";
 import { AppleEmoji } from "@/components/AppleEmoji";
 import { fileToBase64, formatDayLabel, formatLastSeen, isOnline, sameDay } from "@/lib/format";
 import type { ChatListItem, MessageItem } from "@/types/api";
+import { addStickerToPack, saveFavoriteSticker, type StickerAsset } from "@/lib/stickers";
 import { cn } from "@/lib/utils";
+type LocalPinnedSnapshot = {
+  id: number;
+  kind: string;
+  body?: string | null;
+  attachmentName?: string | null;
+  senderName: string;
+};
+
+function messagePreview(message: { kind: string; body?: string | null; attachmentName?: string | null }) {
+  if (message.kind === "image") return message.attachmentName?.startsWith("tcy-sticker:") ? "Стикер" : "Фото";
+  if (message.kind === "voice") return "Голосовое сообщение";
+  if (message.kind === "file") return message.attachmentName ?? "Файл";
+  return message.body || "Сообщение";
+}
+
+function stickerDetails(attachmentName?: string | null) {
+  const match = /^tcy-sticker:([^:]*):([^:]*)$/.exec(attachmentName ?? "");
+  if (!match) return { packName: "Сохранённые стикеры", stickerName: "Стикер" };
+  try {
+    return { packName: decodeURIComponent(match[1]) || "Сохранённые стикеры", stickerName: decodeURIComponent(match[2]) || "Стикер" };
+  } catch {
+    return { packName: "Сохранённые стикеры", stickerName: "Стикер" };
+  }
+}
+
 import {
   CHAT_WALLPAPER_CHANGE_EVENT,
   DEFAULT_CHAT_WALLPAPER,
@@ -39,8 +70,21 @@ export default function ChatView() {
   const chatId = Number(id);
   const navigate = useNavigate();
   const utils = trpc.useUtils();
+  const localPinnedKey = `tcy-local-pinned-message-${chatId}`;
 
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [localPinned, setLocalPinned] = useState<LocalPinnedSnapshot | null>(() => {
+    try {
+      const saved = localStorage.getItem(localPinnedKey);
+      return saved ? JSON.parse(saved) as LocalPinnedSnapshot : null;
+    } catch {
+      return null;
+    }
+  });
+  const [highlightedMessageId, setHighlightedMessageId] = useState<number | null>(null);
+  const [pinTarget, setPinTarget] = useState<MessageItem | null>(null);
+  const [stickerActionMsg, setStickerActionMsg] = useState<MessageItem | null>(null);
+  const stickerActionImageUrl = useFileUrl(stickerActionMsg?.attachmentKey ?? null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [replyTo, setReplyTo] = useState<MessageItem | null>(null);
@@ -87,6 +131,10 @@ export default function ChatView() {
   myIdRef.current = myId;
 
   const info = trpc.chats.info.useQuery({ chatId }, { refetchInterval: 8000 });
+  const sharedPinned = trpc.messages.pinned.useQuery({ chatId }, {
+    refetchInterval: 6000,
+    refetchIntervalInBackground: false,
+  });
   const initial = trpc.messages.list.useQuery({ chatId }, { staleTime: 0 });
 
   const maxId = messages.length ? messages[messages.length - 1].id : 0;
@@ -168,6 +216,12 @@ export default function ChatView() {
     utils.chats.list.invalidate();
   };
   const send = trpc.messages.send.useMutation({ onSuccess: invalidateLists });
+  const pinShared = trpc.messages.pin.useMutation({
+    onSuccess: () => utils.messages.pinned.invalidate({ chatId }),
+  });
+  const unpinShared = trpc.messages.unpin.useMutation({
+    onSuccess: () => utils.messages.pinned.invalidate({ chatId }),
+  });
   const edit = trpc.messages.edit.useMutation();
   const remove = trpc.messages.remove.useMutation({ onSuccess: invalidateLists });
   const forward = trpc.messages.forward.useMutation({
@@ -238,6 +292,46 @@ export default function ChatView() {
     }
   };
 
+  const sendStickerAsset = async (sticker: StickerAsset, packName: string) => {
+    try {
+      let attachmentKey = sticker.attachmentKey;
+      let attachmentSize = 0;
+      let attachmentMime = sticker.contentType ?? "image/webp";
+      if (!attachmentKey && sticker.dataUrl) {
+        const response = await fetch(sticker.dataUrl);
+        const blob = await response.blob();
+        const base64 = await fileToBase64(blob);
+        const uploaded = await upload.mutateAsync({
+          name: `sticker-${Date.now()}.webp`,
+          contentBase64: base64,
+          contentType: blob.type || "image/webp",
+          folder: "uploads",
+        });
+        attachmentKey = uploaded.key;
+        attachmentSize = uploaded.size;
+        attachmentMime = uploaded.contentType ?? blob.type ?? "image/webp";
+      }
+      if (!attachmentKey) {
+        alert("Не удалось открыть стикер. Попробуй выбрать его ещё раз.");
+        return;
+      }
+      const sent = await send.mutateAsync({
+        chatId,
+        kind: "image",
+        attachmentKey,
+        attachmentName: `tcy-sticker:${encodeURIComponent(packName)}:${encodeURIComponent(sticker.name)}`,
+        attachmentSize: attachmentSize || undefined,
+        attachmentMime,
+      });
+      setMessages((current) => current.some((message) => message.id === sent.id) ? current : [...current, sent].sort((a, b) => a.id - b.id));
+      stickToBottomRef.current = true;
+      setStickerActionMsg(null);
+      await utils.chats.list.invalidate();
+    } catch (error) {
+      alert("Не удалось отправить стикер: " + (error instanceof Error ? error.message : "неизвестная ошибка"));
+    }
+  };
+
   const chat = info.data?.chat;
   const peer = info.data?.peer;
   const channel = info.data?.channel;
@@ -262,6 +356,38 @@ export default function ChatView() {
             ? formatLastSeen(peer.lastSeenAt)
             : "";
   const visibleMessages = isChannel ? messages.filter((message) => message.kind !== "system") : messages;
+  const activePinnedMessage = localPinned ?? sharedPinned.data?.message ?? null;
+  const activePinnedId = activePinnedMessage?.id ?? null;
+
+  const jumpToMessage = async (targetId: number) => {
+    stickToBottomRef.current = false;
+    let beforeId = messages[0]?.id;
+    let attempts = 0;
+    while (!messages.some((message) => message.id === targetId) && beforeId && beforeId > targetId && attempts < 100) {
+      const result = await utils.messages.list.fetch({ chatId, beforeId });
+      if (!result.items.length) break;
+      setMessages((current) => {
+        const ids = new Set(current.map((message) => message.id));
+        return [...result.items.filter((message) => !ids.has(message.id)), ...current].sort((a, b) => a.id - b.id);
+      });
+      beforeId = result.items[0].id;
+      attempts += 1;
+      if (result.items.some((message) => message.id === targetId) || !result.hasMore) break;
+    }
+    setHighlightedMessageId(targetId);
+  };
+
+  useEffect(() => {
+    if (highlightedMessageId === null || !messages.some((message) => message.id === highlightedMessageId)) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelector(`[data-message-id="${highlightedMessageId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const timer = window.setTimeout(() => setHighlightedMessageId(null), 1800);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [messages, highlightedMessageId]);
 
   const submitPoll = () => {
     setPollError("");
@@ -358,6 +484,36 @@ export default function ChatView() {
         </div>
       </header>
 
+      {activePinnedMessage && activePinnedId !== null && (
+        <div className="relative z-10 mx-3 mb-1 flex items-center gap-2 rounded-[16px] border tcy-line tcy-card px-3 py-2">
+          <button type="button" onClick={() => void jumpToMessage(activePinnedId)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[11px]" style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 15%, var(--tcy-card))", color: "var(--tcy-selected-accent)" }}>
+              <Pin size={16} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[11px] font-extrabold" style={{ color: "var(--tcy-selected-accent)" }}>Закреплённое сообщение</span>
+              <span className="block truncate text-[12px] tcy-dim">{messagePreview(activePinnedMessage)}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-label="Открепить сообщение"
+            title="Открепить сообщение"
+            onClick={() => {
+              if (localPinned) {
+                setLocalPinned(null);
+                try { localStorage.removeItem(localPinnedKey); } catch { /* local pin is optional */ }
+              } else {
+                unpinShared.mutate({ chatId });
+              }
+            }}
+            className="tcy-press flex h-8 w-8 shrink-0 items-center justify-center rounded-full tcy-faint"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
       {/* messages */}
       <div className="relative flex-1 min-h-0">
         <div
@@ -435,6 +591,8 @@ export default function ChatView() {
                     onImageOpen={(key) =>
                       setLightbox({ key, name: m.attachmentName, size: m.attachmentSize })
                     }
+                    onStickerOpen={setStickerActionMsg}
+                    highlighted={highlightedMessageId === m.id}
                     onReaction={onReaction}
                   />
                 </div>
@@ -486,6 +644,7 @@ export default function ChatView() {
           onAttachImage={(f, caption) => void sendAttachment(f, "image", caption)}
           onAttachFile={(f, caption) => void sendAttachment(f, "file", caption)}
           sending={send.isPending || upload.isPending || createPoll.isPending}
+          onSendSticker={(sticker, packName) => void sendStickerAsset(sticker, packName)}
           enterToSend
         />
       ) : (
@@ -612,6 +771,14 @@ export default function ChatView() {
                       }
                     : null,
                   {
+                    icon: <Pin size={18} />,
+                    label: "Закрепить сообщение",
+                    fn: () => {
+                      setPinTarget(actionMsg);
+                      setActionMsg(null);
+                    },
+                  },
+                  {
                     icon: <Forward size={18} />,
                     label: "Переслать",
                     fn: () => {
@@ -655,6 +822,123 @@ export default function ChatView() {
                   <Trash2 size={18} /> Удалить
                 </button>
               )}
+            </div>
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* pin target scope */}
+      <BottomSheet open={!!pinTarget} onClose={() => setPinTarget(null)} title="Закрепить сообщение">
+        {pinTarget && (
+          <div className="space-y-2 px-4 pb-3">
+            <div className="rounded-[16px] border tcy-line tcy-card p-3">
+              <p className="text-[11px] font-extrabold" style={{ color: "var(--tcy-selected-accent)" }}>Выбрано сообщение</p>
+              <p className="mt-1 truncate text-[13px] tcy-text">{messagePreview(pinTarget)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const snapshot: LocalPinnedSnapshot = {
+                  id: pinTarget.id,
+                  kind: pinTarget.kind,
+                  body: pinTarget.body,
+                  attachmentName: pinTarget.attachmentName,
+                  senderName: pinTarget.sender?.displayName ?? (pinTarget.senderId === myId ? "Вы" : title),
+                };
+                setLocalPinned(snapshot);
+                try { localStorage.setItem(localPinnedKey, JSON.stringify(snapshot)); } catch { /* local pins are optional */ }
+                setPinTarget(null);
+              }}
+              className="tcy-press flex w-full items-center gap-3 rounded-[16px] border tcy-line tcy-card px-4 py-3.5 text-left"
+            >
+              <Bookmark size={19} className="tcy-dim" />
+              <span className="flex-1">
+                <span className="block text-[14px] font-extrabold tcy-text">Только у себя</span>
+                <span className="block text-[11.5px] tcy-faint">Закрепление видно только на этом устройстве</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              disabled={pinShared.isPending}
+              onClick={() => {
+                try { localStorage.removeItem(localPinnedKey); } catch { /* local pin is optional */ }
+                setLocalPinned(null);
+                pinShared.mutate({ chatId, messageId: pinTarget.id }, { onSuccess: () => setPinTarget(null) });
+              }}
+              className="tcy-press flex w-full items-center gap-3 rounded-[16px] border tcy-line tcy-card px-4 py-3.5 text-left disabled:opacity-50"
+            >
+              <Pin size={19} style={{ color: "var(--tcy-selected-accent)" }} />
+              <span className="flex-1">
+                <span className="block text-[14px] font-extrabold tcy-text">У себя и собеседника</span>
+                <span className="block text-[11.5px] tcy-faint">Покажет закрепление всем участникам чата</span>
+              </span>
+            </button>
+          </div>
+        )}
+      </BottomSheet>
+
+      {/* sticker actions */}
+      <BottomSheet open={!!stickerActionMsg} onClose={() => setStickerActionMsg(null)} title="Стикер">
+        {stickerActionMsg && (
+          <div className="px-4 pb-4">
+            <div className="mb-4 flex items-center justify-center rounded-[22px] tcy-card p-5">
+              {stickerActionImageUrl ? (
+                <img src={stickerActionImageUrl} alt="Стикер" className="max-h-[190px] max-w-[190px] object-contain" />
+              ) : (
+                <span className="flex h-[150px] w-[150px] items-center justify-center tcy-faint"><Sticker size={35} /></span>
+              )}
+            </div>
+            <div className="overflow-hidden rounded-[20px] border tcy-line tcy-card">
+              <button
+                type="button"
+                onClick={() => {
+                  const details = stickerDetails(stickerActionMsg.attachmentName);
+                  const sticker: StickerAsset = {
+                    id: `received-${stickerActionMsg.id}`,
+                    name: details.stickerName,
+                    attachmentKey: stickerActionMsg.attachmentKey ?? undefined,
+                    contentType: stickerActionMsg.attachmentMime ?? undefined,
+                  };
+                  addStickerToPack(details.packName, sticker);
+                  setStickerActionMsg(null);
+                }}
+                className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left text-[13.5px] font-extrabold tcy-text"
+              >
+                <Sticker size={18} className="tcy-dim" /> Сохранить стикер-пак
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const details = stickerDetails(stickerActionMsg.attachmentName);
+                  void sendStickerAsset({
+                    id: `received-${stickerActionMsg.id}`,
+                    name: details.stickerName,
+                    attachmentKey: stickerActionMsg.attachmentKey ?? undefined,
+                    contentType: stickerActionMsg.attachmentMime ?? undefined,
+                  }, details.packName);
+                  setStickerActionMsg(null);
+                }}
+                className="flex w-full items-center gap-3.5 border-t tcy-line px-4 py-3.5 text-left text-[13.5px] font-extrabold tcy-text"
+              >
+                <Sticker size={18} className="tcy-dim" /> Отправить только стикер
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const details = stickerDetails(stickerActionMsg.attachmentName);
+                  saveFavoriteSticker({
+                    id: `received-${stickerActionMsg.id}`,
+                    name: details.stickerName,
+                    packName: details.packName,
+                    attachmentKey: stickerActionMsg.attachmentKey ?? undefined,
+                    contentType: stickerActionMsg.attachmentMime ?? undefined,
+                  });
+                  setStickerActionMsg(null);
+                }}
+                className="flex w-full items-center gap-3.5 border-t tcy-line px-4 py-3.5 text-left text-[13.5px] font-extrabold tcy-text"
+              >
+                <Star size={18} className="tcy-dim" /> Положить стикер в избранное
+              </button>
             </div>
           </div>
         )}
