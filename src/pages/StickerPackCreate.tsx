@@ -161,6 +161,7 @@ export default function StickerPackCreate() {
           title="Редактор стикера"
           subtitle="Обрежь изображение и добавь свои эффекты"
           saveLabel="Готово!"
+          outputType="image/png"
         />
       )}
     </div>
