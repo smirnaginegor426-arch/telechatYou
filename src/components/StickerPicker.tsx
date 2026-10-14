@@ -26,7 +26,7 @@ export function StickerPicker({
   onCreatePack,
   onClose,
 }: {
-  onSelect: (sticker: StickerAsset, packName: string) => void;
+  onSelect: (sticker: StickerAsset, packName: string, pack?: StickerPack) => void;
   onCreatePack: () => void;
   onClose: () => void;
 }) {
@@ -119,7 +119,7 @@ export function StickerPicker({
           <button
             type="button"
             key={`${packName}-${sticker.id}-${sticker.attachmentKey ?? sticker.dataUrl ?? ""}`}
-            onClick={() => { onSelect(sticker, packName); onClose(); }}
+            onClick={() => { onSelect(sticker, packName, selectedPack ?? undefined); onClose(); }}
             className="tcy-press aspect-square min-w-0 rounded-[16px] p-1.5 hover:bg-[color:var(--tcy-card-strong)]"
             title={packName}
             aria-label={`Отправить стикер из ${packName}`}
