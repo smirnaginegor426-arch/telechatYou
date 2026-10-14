@@ -4,6 +4,7 @@ import {
   serial,
   varchar,
   text,
+  longtext,
   timestamp,
   bigint,
   boolean,
@@ -325,4 +326,21 @@ export const settings = mysqlTable("settings", {
     .$onUpdate(() => new Date()),
 });
 
+
 export type Settings = typeof settings.$inferSelect;
+
+/** Account-owned collections that must survive browser cache clears and device changes. */
+export const userCustomData = mysqlTable("user_custom_data", {
+  id: serial("id").primaryKey(),
+  userId: userId().unique(),
+  stickerPacks: longtext("stickerPacks").notNull(),
+  favoriteStickers: longtext("favoriteStickers").notNull(),
+  chatFolders: longtext("chatFolders").notNull(),
+  updatedAt: timestamp("updatedAt")
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date()),
+});
+
+export type UserCustomData = typeof userCustomData.$inferSelect;
+
