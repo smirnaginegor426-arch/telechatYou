@@ -515,7 +515,7 @@ export default function ChatView() {
   };
 
   return (
-    <div className="relative h-full flex flex-col">
+    <div className="tcy-chat-view-root relative h-full flex flex-col">
       {/* header */}
       <header className="relative z-20 tcy-header-blur border-b tcy-line">
         <div className="flex items-center gap-2 px-2.5 pt-3 pb-2.5 safe-top">
@@ -611,7 +611,7 @@ export default function ChatView() {
         <div
           ref={scrollRef}
           onScroll={onScroll}
-          className="absolute inset-0 z-[1] overflow-y-auto no-scrollbar py-3"
+          className="tcy-chat-message-scroll absolute inset-0 z-[1] overflow-y-auto no-scrollbar py-3"
         >
           {loadingOlder && (
             <div className="flex justify-center py-2">
