@@ -309,6 +309,11 @@ export function MessageBubble({
           )}
 
           {isImage && (
+            <div
+              ref={hasMediaCaption ? measureAttachment : undefined}
+              data-photo-frame="true"
+              className="inline-flex max-w-full rounded-[18px] border tcy-line p-[3px] tcy-shadow-soft"
+            >
             <button
               type="button"
               onClick={() => {
@@ -321,14 +326,14 @@ export function MessageBubble({
                 }
                 onImageOpen(m.attachmentKey);
               }}
-              className="block mb-1 p-0 border-0 bg-transparent appearance-none text-left"
+              className="block p-0 border-0 bg-transparent appearance-none text-left"
               aria-label={imageUnavailable ? "Повторить загрузку фотографии" : "Открыть фотографию"}
             >
               {imgUrl && !imageUnavailable ? (
                 <img
                   src={imgUrl}
                   alt={m.attachmentName ?? "Фото"}
-                  className="rounded-[16px] max-w-[240px] max-h-[300px] object-cover"
+                  className="block rounded-[13px] max-w-[240px] max-h-[300px] object-cover"
                   loading="lazy"
                   decoding="async"
                   onError={() => {
@@ -347,21 +352,23 @@ export function MessageBubble({
                     refreshFileUrl(key);
                   }}
                   onLoad={(event) => {
-                    setAttachmentWidth(Math.round(event.currentTarget.getBoundingClientRect().width));
+                    const frame = event.currentTarget.closest<HTMLElement>("[data-photo-frame]");
+                    if (frame) setAttachmentWidth(Math.round(frame.getBoundingClientRect().width));
                     imageRetryKeyRef.current = null;
                     setImageUnavailable(false);
                   }}
                 />
               ) : imageUnavailable ? (
-                <div className="w-[220px] h-[120px] rounded-[16px] border tcy-line tcy-card flex flex-col items-center justify-center gap-2 px-3 text-center">
+                <div className="w-[220px] h-[120px] rounded-[13px] tcy-card flex flex-col items-center justify-center gap-2 px-3 text-center">
                   <FileText size={22} className="tcy-faint" />
                   <span className="text-[12px] font-semibold tcy-dim">Фото не загрузилось</span>
                   <span className="text-[11px] tcy-faint">Нажмите, чтобы повторить</span>
                 </div>
               ) : (
-                <div className="tcy-skeleton w-[220px] h-[160px] rounded-[16px]" />
+                <div className="tcy-skeleton w-[220px] h-[160px] rounded-[13px]" />
               )}
             </button>
+            </div>
           )}
 
           {m.kind === "file" && (
@@ -395,9 +402,9 @@ export function MessageBubble({
               </div>
             ) : hasMediaCaption ? (
               <div
-                className="mt-1.5 rounded-[14px] border tcy-line px-3 py-2.5 tcy-shadow-soft"
+                className="mt-0 rounded-b-[14px] rounded-t-none border-x border-b border-t-0 tcy-line px-3 py-2.5 tcy-shadow-soft"
                 style={{
-                  width: attachmentWidth ?? (isImage ? 220 : 200),
+                  width: attachmentWidth ?? (isImage ? 228 : 200),
                   maxWidth: "100%",
                   boxSizing: "border-box",
                   background: own ? "var(--tcy-accent)" : "#ffffff",
