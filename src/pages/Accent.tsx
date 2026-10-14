@@ -20,7 +20,7 @@ export default function AccentSettings() {
           <ArrowLeft size={19} />
         </button>
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-[15px] tcy-gradient-accent" style={{ color: "var(--tcy-on-accent)" }}>
+          <span className="flex h-11 w-11 items-center justify-center rounded-[15px] tcy-gradient-accent" style={{ color: "var(--tcy-selected-on-accent)" }}>
             <Palette size={21} />
           </span>
           <div>
@@ -39,7 +39,7 @@ export default function AccentSettings() {
             <p className="text-[15px] tcy-text">{selected.name}</p>
             <p className="mt-0.5 text-[12px] tcy-dim">Текущая цветовая тема</p>
           </div>
-          <span className="ml-auto rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "var(--tcy-accent)", color: "var(--tcy-on-accent)" }}>
+          <span className="ml-auto rounded-full px-2.5 py-1 text-[10px] font-bold" style={{ background: "var(--tcy-selected-accent)", color: "var(--tcy-selected-on-accent)" }}>
             Выбрано
           </span>
         </div>
@@ -58,9 +58,9 @@ export default function AccentSettings() {
                 onClick={() => setAccent(option.id)}
                 className="tcy-press flex w-full items-center gap-3.5 rounded-[21px] border px-4 py-3.5 text-left transition-all duration-300"
                 style={{
-                  background: active ? "color-mix(in srgb, var(--tcy-accent) 14%, var(--tcy-card))" : "var(--tcy-card)",
-                  borderColor: active ? "var(--tcy-accent)" : "var(--tcy-line)",
-                  boxShadow: active ? "0 0 0 1px color-mix(in srgb, var(--tcy-accent) 28%, transparent), 0 10px 28px -20px var(--tcy-accent)" : "none",
+                  background: active ? "color-mix(in srgb, var(--tcy-selected-accent) 14%, var(--tcy-card))" : "var(--tcy-card)",
+                  borderColor: active ? "var(--tcy-selected-accent)" : "var(--tcy-line)",
+                  boxShadow: active ? "0 0 0 1px color-mix(in srgb, var(--tcy-selected-accent) 28%, transparent), 0 10px 28px -20px var(--tcy-selected-accent)" : "none",
                 }}
               >
                 <span
