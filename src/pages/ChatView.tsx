@@ -860,24 +860,26 @@ export default function ChatView() {
                   }
                 })();
               }}
-              className="tcy-press flex w-full items-center gap-3 rounded-[16px] border tcy-line tcy-card px-4 py-3.5 text-left"
+              disabled={pinPersonal.isPending}
+              className="tcy-press flex w-full items-center gap-3 rounded-[16px] border tcy-line tcy-card px-4 py-3.5 text-left disabled:opacity-50"
             >
               <Bookmark size={19} className="tcy-dim" />
               <span className="flex-1">
                 <span className="block text-[14px] font-extrabold tcy-text">Только у себя</span>
-                <span className="block text-[11.5px] tcy-faint">Закрепление видно только на этом устройстве</span>
+                <span className="block text-[11.5px] tcy-faint">Закрепление видно только тебе, на всех твоих устройствах</span>
               </span>
             </button>
             <button
               type="button"
-              disabled={pinShared.isPending}
+              disabled={pinShared.isPending || unpinPersonal.isPending}
               onClick={() => {
                 void (async () => {
                   try {
                     await unpinPersonal.mutateAsync({ chatId });
                     try { localStorage.removeItem(localPinnedKey); } catch { /* legacy local pin is optional */ }
                     setLocalPinned(null);
-                    pinShared.mutate({ chatId, messageId: pinTarget.id }, { onSuccess: () => setPinTarget(null) });
+                    await pinShared.mutateAsync({ chatId, messageId: pinTarget.id });
+                    setPinTarget(null);
                   } catch (error) {
                     alert("Не удалось закрепить сообщение: " + (error instanceof Error ? error.message : "ошибка"));
                   }
