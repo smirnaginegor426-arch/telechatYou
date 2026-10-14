@@ -5,7 +5,7 @@ import { FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, SendHorizonal,
 import { StickerPicker } from "./StickerPicker";
 import type { StickerAsset } from "@/lib/stickers";
 import { formatDuration } from "@/lib/format";
-import { compressPhoto, getMediaSendPreferences } from "@/lib/media-send-preferences";
+import { compressPhoto, getMediaSendPreferences, MEDIA_SEND_PREFERENCES_CHANGED_EVENT } from "@/lib/media-send-preferences";
 import { cn } from "@/lib/utils";
 
 
@@ -37,6 +37,7 @@ export function Composer({
 }: Props) {
   const navigate = useNavigate();
   const [text, setText] = useState("");
+  const [stickersEnabled, setStickersEnabled] = useState(() => getMediaSendPreferences().stickersEnabled);
   const [stickerOpen, setStickerOpen] = useState(() => {
     try {
       const shouldOpen = sessionStorage.getItem("tcy-open-stickers-after-create") === "1";
@@ -52,6 +53,20 @@ export function Composer({
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
+
+  useEffect(() => {
+    const refreshStickerPreference = () => {
+      const enabled = getMediaSendPreferences().stickersEnabled;
+      setStickersEnabled(enabled);
+      if (!enabled) setStickerOpen(false);
+    };
+    window.addEventListener(MEDIA_SEND_PREFERENCES_CHANGED_EVENT, refreshStickerPreference);
+    window.addEventListener("storage", refreshStickerPreference);
+    return () => {
+      window.removeEventListener(MEDIA_SEND_PREFERENCES_CHANGED_EVENT, refreshStickerPreference);
+      window.removeEventListener("storage", refreshStickerPreference);
+    };
+  }, []);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imgInputRef = useRef<HTMLInputElement>(null);
@@ -409,6 +424,7 @@ export function Composer({
                 placeholder="Сообщение…"
                 className="tcy-composer-input flex-1 bg-transparent outline-none resize-none text-[15px] tcy-text placeholder:text-[color:var(--tcy-faint)] py-2.5 max-h-[120px] no-scrollbar leading-[1.4]"
               />
+              {stickersEnabled && (
               <button
                 onClick={() => setStickerOpen((value) => !value)}
                 className="tcy-press w-10 h-11 flex items-center justify-center shrink-0"
@@ -418,6 +434,7 @@ export function Composer({
               >
                 <Sticker size={22} />
               </button>
+              )}
               {hasContent ? (
                 <motion.button
                   key="send"
