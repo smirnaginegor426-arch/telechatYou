@@ -133,9 +133,7 @@ export function ChatItem({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
-      onContextMenu={(event) => {
-        if (!selecting) event.preventDefault();
-      }}
+      onContextMenu={(event) => event.preventDefault()}
       onClick={handleRowClick}
       onKeyDown={(event) => {
         if (event.target !== event.currentTarget) return;
