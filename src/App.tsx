@@ -18,6 +18,7 @@ import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
+import AccentSettings from "@/pages/Accent";
 import CustomLanguage from "@/pages/CustomLanguage";
 import SystemUpdate from "@/pages/SystemUpdate";
 import Admin from "@/pages/Admin";
@@ -116,6 +117,25 @@ useEffect(() => {
     0,
   );
 
+  // Each primary section has its own visual entry point.
+  const isPeopleRoute = location.pathname.startsWith("/contacts");
+  const isProfileRoute = location.pathname.startsWith("/profile");
+  const isSettingsRoute = location.pathname.startsWith("/settings");
+  const transitionOrigin = isPeopleRoute
+    ? "0% 0%"
+    : isProfileRoute
+      ? "50% 0%"
+      : isSettingsRoute
+        ? "0% 100%"
+        : "50% 50%";
+  const entryOffset = isPeopleRoute
+    ? { x: -24, y: -22 }
+    : isProfileRoute
+      ? { x: 0, y: -30 }
+      : isSettingsRoute
+        ? { x: -24, y: 24 }
+        : { x: 20, y: 10 };
+
   return (
     <div className="relative h-full">
       <AnimatePresence mode="popLayout" initial={false}>
@@ -125,14 +145,16 @@ useEffect(() => {
               ? location.pathname
               : location.pathname.split("/")[1] || "/"
           }
-          initial={{ opacity: 0, x: 24, scale: 0.99 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          exit={{ opacity: 0, x: -16, scale: 0.995 }}
+          initial={{ opacity: 0, x: entryOffset.x, y: entryOffset.y, scale: 0.91 }}
+          animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.965, x: -10, y: 8 }}
           transition={{
             type: "spring",
-            stiffness: 380,
-            damping: 38,
+            stiffness: 240,
+            damping: 29,
+            mass: 0.86,
           }}
+          style={{ transformOrigin: transitionOrigin }}
           className="absolute inset-0"
         >
           <Routes location={location}>
@@ -144,6 +166,7 @@ useEffect(() => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/accent" element={<AccentSettings />} />
             <Route path="/language" element={<CustomLanguage />} />
             <Route path="/system-update" element={<SystemUpdate />} />
             <Route path="/admin" element={<Admin />} />
