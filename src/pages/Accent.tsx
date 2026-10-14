@@ -25,7 +25,7 @@ export default function AccentSettings() {
           </span>
           <div>
             <h1 className="text-[24px] font-extrabold tcy-text">Акцент</h1>
-            <p className="mt-0.5 text-[12.5px] tcy-dim">Цветовая тема всего мессенджера</p>
+            <p className="mt-0.5 text-[12.5px] tcy-dim">Цвет акцентных элементов интерфейса</p>
           </div>
         </div>
       </header>
@@ -76,7 +76,7 @@ export default function AccentSettings() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[14px] tcy-text">{option.name}</span>
-                  <span className="mt-0.5 block text-[11.5px] tcy-dim">Весь экран в цвете {option.name.toLowerCase()}</span>
+                  <span className="mt-0.5 block text-[11.5px] tcy-dim">Акцентный цвет интерфейса: {option.name.toLowerCase()}</span>
                 </span>
                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: option.color, opacity: active ? 1 : 0.45 }} />
               </button>
@@ -84,7 +84,7 @@ export default function AccentSettings() {
           })}
         </div>
         <p className="px-1 pt-4 text-[11.5px] leading-relaxed tcy-faint">
-          Весь экран сразу принимает выбранный цвет. Карточки, поля, сообщения и навигация подстраиваются под него, а контрастный жирный текст остаётся читаемым. Выбор сохраняется на устройстве.
+          Акцент меняет островок навигации, поиск и поля ввода, ползунки, карточки настроек и оформление списка чатов. Фон приложения и обычные карточки остаются прежними. Выбор сохраняется на устройстве.
         </p>
       </div>
     </div>
