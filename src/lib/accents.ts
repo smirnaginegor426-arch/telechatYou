@@ -31,9 +31,24 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
   root.dataset.accent = selected.id;
 
   const tokens: Record<string, string> = {
-    "--tcy-accent": dark ? selected.color : selected.deep,
-    "--tcy-accent-deep": dark ? selected.deep : mix(18, "#27272a"),
-    "--tcy-on-accent": "#ffffff",
+    /* Default decorative accents stay neutral outside the requested surfaces. */
+    "--tcy-accent": dark ? "#e4e4e7" : "#52525b",
+    "--tcy-accent-deep": dark ? "#a1a1aa" : "#27272a",
+    "--tcy-on-accent": dark ? "#09090b" : "#fafafa",
+
+    /* User-selected accent is scoped to navigation, inputs, settings and chat-list UI. */
+    "--tcy-selected-accent": dark ? selected.color : selected.deep,
+    "--tcy-selected-accent-deep": dark ? selected.deep : mix(18, "#27272a"),
+    "--tcy-selected-on-accent": selected.onAccent,
+    "--tcy-selected-header": dark
+      ? mix(17, "rgba(5, 5, 6, 0.90)")
+      : mix(10, "rgba(250, 250, 252, 0.92)"),
+    "--tcy-selected-glass-line": dark
+      ? mix(38, "rgba(255, 255, 255, 0.19)")
+      : mix(26, "rgba(24, 24, 27, 0.14)"),
+    "--tcy-selected-input": dark
+      ? mix(13, "rgba(10, 11, 18, 0.58)")
+      : mix(10, "rgba(255, 255, 255, 0.62)"),
 
     /* Keep the overall application background and ordinary surfaces neutral. */
     "--tcy-bg": dark ? "#050506" : "#f5f5f7",
@@ -60,18 +75,12 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
       ? "rgba(244, 244, 245, 0.045)"
       : "rgba(24, 24, 27, 0.045)",
 
-    /* Accent tint is reserved for the navigation island and its active state. */
-    "--tcy-header": dark
-      ? mix(17, "rgba(5, 5, 6, 0.90)")
-      : mix(10, "rgba(250, 250, 252, 0.92)"),
-    "--tcy-glass-line": dark
-      ? mix(38, "rgba(255, 255, 255, 0.19)")
-      : mix(26, "rgba(24, 24, 27, 0.14)"),
-    "--tcy-input": dark
-      ? mix(13, "rgba(10, 11, 18, 0.58)")
-      : mix(10, "rgba(255, 255, 255, 0.62)"),
-    "--tcy-glow-1": selected.glow1,
-    "--tcy-glow-2": selected.glow2,
+    /* Neutral base for ordinary headers, forms and ambient background. */
+    "--tcy-header": dark ? "rgba(5, 5, 6, 0.82)" : "rgba(250, 250, 252, 0.88)",
+    "--tcy-glass-line": dark ? "rgba(255, 255, 255, 0.19)" : "rgba(24, 24, 27, 0.14)",
+    "--tcy-input": dark ? "rgba(10, 11, 18, 0.58)" : "rgba(255, 255, 255, 0.62)",
+    "--tcy-glow-1": dark ? "rgba(255, 255, 255, 0.035)" : "rgba(24, 24, 27, 0.035)",
+    "--tcy-glow-2": dark ? "rgba(148, 163, 184, 0.035)" : "rgba(100, 116, 139, 0.045)",
   };
 
   Object.entries(tokens).forEach(([key, value]) => root.style.setProperty(key, value));
