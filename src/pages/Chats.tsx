@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Archive, MessageCirclePlus, MessagesSquare, Search } from "lucide-react";
+import { Archive, ArchiveRestore, MessageCirclePlus, MessagesSquare, Search } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { ChatItem } from "@/components/ChatItem";
+import { SwipeableRow } from "@/components/SwipeableRow";
 import { Logo, Wordmark } from "@/components/Logo";
 import { EmptyState } from "@/components/EmptyState";
 import { TcButton } from "@/components/TcButton";
@@ -26,6 +27,21 @@ export default function Chats() {
   const [avatarPreview, setAvatarPreview] = useState<{ key: string | null; name: string; username?: string | null } | null>(null);
   const utils = trpc.useUtils();
   const [showArchived, setShowArchived] = useState(false);
+  const [botArchived, setBotArchived] = useState(() => {
+    try {
+      return typeof window !== "undefined" && window.localStorage.getItem("tcy-telechatyou-bot-archived") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("tcy-telechatyou-bot-archived", String(botArchived));
+    } catch {
+      // Archive state remains session-local when storage is unavailable.
+    }
+  }, [botArchived]);
   const [brandPhase, setBrandPhase] = useState<"connecting" | "updating" | "ready">("connecting");
 
   useEffect(() => {
@@ -87,6 +103,8 @@ export default function Chats() {
   const active = items.filter((i) => !i.membership.archived);
   const archived = items.filter((i) => i.membership.archived);
   const shown = showArchived ? archived : active;
+  const showBotRow = showArchived ? botArchived : !botArchived;
+  const hasArchived = archived.length > 0 || botArchived;
   const archivedUnread = archived.reduce((s, i) => s + i.unread, 0);
 
   const actions = useMemo(
@@ -171,7 +189,7 @@ export default function Chats() {
       </header>
 
       {/* archived entry */}
-      {!showArchived && archived.length > 0 && (
+      {!showArchived && hasArchived && (
         <button
           onClick={() => setShowArchived(true)}
           className="mx-4 mb-1 flex items-center gap-3 px-4 py-3 rounded-[18px] tcy-card border tcy-line tcy-press"
@@ -192,28 +210,41 @@ export default function Chats() {
         </button>
       )}
 
-      {/* built-in official bot */}
+      {/* Built-in bot can be archived and restored like other chats. */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
-        {!showArchived && (
-          <button
-            type="button"
-            onClick={() => navigate("/chat/telechatyou")}
-            className="w-full flex items-center gap-3.5 px-4 py-3 text-left tcy-bg active:bg-[color:var(--tcy-card)] transition-colors"
+        {showBotRow && (
+          <SwipeableRow
+            actions={[
+              {
+                key: botArchived ? "restore" : "archive",
+                icon: botArchived ? <ArchiveRestore size={19} /> : <Archive size={19} />,
+                color: botArchived ? "#0e9f76" : "#64748b",
+                onTrigger: () => setBotArchived((value) => !value),
+              },
+            ]}
           >
-            <img
-              src="/telechatyou-bot-avatar.svg"
-              alt=""
-              draggable={false}
-              className="w-[54px] h-[54px] shrink-0 object-cover rounded-[30%]"
-            />
-            <div className="flex-1 min-w-0">
-              <div className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-2">
-                <span>TeleChatYou</span>
-                <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md tcy-gradient-accent" style={{ color: "var(--tcy-on-accent)" }}>BOT</span>
+            <button
+              type="button"
+              onClick={() => navigate("/chat/telechatyou")}
+              className="w-full flex items-center gap-3.5 px-4 py-3 text-left tcy-bg active:bg-[color:var(--tcy-card)] transition-colors"
+            >
+              <img
+                src="/telechatyou-bot-avatar.svg"
+                alt=""
+                draggable={false}
+                className="w-[54px] h-[54px] shrink-0 object-cover rounded-[30%]"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-2">
+                  <span>TeleChatYou</span>
+                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md tcy-gradient-accent" style={{ color: "var(--tcy-on-accent)" }}>BOT</span>
+                </div>
+                <div className="text-[13.5px] tcy-dim truncate mt-0.5">
+                  {botArchived ? "В архиве" : "Официальный бот · напишите start"}
+                </div>
               </div>
-              <div className="text-[13.5px] tcy-dim truncate mt-0.5">Официальный бот · напишите start</div>
-            </div>
-          </button>
+            </button>
+          </SwipeableRow>
         )}
         {list.isLoading ? (
           <div className="pt-1">
@@ -228,7 +259,7 @@ export default function Chats() {
             hint="Проверьте подключение к сети и попробуйте ещё раз."
             action={<TcButton onClick={() => list.refetch()}>Повторить</TcButton>}
           />
-        ) : shown.length === 0 ? (
+        ) : shown.length === 0 && !showBotRow ? (
           <EmptyState
             icon={<MessagesSquare size={34} />}
             title={showArchived ? "Архив пуст" : "Пока нет чатов"}
