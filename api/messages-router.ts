@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { channels, chatMembers, messages, pinnedMessages, pollOptions, polls, pollVotes, reactions } from "@db/schema";
+import { channels, chatMembers, messages, personalPinnedMessages, pinnedMessages, pollOptions, polls, pollVotes, reactions } from "@db/schema";
 import { getMembership, getProfilesByIds, searchMessages, touchChat } from "./queries/telechat";
 
 const PAGE = 40;
@@ -108,6 +108,61 @@ async function hydrate(rows: (typeof messages.$inferSelect)[], viewerId: number)
 }
 
 export const messagesRouter = createRouter({
+
+  /** Current personal pin for this user and chat. */
+  pinnedPersonal: authedQuery
+    .input(z.object({ chatId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const pin = await getDb().query.personalPinnedMessages.findFirst({
+        where: and(
+          eq(personalPinnedMessages.chatId, input.chatId),
+          eq(personalPinnedMessages.userId, ctx.user.id),
+        ),
+      });
+      if (!pin) return null;
+      const row = await getDb().query.messages.findFirst({
+        where: and(eq(messages.id, pin.messageId), eq(messages.chatId, input.chatId)),
+      });
+      if (!row || row.deletedAt) return null;
+      const [message] = await hydrate([row], ctx.user.id);
+      return { ...pin, message };
+    }),
+
+  pinPersonal: authedQuery
+    .input(z.object({ chatId: z.number(), messageId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const message = await getDb().query.messages.findFirst({
+        where: and(eq(messages.id, input.messageId), eq(messages.chatId, input.chatId)),
+      });
+      if (!message || message.deletedAt) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Сообщение не найдено" });
+      }
+      await getDb().insert(personalPinnedMessages).values({
+        chatId: input.chatId,
+        userId: ctx.user.id,
+        messageId: input.messageId,
+      }).onDuplicateKeyUpdate({
+        set: { messageId: input.messageId, createdAt: new Date() },
+      });
+      return { ok: true };
+    }),
+
+  unpinPersonal: authedQuery
+    .input(z.object({ chatId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      await getDb().delete(personalPinnedMessages).where(and(
+        eq(personalPinnedMessages.chatId, input.chatId),
+        eq(personalPinnedMessages.userId, ctx.user.id),
+      ));
+      return { ok: true };
+    }),
+
   /** Current shared pinned message for this chat, if any. */
   pinned: authedQuery
     .input(z.object({ chatId: z.number() }))
