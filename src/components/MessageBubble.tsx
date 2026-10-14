@@ -242,8 +242,8 @@ export function MessageBubble({
             isImage || isPoll || isStickerMessage || hasMediaCaption ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
             !isImage && !isPoll && !isStickerMessage && !hasMediaCaption &&
               (own
-                ? "tcy-gradient-accent rounded-[22px] rounded-br-[8px]"
-                : "rounded-[22px] rounded-bl-[8px] border tcy-line"),
+                ? "tcy-glass-own rounded-[22px] rounded-br-[8px]"
+                : "tcy-glass-peer rounded-[22px] rounded-bl-[8px] border tcy-line"),
           )}
           style={
             isImage || isPoll || isStickerMessage || hasMediaCaption
@@ -254,8 +254,8 @@ export function MessageBubble({
               : own
                 ? { color: "var(--tcy-on-accent)" }
                 : {
-                    background: "#ffffff",
-                    color: "#171717",
+                    background: "var(--tcy-bubble-in)",
+                    color: "var(--tcy-text)",
                   }
           }
         >
@@ -378,7 +378,7 @@ export function MessageBubble({
               style={hasMediaCaption
                 ? own
                   ? { background: "var(--tcy-accent)", color: "var(--tcy-on-accent)" }
-                  : { background: "#ffffff", color: "#171717" }
+                  : { background: "var(--tcy-bubble-in)", color: "var(--tcy-text)" }
                 : undefined}
             >
               <FileAttachment m={m} own={own} />
@@ -407,8 +407,8 @@ export function MessageBubble({
                   width: attachmentWidth ?? (isImage ? 228 : 200),
                   maxWidth: "100%",
                   boxSizing: "border-box",
-                  background: own ? "var(--tcy-accent)" : "#ffffff",
-                  color: own ? "var(--tcy-on-accent)" : "#171717",
+                  background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
+                  color: own ? "var(--tcy-on-accent)" : "var(--tcy-text)",
                 }}
               >
                 <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
