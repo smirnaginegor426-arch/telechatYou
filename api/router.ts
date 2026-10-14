@@ -5,6 +5,7 @@ import { channelsRouter } from "./channels-router";
 import { messagesRouter } from "./messages-router";
 import { profileRouter } from "./profile-router";
 import { settingsRouter } from "./settings-router";
+import { accountDataRouter } from "./account-data-router";
 import { storageRouter } from "./storage-router";
 import { createRouter, publicQuery } from "./middleware";
 
@@ -20,6 +21,7 @@ export const appRouter = createRouter({
   messages: messagesRouter,
   storage: storageRouter,
   settings: settingsRouter,
+  accountData: accountDataRouter,
   admin: adminRouter,
 });
 
