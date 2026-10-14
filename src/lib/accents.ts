@@ -15,10 +15,9 @@ export function getAccent(accent: string) {
 }
 
 /**
- * Accent is intentionally limited to interactive surfaces. The page background,
- * body text and general cards stay neutral so the chosen color never floods
- * the entire app. Inputs, the navigation island, settings cards and highlights
- * read these accent-aware tokens.
+ * The chosen accent is deliberately softened: saturated swatches are blended
+ * with each theme's neutral surface so navigation, buttons, inputs and highlights
+ * feel translucent rather than neon. Text and page backgrounds remain neutral.
  */
 export function applyTheme(theme: "dark" | "light", accent: string) {
   const root = document.documentElement;
@@ -32,15 +31,21 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
 
   const tokens: Record<string, string> = {
     /* Default decorative accents stay neutral outside the requested surfaces. */
-    "--tcy-accent": dark ? "#e4e4e7" : "#52525b",
-    "--tcy-accent-deep": dark ? "#a1a1aa" : "#27272a",
-    "--tcy-on-accent": dark ? "#09090b" : "#fafafa",
+    "--tcy-accent": dark
+      ? `color-mix(in srgb, ${selected.color} 54%, #a1a1aa)`
+      : `color-mix(in srgb, ${selected.deep} 48%, #ffffff)`,
+    "--tcy-accent-deep": dark
+      ? `color-mix(in srgb, ${selected.deep} 46%, #71717a)`
+      : `color-mix(in srgb, ${selected.deep} 42%, #d4d4d8)`,
+    "--tcy-on-accent": selected.onAccent,
 
     /* User-selected accent is scoped to navigation, inputs, settings and chat-list UI. */
     "--tcy-selected-accent": dark
-      ? mix(78, "#a19aaa")
-      : `color-mix(in srgb, ${selected.deep} 72%, #ffffff)`,
-    "--tcy-selected-accent-deep": dark ? selected.deep : mix(18, "#27272a"),
+      ? mix(56, "#a19aaa")
+      : `color-mix(in srgb, ${selected.deep} 50%, #ffffff)`,
+    "--tcy-selected-accent-deep": dark
+      ? `color-mix(in srgb, ${selected.deep} 52%, #71717a)`
+      : `color-mix(in srgb, ${selected.deep} 40%, #d4d4d8)`,
     "--tcy-selected-on-accent": selected.onAccent,
     "--tcy-selected-header": dark
       ? mix(12, "rgba(5, 5, 6, 0.90)")
