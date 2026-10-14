@@ -33,6 +33,7 @@ import { fileToBase64, formatDayLabel, formatLastSeen, isOnline, sameDay } from 
 import type { ChatListItem, MessageItem } from "@/types/api";
 import { addStickerToPack, saveFavoriteSticker, saveSharedStickerPack, updateStickerPackAttachments, type StickerAsset, type StickerPack } from "@/lib/stickers";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/hooks/useTheme";
 import {
   CHAT_WALLPAPER_CHANGE_EVENT,
   DEFAULT_CHAT_WALLPAPER,
@@ -98,6 +99,7 @@ export default function ChatView() {
   const { id } = useParams<{ id: string }>();
   const chatId = Number(id);
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const utils = trpc.useUtils();
   const localPinnedKey = `tcy-local-pinned-message-${chatId}`;
 
@@ -598,7 +600,7 @@ export default function ChatView() {
           style={
             wallpaper === "custom" && wallpaperImage
               ? {
-                  backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.36)), url("${wallpaperImage}")`,
+                  backgroundImage: `${theme === "light" ? "linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18))" : "linear-gradient(rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.36))"}, url("${wallpaperImage}")`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
