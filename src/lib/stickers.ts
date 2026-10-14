@@ -48,6 +48,49 @@ export function saveStickerPack(pack: StickerPack): void {
   notifyChanged();
 }
 
+/** Cache uploaded sticker keys in the owner's local pack so later sends don't upload them again. */
+export function updateStickerPackAttachments(packId: string, uploaded: StickerAsset[]): void {
+  const packs = readStickerPacks();
+  const index = packs.findIndex((item) => item.id === packId);
+  if (index < 0) return;
+  const byId = new Map(uploaded.map((sticker) => [sticker.id, sticker]));
+  packs[index] = {
+    ...packs[index],
+    stickers: packs[index].stickers.map((sticker) => {
+      const next = byId.get(sticker.id);
+      return next?.attachmentKey
+        ? { ...sticker, attachmentKey: next.attachmentKey, contentType: next.contentType ?? sticker.contentType }
+        : sticker;
+    }),
+  };
+  saveStickerPack(packs[index]);
+}
+
+/** Restore the complete remote sticker pack, merging duplicate stickers by key. */
+export function saveSharedStickerPack(name: string, sharedStickers: StickerAsset[]): void {
+  const cleanName = name.trim().slice(0, 48) || "Сохранённые стикеры";
+  const packs = readStickerPacks();
+  let pack = packs.find((item) => item.name.toLowerCase() === cleanName.toLowerCase());
+  if (!pack) {
+    pack = { id: `received-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name: cleanName, stickers: [], createdAt: Date.now() };
+    packs.unshift(pack);
+  }
+  const merged = [...pack.stickers];
+  for (const sticker of sharedStickers) {
+    if (!sticker.attachmentKey) continue;
+    const found = merged.findIndex((item) =>
+      item.attachmentKey === sticker.attachmentKey || item.id === sticker.id
+    );
+    if (found >= 0) {
+      merged[found] = { ...merged[found], ...sticker };
+    } else {
+      merged.push(sticker);
+    }
+  }
+  pack.stickers = merged.slice(0, 40);
+  saveStickerPack(pack);
+}
+
 export function readFavoriteStickers(): FavoriteSticker[] {
   const value = safeParse<FavoriteSticker[]>(FAVORITES_KEY, []);
   return Array.isArray(value) ? value.filter((sticker) => sticker && typeof sticker.id === "string") : [];
