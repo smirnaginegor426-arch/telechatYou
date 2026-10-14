@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Archive, ArchiveRestore, MessageCirclePlus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X } from "lucide-react";
+import { Archive, ArchiveRestore, MessageCirclePlus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { ChatItem } from "@/components/ChatItem";
 import { Logo, Wordmark } from "@/components/Logo";
@@ -93,6 +93,7 @@ export default function Chats() {
     refetchInterval: 4000,
     refetchIntervalInBackground: false,
   });
+  const foldersQuery = trpc.accountData.folders.list.useQuery(undefined, { retry: false });
   const ensureFavorites = trpc.chats.ensureFavorites.useMutation({
     onSuccess: () => utils.chats.list.invalidate(),
   });
@@ -199,6 +200,13 @@ export default function Chats() {
               </button>
               <button
                 type="button"
+                onClick={() => navigate("/folders/new", { state: { chatIds: selectedChatIds } })}
+                className="flex shrink-0 items-center gap-2 rounded-[15px] border tcy-line tcy-card px-3 py-2.5 text-[12px] font-extrabold tcy-text"
+              >
+                <Folder size={16} /> Папка
+              </button>
+              <button
+                type="button"
                 onClick={deleteSelectedChats}
                 className="flex shrink-0 items-center gap-2 rounded-[15px] border px-3 py-2.5 text-[12px] font-extrabold"
                 style={{ color: "#f05262", borderColor: "color-mix(in srgb, #f05262 35%, var(--tcy-line))", background: "color-mix(in srgb, #f05262 8%, var(--tcy-card))" }}
@@ -296,6 +304,30 @@ export default function Chats() {
 
       {/* Built-in bot can be archived and restored like other chats. */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
+        {!selectedChatIds.length && (foldersQuery.data?.length ?? 0) > 0 && (
+          <section className="px-3 pb-2">
+            <div className="mb-2 flex items-center justify-between px-2">
+              <span className="text-[12px] font-extrabold tcy-dim">Папки</span>
+              <button type="button" onClick={() => navigate("/folders/new")} className="text-[11.5px] font-extrabold" style={{ color: "var(--tcy-selected-accent)" }}>Новая</button>
+            </div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              {foldersQuery.data?.map((folder) => (
+                <button
+                  key={folder.id}
+                  type="button"
+                  onClick={() => navigate(`/folders/${folder.id}`)}
+                  className="flex min-w-[118px] max-w-[170px] items-center gap-2.5 rounded-[18px] border tcy-line tcy-card px-3 py-2.5 text-left"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 12%, var(--tcy-card))", color: "var(--tcy-selected-accent)" }}><Folder size={17} /></span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[12px] font-extrabold tcy-text">{folder.name}</span>
+                    <span className="block text-[10px] tcy-faint">{folder.chatIds.length} чатов</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
         {showBotRow && (
           <div className="tcy-chat-list-item flex items-center gap-2 px-3 py-2.5">
             <button
