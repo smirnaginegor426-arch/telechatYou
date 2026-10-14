@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { trpc } from "@/providers/trpc";
 import { TabBar } from "@/components/TabBar";
+import { AccountCollectionsSync } from "@/components/AccountCollectionsSync";
 import { CustomLanguageBridge } from "@/components/CustomLanguageBridge";
 import { Logo } from "@/components/Logo";
 
@@ -21,6 +22,7 @@ import Settings from "@/pages/Settings";
 import AccentSettings from "@/pages/Accent";
 import FontSettings from "@/pages/FontSettings";
 import StickerPackCreate from "@/pages/StickerPackCreate";
+import ChatFolders from "@/pages/ChatFolders";
 import CustomLanguage from "@/pages/CustomLanguage";
 import SystemUpdate from "@/pages/SystemUpdate";
 import Admin from "@/pages/Admin";
@@ -135,6 +137,7 @@ useEffect(() => {
 
   return (
     <div className="relative h-full">
+      <AccountCollectionsSync />
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.div
           key={
@@ -166,6 +169,8 @@ useEffect(() => {
             <Route path="/accent" element={<AccentSettings />} />
             <Route path="/font" element={<FontSettings />} />
             <Route path="/stickers/new" element={<StickerPackCreate />} />
+            <Route path="/folders/new" element={<ChatFolders />} />
+            <Route path="/folders/:folderId" element={<ChatFolders />} />
             <Route path="/language" element={<CustomLanguage />} />
             <Route path="/system-update" element={<SystemUpdate />} />
             <Route path="/admin" element={<Admin />} />
