@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
@@ -83,7 +83,7 @@ async function readFolders(userId: number): Promise<ChatFolder[]> {
 }
 
 export const accountDataRouter = createRouter({
-  stickerLibrary: {
+  stickerLibrary: createRouter({
     get: authedQuery.query(async ({ ctx }) => {
       const row = await ensureRow(ctx.user.id);
       const packs = parseJson<unknown>(row.stickerPacks, []);
@@ -106,9 +106,9 @@ export const accountDataRouter = createRouter({
       }).where(eq(userCustomData.userId, ctx.user.id));
       return { ok: true, savedAt: new Date() };
     }),
-  },
+  }),
 
-  folders: {
+  folders: createRouter({
     list: authedQuery.query(({ ctx }) => readFolders(ctx.user.id)),
 
     save: authedQuery.input(folderSchema).mutation(async ({ ctx, input }) => {
@@ -161,5 +161,5 @@ export const accountDataRouter = createRouter({
       }).where(eq(userCustomData.userId, ctx.user.id));
       return { ok: true };
     }),
-  },
+  }),
 });
