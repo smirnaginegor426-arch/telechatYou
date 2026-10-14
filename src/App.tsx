@@ -20,6 +20,7 @@ import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
 import AccentSettings from "@/pages/Accent";
 import FontSettings from "@/pages/FontSettings";
+import StickerPackCreate from "@/pages/StickerPackCreate";
 import CustomLanguage from "@/pages/CustomLanguage";
 import SystemUpdate from "@/pages/SystemUpdate";
 import Admin from "@/pages/Admin";
@@ -124,7 +125,7 @@ useEffect(() => {
     ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
     : path.startsWith("/profile") || path.startsWith("/user/")
       ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
-      : ["/settings", "/accent", "/font", "/language", "/system-update"].some((route) => path.startsWith(route))
+      : ["/settings", "/accent", "/font", "/stickers", "/language", "/system-update"].some((route) => path.startsWith(route))
         ? { origin: "0% 100%", x: -26, y: 22, exitX: -18, exitY: 16 }
         : path.startsWith("/chat/")
           ? { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 }
@@ -164,6 +165,7 @@ useEffect(() => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/accent" element={<AccentSettings />} />
             <Route path="/font" element={<FontSettings />} />
+            <Route path="/stickers/new" element={<StickerPackCreate />} />
             <Route path="/language" element={<CustomLanguage />} />
             <Route path="/system-update" element={<SystemUpdate />} />
             <Route path="/admin" element={<Admin />} />
