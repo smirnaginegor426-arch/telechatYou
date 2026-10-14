@@ -62,7 +62,7 @@ export default function Search() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Чаты, люди, сообщения…"
-            className="w-full h-11 pl-11 pr-10 rounded-[18px] tcy-card border tcy-line text-[14px] font-medium tcy-text placeholder:text-[color:var(--tcy-faint)] outline-none focus:border-[color:var(--tcy-accent)] transition-colors"
+            className="w-full h-11 pl-11 pr-10 rounded-[18px] tcy-card border tcy-line text-[14px] font-medium tcy-text placeholder:text-[color:var(--tcy-faint)] outline-none focus:border-[color:var(--tcy-selected-accent)] transition-colors"
           />
           {q && (
             <button
