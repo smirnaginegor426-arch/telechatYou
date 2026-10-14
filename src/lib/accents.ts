@@ -58,6 +58,12 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
     "--tcy-header": dark
       ? `color-mix(in srgb, ${selected.color} 19%, rgba(5, 5, 6, 0.82))`
       : `color-mix(in srgb, ${selected.color} 10%, rgba(250, 250, 252, 0.88))`,
+    "--tcy-glass-line": dark
+      ? `color-mix(in srgb, ${selected.color} 38%, rgba(255, 255, 255, 0.19))`
+      : `color-mix(in srgb, ${selected.color} 24%, rgba(24, 24, 27, 0.14))`,
+    "--tcy-input": dark
+      ? `color-mix(in srgb, ${selected.color} 13%, rgba(10, 11, 18, 0.58))`
+      : `color-mix(in srgb, ${selected.color} 8%, rgba(255, 255, 255, 0.62))`,
     "--tcy-glow-1": selected.glow1,
     "--tcy-glow-2": selected.glow2,
   };
