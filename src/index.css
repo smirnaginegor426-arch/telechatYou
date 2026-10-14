@@ -523,6 +523,9 @@ body,
 }
 
 .tcy-chat-list-item {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   margin: 3px 10px;
   width: calc(100% - 20px) !important;
   border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 12%, var(--tcy-line));
