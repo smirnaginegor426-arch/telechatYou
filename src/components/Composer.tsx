@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, Image as ImageIcon, Mic, Plus, SendHorizonal, Smile, Trash2, X } from "lucide-react";
+import { FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, SendHorizonal, Smile, Trash2, X } from "lucide-react";
 import { EmojiPicker } from "./EmojiPicker";
 import { formatDuration } from "@/lib/format";
-import { AppleEmoji } from "./AppleEmoji";
 import { compressPhoto, getMediaSendPreferences } from "@/lib/media-send-preferences";
 import { cn } from "@/lib/utils";
 
-const STICKERS = ["😀", "😂", "🥹", "😍", "😎", "😭", "🥳", "🤔", "😴", "🥰", "🤯", "🙄", "❤️", "🔥", "👍", "👎", "👏", "🙏", "💀", "✨", "🎉", "🤝", "🫶", "💔", "🐱", "🐶", "🦊", "🐸", "🐼", "🦄"];
 
 type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
 
@@ -31,10 +29,8 @@ export function Composer({
   const [text, setText] = useState("");
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
-  const [stickerOpen, setStickerOpen] = useState(false);
   const [preparingImage, setPreparingImage] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
-  const [stickersEnabled] = useState(() => getMediaSendPreferences().stickersEnabled);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
@@ -166,7 +162,6 @@ export function Composer({
     setPendingAttachments([]);
     setText("");
     setEmojiOpen(false);
-    setStickerOpen(false);
     setAttachOpen(false);
   };
 
@@ -253,67 +248,36 @@ export function Composer({
         }}
       />
 
-      {/* attach popover */}
+      {/* compact attachment chooser */}
       <AnimatePresence>
         {attachOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            role="menu"
+            aria-label="Добавить вложение"
+            initial={{ opacity: 0, y: 7, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 500, damping: 36 }}
-            className="absolute bottom-[72px] left-3 tcy-solid border tcy-line rounded-[22px] p-2 tcy-shadow-soft z-30 min-w-[190px]"
+            exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 520, damping: 38 }}
+            className="absolute bottom-[72px] left-3 z-30 w-[208px] rounded-[15px] border tcy-line tcy-solid p-1.5 shadow-xl"
           >
-            {[
-              { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
-              { label: "Файл", emoji: "📎", fn: () => fileInputRef.current?.click() },
-              ...(stickersEnabled ? [{ label: "Стикеры", emoji: "✨", fn: () => { setAttachOpen(false); setEmojiOpen(false); setStickerOpen(true); } }] : []),
-            ].map((a) => (
-              <button
-                key={a.label}
-                onClick={a.fn}
-                className="tcy-press w-full flex items-center gap-3 px-3.5 py-3 rounded-[16px] text-left hover:bg-[color:var(--tcy-card)]"
-              >
-                <span className="text-[20px]">{a.emoji}</span>
-                <span className="text-[14.5px] font-semibold tcy-text">{a.label}</span>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {stickerOpen && !recording && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 450, damping: 34 }}
-            className="absolute bottom-[72px] left-3 z-30 w-[min(330px,calc(100vw-24px))] rounded-[22px] tcy-solid border tcy-line p-3 tcy-shadow-soft"
-          >
-            <div className="flex items-center gap-2 px-1 pb-2">
-              <span className="flex-1 text-[14px] font-bold tcy-text">Стикеры</span>
-              <button type="button" onClick={() => setStickerOpen(false)} className="tcy-press w-8 h-8 rounded-full flex items-center justify-center tcy-dim" aria-label="Закрыть стикеры">
-                <X size={17} />
-              </button>
-            </div>
-            <div className="grid grid-cols-5 gap-1 max-h-[250px] overflow-y-auto no-scrollbar">
-              {STICKERS.map((sticker) => (
-                <button
-                  key={sticker}
-                  type="button"
-                  onClick={() => {
-                    onSendText(sticker);
-                    setStickerOpen(false);
-                    setAttachOpen(false);
-                    setEmojiOpen(false);
-                  }}
-                  className="tcy-press h-12 rounded-[14px] flex items-center justify-center hover:bg-[color:var(--tcy-card)]"
-                  aria-label={"Отправить стикер " + sticker}
-                >
-                  <AppleEmoji emoji={sticker} size={32} />
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => fileInputRef.current?.click()}
+              className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
+            >
+              <FileUp size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
+              <span>Загрузить файл</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => imgInputRef.current?.click()}
+              className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
+            >
+              <Images size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
+              <span>Галерея</span>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -380,7 +344,6 @@ export function Composer({
                 onClick={() => {
                   setAttachOpen((v) => !v);
                   setEmojiOpen(false);
-                  setStickerOpen(false);
                 }}
                 className={cn(
                   "tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform",
@@ -397,7 +360,7 @@ export function Composer({
                 value={text}
                 rows={1}
                 onChange={(e) => setText(e.target.value)}
-                onFocus={() => { setEmojiOpen(false); setStickerOpen(false); }}
+                onFocus={() => setEmojiOpen(false)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey && enterToSend) {
                     e.preventDefault();
@@ -408,7 +371,7 @@ export function Composer({
                 className="flex-1 bg-transparent outline-none resize-none text-[15px] tcy-text placeholder:text-[color:var(--tcy-faint)] py-2.5 max-h-[120px] no-scrollbar leading-[1.4]"
               />
               <button
-                onClick={() => { setEmojiOpen((v) => !v); setStickerOpen(false); }}
+                onClick={() => setEmojiOpen((v) => !v)}
                 className="tcy-press w-10 h-11 flex items-center justify-center shrink-0"
                 style={{ color: emojiOpen ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
                 aria-label="Эмодзи"
