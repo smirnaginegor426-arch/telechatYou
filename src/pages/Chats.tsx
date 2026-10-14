@@ -21,7 +21,7 @@ function ChatSkeleton() {
   );
 }
 
-export default function Chats() {
+export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean } = {}) {
   const navigate = useNavigate();
   const [avatarPreview, setAvatarPreview] = useState<{ key: string | null; name: string; username?: string | null } | null>(null);
   const utils = trpc.useUtils();
@@ -157,7 +157,7 @@ export default function Chats() {
   };
 
   return (
-    <div className="relative h-full flex flex-col">
+    <div className={desktopPanel ? "relative h-full flex flex-col tcy-desktop-chat-list" : "relative h-full flex flex-col"}>
       {/* header / bulk selection toolbar */}
       <header className="relative z-10 px-5 pt-5 safe-top pb-3">
         {selectedChatIds.length > 0 ? (
@@ -303,7 +303,7 @@ export default function Chats() {
       )}
 
       {/* Built-in bot can be archived and restored like other chats. */}
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
+      <div className="tcy-chat-list-scroll flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
         {!selectedChatIds.length && (foldersQuery.data?.length ?? 0) > 0 && (
           <section className="px-3 pb-2">
             <div className="mb-2 flex items-center justify-between px-2">
