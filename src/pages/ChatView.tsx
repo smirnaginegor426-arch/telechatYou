@@ -482,7 +482,7 @@ export default function ChatView() {
       {canPublish ? (
         <Composer
           onSendText={sendText}
-          onSendVoice={(blob, duration) => void sendAttachment(blob, "voice")}
+          onSendVoice={(blob) => void sendAttachment(blob, "voice")}
           onAttachImage={(file, caption) => sendAttachment(file, "image", caption)}
           onAttachFile={(file, caption) => sendAttachment(file, "file", caption)}
           sending={send.isPending || upload.isPending || createPoll.isPending}
