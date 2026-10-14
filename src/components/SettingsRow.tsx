@@ -24,7 +24,7 @@ export function SettingsRow({
         style={{
           background: danger
             ? "color-mix(in srgb, var(--tcy-danger) 14%, transparent)"
-            : "var(--tcy-card-strong)",
+            : "color-mix(in srgb, var(--tcy-selected-accent) 24%, transparent)",
           color: danger ? "var(--tcy-danger)" : "var(--tcy-selected-accent)",
         }}
       >
