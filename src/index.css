@@ -702,9 +702,13 @@ body,
 }
 
 .tcy-sticker-panel {
-  -webkit-backdrop-filter: blur(24px) saturate(1.55);
-  backdrop-filter: blur(24px) saturate(1.55);
-  box-shadow: 0 14px 36px -18px rgba(0, 0, 0, .46);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  backdrop-filter: blur(28px) saturate(1.6);
+  box-shadow: 0 -16px 44px -25px rgba(0, 0, 0, .55);
+  border-top-left-radius: 26px;
+  border-top-right-radius: 26px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .tcy-sticker-grid {
