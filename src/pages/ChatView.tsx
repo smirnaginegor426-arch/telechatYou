@@ -669,6 +669,11 @@ export default function ChatView() {
                     onStickerOpen={setStickerActionMsg}
                     highlighted={highlightedMessageId === m.id}
                     onReaction={onReaction}
+                    onSwipeReply={(message) => {
+                      setReplyTo(message);
+                      setEditing(null);
+                      setActionMsg(null);
+                    }}
                   />
                 </div>
               );
