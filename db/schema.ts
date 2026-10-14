@@ -196,6 +196,22 @@ export const messages = mysqlTable(
 
 export type Message = typeof messages.$inferSelect;
 
+/** The currently pinned message that is visible to everyone in a chat. */
+export const pinnedMessages = mysqlTable(
+  "pinned_messages",
+  {
+    id: serial("id").primaryKey(),
+    chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull().unique(),
+    messageId: bigint("messageId", { mode: "number", unsigned: true }).notNull(),
+    pinnedBy: userId(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    pinnedMessageIdx: index("pinned_messages_message_idx").on(t.messageId),
+    pinnedByIdx: index("pinned_messages_user_idx").on(t.pinnedBy),
+  }),
+);
+
 /** Poll attached to an ordinary message so existing message history remains compatible. */
 export const polls = mysqlTable(
   "polls",
