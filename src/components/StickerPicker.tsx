@@ -85,8 +85,8 @@ export function StickerPicker({
       </div>
 
       <div className="flex gap-1 px-3 pb-2">
-        <button type="button" onClick={() => setTab("packs")} className="flex-1 rounded-full py-2 text-[11.5px] font-extrabold" style={{ background: tab === "packs" ? "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card))" : "transparent", color: tab === "packs" ? "var(--tcy-selected-accent)" : "var(--tcy-dim)" }}>Стикер-паки</button>
-        <button type="button" onClick={() => setTab("favorites")} className="flex-1 rounded-full py-2 text-[11.5px] font-extrabold" style={{ background: tab === "favorites" ? "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card))" : "transparent", color: tab === "favorites" ? "var(--tcy-selected-accent)" : "var(--tcy-dim)" }}>
+        <button type="button" onClick={() => { setTab("packs"); setSelectedPackId(null); }} className="flex-1 rounded-full py-2 text-[11.5px] font-extrabold" style={{ background: tab === "packs" ? "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card))" : "transparent", color: tab === "packs" ? "var(--tcy-selected-accent)" : "var(--tcy-dim)" }}>Стикер-паки</button>
+        <button type="button" onClick={() => { setTab("favorites"); setSelectedPackId(null); }} className="flex-1 rounded-full py-2 text-[11.5px] font-extrabold" style={{ background: tab === "favorites" ? "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card))" : "transparent", color: tab === "favorites" ? "var(--tcy-selected-accent)" : "var(--tcy-dim)" }}>
           <Star size={12} className="mr-1 inline-block" /> Избранное
         </button>
       </div>
