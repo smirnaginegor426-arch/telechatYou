@@ -39,7 +39,6 @@ export function Composer({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imgInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const audioInputRef = useRef<HTMLInputElement>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
@@ -173,29 +172,36 @@ export function Composer({
 
   const hasText = text.trim().length > 0;
 
-  const handleImageSelection = async (file?: File) => {
+  const handleImageSelection = async (files: File[]) => {
     setAttachOpen(false);
-    if (!file) return;
+    if (files.length === 0) return;
     const preferences = getMediaSendPreferences();
-    if (preferences.confirmBeforeSend && !window.confirm(`Отправить фотографию «${file.name}» (${formatFileSize(file.size)})?`)) {
-      return;
-    }
+    const prompt = files.length === 1
+      ? `Отправить фотографию «${files[0].name}» (${formatFileSize(files[0].size)})?`
+      : `Отправить ${files.length} фотографий?`;
+    if (preferences.confirmBeforeSend && !window.confirm(prompt)) return;
+
     setPreparingImage(true);
     try {
-      onAttachImage(preferences.compressPhotos ? await compressPhoto(file) : file);
+      for (const file of files) {
+        const prepared = preferences.compressPhotos ? await compressPhoto(file) : file;
+        onAttachImage(prepared);
+      }
     } finally {
       setPreparingImage(false);
     }
   };
 
-  const handleFileSelection = (file?: File) => {
+  const handleFileSelection = (files: File[]) => {
     setAttachOpen(false);
-    if (!file) return;
+    if (files.length === 0) return;
     const preferences = getMediaSendPreferences();
-    if (preferences.confirmBeforeSend && !window.confirm(`Отправить файл «${file.name}» (${formatFileSize(file.size)})?`)) {
-      return;
-    }
-    onAttachFile(file);
+    const prompt = files.length === 1
+      ? `Отправить файл «${files[0].name}» (${formatFileSize(files[0].size)})?`
+      : `Отправить ${files.length} файлов?`;
+    if (preferences.confirmBeforeSend && !window.confirm(prompt)) return;
+
+    for (const file of files) onAttachFile(file);
   };
 
   return (
@@ -204,32 +210,23 @@ export function Composer({
         ref={imgInputRef}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={(e) => {
-          const f = e.target.files?.[0];
+          const files = Array.from(e.target.files ?? []);
           e.target.value = "";
-          void handleImageSelection(f);
+          void handleImageSelection(files);
         }}
       />
       <input
         ref={fileInputRef}
         type="file"
+        multiple
         className="hidden"
         onChange={(e) => {
-          const f = e.target.files?.[0];
+          const files = Array.from(e.target.files ?? []);
           e.target.value = "";
-          handleFileSelection(f);
-        }}
-      />
-      <input
-        ref={audioInputRef}
-        type="file"
-        accept="audio/*,.mp3,.m4a,.aac,.ogg,.opus,.wav,.flac"
-        className="hidden"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          e.target.value = "";
-          handleFileSelection(f);
+          handleFileSelection(files);
         }}
       />
 
@@ -246,7 +243,6 @@ export function Composer({
             {[
               { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
               { label: "Файл", emoji: "📎", fn: () => fileInputRef.current?.click() },
-              { label: "Музыка / MP3", emoji: "🎵", fn: () => audioInputRef.current?.click() },
               ...(stickersEnabled ? [{ label: "Стикеры", emoji: "✨", fn: () => { setAttachOpen(false); setEmojiOpen(false); setStickerOpen(true); } }] : []),
             ].map((a) => (
               <button
