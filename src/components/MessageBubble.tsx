@@ -449,7 +449,7 @@ export function MessageBubble({
                     "block",
                     isStickerAttachment
                       ? "h-[180px] w-[180px] object-contain"
-                      : "max-w-[240px] max-h-[300px] object-cover",
+                      : "max-w-[240px] max-h-[300px] rounded-b-[14px] object-cover",
                   )}
                   loading="lazy"
                   decoding="async"
@@ -487,7 +487,7 @@ export function MessageBubble({
             </button>
             {hasMediaCaption && (
               <div
-                className="relative block w-full min-w-0 px-3 py-2.5"
+                className="relative -mt-px block w-full min-w-0 rounded-t-[14px] rounded-b-[15px] px-3 py-2.5"
                 style={{
                   boxSizing: "border-box",
                   background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
