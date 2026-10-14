@@ -8,6 +8,7 @@ import { TabBar } from "@/components/TabBar";
 import { AccountCollectionsSync } from "@/components/AccountCollectionsSync";
 import { CustomLanguageBridge } from "@/components/CustomLanguageBridge";
 import { Logo } from "@/components/Logo";
+import { useDeviceMode } from "@/hooks/useDeviceMode";
 
 import Welcome from "@/pages/Welcome";
 import Setup from "@/pages/Setup";
@@ -69,6 +70,11 @@ function Splash() {
 function AuthedApp() {
   const location = useLocation();
   const navigate = useNavigate();
+  const deviceMode = useDeviceMode();
+  const isDesktop = deviceMode === "desktop";
+  const desktopHome = isDesktop && location.pathname === "/";
+  const desktopChat = isDesktop && /^\/chat\/\d+\/?$/.test(location.pathname);
+  const desktopInbox = desktopHome || desktopChat;
 
 const adminMe = trpc.profile.me.useQuery(undefined, {
   retry: false,
@@ -136,8 +142,24 @@ useEffect(() => {
             : { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 };
 
   return (
-    <div className="relative h-full">
+    <div className={`relative h-full tcy-authed-layout ${desktopHome ? "tcy-authed-layout--desktop-home" : desktopChat ? "tcy-authed-layout--desktop-chat" : ""}`}>
       <AccountCollectionsSync />
+      {desktopInbox && (
+        <aside className="tcy-desktop-chat-sidebar">
+          <Chats desktopPanel />
+        </aside>
+      )}
+      {desktopHome && (
+        <section className="tcy-desktop-welcome-pane">
+          <div className="tcy-desktop-welcome-content">
+            <Logo size={76} />
+            <h1 className="mt-6 text-[24px] font-black tcy-text">Выберите чат</h1>
+            <p className="mt-2 max-w-[300px] text-center text-[14px] leading-relaxed tcy-dim">
+              Ваши сообщения, звонки и избранное будут под рукой
+            </p>
+          </div>
+        </section>
+      )}
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.div
           key={
@@ -155,10 +177,10 @@ useEffect(() => {
             mass: 0.86,
           }}
           style={{ transformOrigin: routeMotion.origin }}
-          className="absolute inset-0"
+          className="tcy-route-animated absolute inset-0"
         >
           <Routes location={location}>
-            <Route path="/" element={<Chats />} />
+            <Route path="/" element={desktopHome ? <div className="h-full" /> : <Chats />} />
             <Route path="/chat/telechatyou" element={<TeleChatYouBot />} />
             <Route path="/chat/:id" element={<ChatView />} />
             <Route path="/chat/:id/info" element={<ChatInfo />} />
