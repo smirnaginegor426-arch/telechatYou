@@ -25,7 +25,7 @@ export function SettingsRow({
           background: danger
             ? "color-mix(in srgb, var(--tcy-danger) 14%, transparent)"
             : "var(--tcy-card-strong)",
-          color: danger ? "var(--tcy-danger)" : "var(--tcy-accent)",
+          color: danger ? "var(--tcy-danger)" : "var(--tcy-selected-accent)",
         }}
       >
         {icon}
@@ -98,7 +98,7 @@ export function Toggle({
       className="relative w-[46px] h-[27px] rounded-full transition-colors duration-200 shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
       style={{
         background: checked
-          ? "var(--tcy-accent)"
+          ? "var(--tcy-selected-accent)"
           : "var(--tcy-card-strong)",
       }}
     >
