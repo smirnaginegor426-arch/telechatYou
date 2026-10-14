@@ -34,6 +34,15 @@
   :root {
     --tcy-bg: #050506;
     --tcy-bg-2: #09090b;
+    --tcy-accent: #e4e4e7;
+    --tcy-accent-deep: #a1a1aa;
+    --tcy-on-accent: #09090b;
+    --tcy-selected-accent: #9b5de5;
+    --tcy-selected-accent-deep: #6d28d9;
+    --tcy-selected-on-accent: #ffffff;
+    --tcy-selected-header: rgba(46, 22, 69, 0.90);
+    --tcy-selected-glass-line: rgba(255, 255, 255, 0.25);
+    --tcy-selected-input: rgba(30, 16, 45, 0.58);
     --tcy-card: rgba(244, 244, 245, 0.035);
     --tcy-card-strong: rgba(244, 244, 245, 0.075);
     --tcy-solid: #0b0b0d;
