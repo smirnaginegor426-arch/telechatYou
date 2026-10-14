@@ -19,6 +19,7 @@ import {
   Sun,
   ShieldCheck,
   Trash2,
+  Type,
   UserRound,
   Volume2,
 } from "lucide-react";
@@ -172,6 +173,12 @@ export default function Settings() {
               <Check size={14} strokeWidth={3} color="var(--tcy-selected-on-accent)" />
             </span>
           }
+        />
+        <SettingsRow
+          icon={<Type size={17} />}
+          title="Шрифт"
+          subtitle="Толщина текста и пример переписки"
+          onClick={() => navigate("/font")}
         />
       </SettingsGroup>
 
