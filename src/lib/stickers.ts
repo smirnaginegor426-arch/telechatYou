@@ -19,15 +19,6 @@ const PACKS_KEY = "tcy-sticker-packs-v1";
 const FAVORITES_KEY = "tcy-favorite-stickers-v1";
 export const STICKERS_CHANGED_EVENT = "tcy-stickers-changed";
 
-function safeParse<T>(key: string, fallback: T): T {
-  try {
-    const value = localStorage.getItem(key);
-    return value ? (JSON.parse(value) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 let memoryPacks: StickerPack[] | null = null;
 let memoryFavorites: FavoriteSticker[] | null = null;
 
