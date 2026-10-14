@@ -12,8 +12,8 @@ type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
 type Props = {
   onSendText: (text: string) => void;
   onSendVoice: (blob: Blob, duration: number) => void;
-  onAttachImage: (file: File) => void;
-  onAttachFile: (file: File) => void;
+  onAttachImage: (file: File, caption?: string) => void | Promise<void>;
+  onAttachFile: (file: File, caption?: string) => void | Promise<void>;
   sending?: boolean;
   enterToSend?: boolean;
 };
@@ -140,9 +140,9 @@ export function Composer({
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
   }, [text]);
 
-  const submit = () => {
+  const submit = async () => {
     const t = text.trim();
-    if (!t && pendingAttachments.length === 0) return;
+    if ((!t && pendingAttachments.length === 0) || sending) return;
 
     const preferences = getMediaSendPreferences();
     if (
@@ -153,10 +153,20 @@ export function Composer({
       return;
     }
 
-    if (t) onSendText(t);
-    for (const attachment of pendingAttachments) {
-      if (attachment.kind === "image") onAttachImage(attachment.file);
-      else onAttachFile(attachment.file);
+    if (pendingAttachments.length === 0) {
+      onSendText(t);
+    } else {
+      // Put the typed text on the first attachment as its caption instead
+      // of sending it as a separate text message.
+      for (let index = 0; index < pendingAttachments.length; index += 1) {
+        const attachment = pendingAttachments[index];
+        const caption = index === 0 ? t || undefined : undefined;
+        if (attachment.kind === "image") {
+          await onAttachImage(attachment.file, caption);
+        } else {
+          await onAttachFile(attachment.file, caption);
+        }
+      }
     }
 
     setPendingAttachments([]);
@@ -217,7 +227,9 @@ export function Composer({
     const queued = files.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${file.name}`,
       file,
-      kind: "file" as const,
+      // If a user picks an image from “Загрузить файл”, still send it as a
+      // photo message so it renders as an image rather than a download card.
+      kind: file.type.startsWith("image/") ? "image" as const : "file" as const,
     }));
     setPendingAttachments((current) => [...current, ...queued]);
   };
