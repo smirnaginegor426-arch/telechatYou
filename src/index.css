@@ -554,12 +554,12 @@ body,
   border-color: var(--tcy-selected-glass-line);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.19),
-    0 14px 38px -18px color-mix(in srgb, var(--tcy-selected-accent) 68%, transparent);
+    0 14px 38px -18px color-mix(in srgb, var(--tcy-selected-accent) 38%, transparent);
 }
 
 .tcy-tab-orb {
-  background: color-mix(in srgb, var(--tcy-selected-accent) 22%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 34%, rgba(255,255,255,.15));
+  background: color-mix(in srgb, var(--tcy-selected-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 22%, rgba(255,255,255,.15));
   -webkit-backdrop-filter: blur(20px) saturate(1.6);
   backdrop-filter: blur(20px) saturate(1.6);
   box-shadow:
@@ -717,4 +717,15 @@ body,
   .tcy-message-highlight {
     animation-duration: .01ms !important;
   }
+}
+
+
+/* Keep accent fills and shadows soft rather than neon-bright. */
+.tcy-gradient-accent {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--tcy-selected-accent) 82%, var(--tcy-card)),
+    color-mix(in srgb, var(--tcy-selected-accent-deep) 78%, var(--tcy-card))) !important;
+}
+.tcy-shadow-accent {
+  box-shadow: 0 8px 22px -14px color-mix(in srgb, var(--tcy-selected-accent) 36%, transparent) !important;
 }
