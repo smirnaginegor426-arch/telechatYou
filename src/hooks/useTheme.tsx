@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { applyTheme, ACCENTS, type AccentId } from "@/lib/accents";
+import { applyFontWeight, getSavedFontWeight } from "@/lib/font-weight";
 import { trpc } from "@/providers/trpc";
 
 type Theme = "dark" | "light";
@@ -55,6 +56,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (savedSettings.data?.theme) setThemeState(savedSettings.data.theme);
   }, [savedSettings.data?.theme]);
+
+  useEffect(() => {
+    applyFontWeight(getSavedFontWeight());
+  }, []);
 
   useEffect(() => {
     applyTheme(theme, accent);
