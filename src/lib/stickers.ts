@@ -28,15 +28,29 @@ function safeParse<T>(key: string, fallback: T): T {
   }
 }
 
+let memoryPacks: StickerPack[] | null = null;
+let memoryFavorites: FavoriteSticker[] | null = null;
+
 function notifyChanged() {
   if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent(STICKERS_CHANGED_EVENT));
 }
 
 export function readStickerPacks(): StickerPack[] {
-  const value = safeParse<StickerPack[]>(PACKS_KEY, []);
-  return Array.isArray(value)
-    ? value.filter((pack) => pack && typeof pack.id === "string" && typeof pack.name === "string" && Array.isArray(pack.stickers))
-    : [];
+  try {
+    const raw = localStorage.getItem(PACKS_KEY);
+    if (raw) {
+      const value = JSON.parse(raw) as unknown;
+      if (Array.isArray(value)) {
+        memoryPacks = value.filter((pack) => pack && typeof pack.id === "string" && typeof pack.name === "string" && Array.isArray(pack.stickers));
+        return memoryPacks;
+      }
+    } else if (memoryPacks) {
+      return memoryPacks;
+    }
+  } catch {
+    if (memoryPacks) return memoryPacks;
+  }
+  return memoryPacks ?? [];
 }
 
 export function saveStickerPack(pack: StickerPack): void {
@@ -44,7 +58,8 @@ export function saveStickerPack(pack: StickerPack): void {
   const index = packs.findIndex((item) => item.id === pack.id);
   if (index >= 0) packs[index] = pack;
   else packs.unshift(pack);
-  localStorage.setItem(PACKS_KEY, JSON.stringify(packs));
+  memoryPacks = packs;
+  try { localStorage.setItem(PACKS_KEY, JSON.stringify(packs)); } catch { /* Account sync is the durable copy; keep the in-memory cache if storage is full. */ }
   notifyChanged();
 }
 
@@ -67,6 +82,15 @@ export function updateStickerPackAttachments(packId: string, uploaded: StickerAs
 }
 
 /** Restore the complete remote sticker pack, merging duplicate stickers by key. */
+/** Replace the local cache with the merged account library after sign-in. */
+export function replaceStickerLibrary(packs: StickerPack[], favorites: FavoriteSticker[]): void {
+  memoryPacks = packs;
+  memoryFavorites = favorites.slice(0, 80);
+  try { localStorage.setItem(PACKS_KEY, JSON.stringify(memoryPacks)); } catch { /* Remote account copy remains durable. */ }
+  try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(memoryFavorites)); } catch { /* Remote account copy remains durable. */ }
+  notifyChanged();
+}
+
 export function saveSharedStickerPack(name: string, sharedStickers: StickerAsset[]): void {
   const cleanName = name.trim().slice(0, 48) || "Сохранённые стикеры";
   const packs = readStickerPacks();
@@ -92,15 +116,29 @@ export function saveSharedStickerPack(name: string, sharedStickers: StickerAsset
 }
 
 export function readFavoriteStickers(): FavoriteSticker[] {
-  const value = safeParse<FavoriteSticker[]>(FAVORITES_KEY, []);
-  return Array.isArray(value) ? value.filter((sticker) => sticker && typeof sticker.id === "string") : [];
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    if (raw) {
+      const value = JSON.parse(raw) as unknown;
+      if (Array.isArray(value)) {
+        memoryFavorites = value.filter((sticker) => sticker && typeof sticker.id === "string");
+        return memoryFavorites;
+      }
+    } else if (memoryFavorites) {
+      return memoryFavorites;
+    }
+  } catch {
+    if (memoryFavorites) return memoryFavorites;
+  }
+  return memoryFavorites ?? [];
 }
 
 export function saveFavoriteSticker(sticker: FavoriteSticker): void {
   const favorites = readFavoriteStickers();
   if (!favorites.some((item) => item.id === sticker.id && item.attachmentKey === sticker.attachmentKey && item.dataUrl === sticker.dataUrl)) {
     favorites.unshift(sticker);
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites.slice(0, 80)));
+    memoryFavorites = favorites.slice(0, 80);
+    try { localStorage.setItem(FAVORITES_KEY, JSON.stringify(memoryFavorites)); } catch { /* Keep the account-synced memory copy if local storage is full. */ }
     notifyChanged();
   }
 }
