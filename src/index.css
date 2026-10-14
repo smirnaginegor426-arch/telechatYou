@@ -680,3 +680,38 @@ body,
   color: color-mix(in srgb, var(--tcy-selected-accent) 86%, white);
   border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 22%, var(--tcy-line));
 }
+
+
+.tcy-message-highlight {
+  border-radius: 20px;
+  animation: tcy-message-pin-flash 1.8s ease-out both;
+}
+
+@keyframes tcy-message-pin-flash {
+  0%, 24% {
+    background: color-mix(in srgb, var(--tcy-selected-accent) 20%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--tcy-selected-accent) 22%, transparent);
+  }
+  100% {
+    background: transparent;
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.tcy-sticker-panel {
+  -webkit-backdrop-filter: blur(24px) saturate(1.55);
+  backdrop-filter: blur(24px) saturate(1.55);
+  box-shadow: 0 14px 36px -18px rgba(0, 0, 0, .46);
+}
+
+.tcy-sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tcy-message-highlight {
+    animation-duration: .01ms !important;
+  }
+}
