@@ -10,6 +10,8 @@ export const DEFAULT_MEDIA_SEND_PREFERENCES: MediaSendPreferences = {
   stickersEnabled: true,
 };
 
+export const MEDIA_SEND_PREFERENCES_CHANGED_EVENT = "tcy-media-send-preferences-changed";
+
 const STORAGE_KEY = "tcy-media-send-preferences";
 
 export function getMediaSendPreferences(): MediaSendPreferences {
@@ -35,6 +37,7 @@ export function saveMediaSendPreferences(preferences: MediaSendPreferences) {
   } catch {
     // Settings still work for the current screen if local storage is unavailable.
   }
+  window.dispatchEvent(new Event(MEDIA_SEND_PREFERENCES_CHANGED_EVENT));
 }
 
 export async function compressPhoto(file: File): Promise<File> {
