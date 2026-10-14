@@ -411,7 +411,7 @@ body,
 
 #root,
 #root * {
-  font-weight: 800 !important;
+  font-weight: var(--tcy-font-weight, 750) !important;
   letter-spacing: -0.006em;
 }
 
@@ -419,13 +419,13 @@ body,
 #root h2,
 #root h3,
 #root [role="heading"] {
-  font-weight: 900 !important;
+  font-weight: var(--tcy-font-weight-heading, 900) !important;
   letter-spacing: -0.025em;
 }
 
 #root input::placeholder,
 #root textarea::placeholder {
-  font-weight: 750 !important;
+  font-weight: var(--tcy-font-weight, 750) !important;
   opacity: .78;
 }
 
@@ -631,4 +631,23 @@ body,
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
+}
+
+
+#root .tcy-font-preview,
+#root .tcy-font-preview * {
+  font-weight: var(--tcy-preview-weight, 750) !important;
+}
+
+#root textarea.tcy-composer-input {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+#root textarea.tcy-composer-input::placeholder {
+  color: var(--tcy-faint) !important;
+  opacity: .82;
 }
