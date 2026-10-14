@@ -46,6 +46,8 @@
     --tcy-danger: #fb7185;
     --tcy-bubble-in: rgba(244, 244, 245, 0.045);
     --tcy-header: rgba(5, 5, 6, 0.82);
+    --tcy-glass-line: rgba(244, 244, 245, 0.19);
+    --tcy-input: rgba(10, 11, 18, 0.58);
     --tcy-glow-1: rgba(255, 255, 255, 0.035);
     --tcy-glow-2: rgba(148, 163, 184, 0.035);
     color-scheme: dark;
@@ -66,6 +68,8 @@
     --tcy-danger: #e11d48;
     --tcy-bubble-in: rgba(24, 24, 27, 0.045);
     --tcy-header: rgba(250, 250, 252, 0.88);
+    --tcy-glass-line: rgba(24, 24, 27, 0.14);
+    --tcy-input: rgba(255, 255, 255, 0.62);
     --tcy-glow-1: rgba(24, 24, 27, 0.035);
     --tcy-glow-2: rgba(100, 116, 139, 0.045);
     color-scheme: light;
@@ -566,4 +570,22 @@ body,
   .tcy-header-blur, .tcy-glass-surface, #root input, #root textarea, #root select {
     transition-duration: .01ms !important;
   }
+}
+
+
+/* Keep the Settings screen's option rows matte; glass remains active elsewhere. */
+.tcy-settings-page .tcy-card,
+.tcy-settings-page .tcy-card-strong,
+.tcy-settings-page .tcy-solid,
+.tcy-settings-page .tcy-solid-2 {
+  background: var(--tcy-solid-2) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.tcy-settings-page .tcy-glass-surface {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
 }
