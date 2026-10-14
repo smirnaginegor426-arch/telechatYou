@@ -75,37 +75,6 @@
     color-scheme: light;
   }
 
-  /* Monochrome palette: legacy saved accent values no longer tint the app green. */
-  :root,
-  [data-accent] {
-    --tcy-accent: #e4e4e7;
-    --tcy-accent-deep: #a1a1aa;
-    --tcy-on-accent: #09090b;
-  }
-
-  [data-theme="light"] {
-    --tcy-accent: #52525b;
-    --tcy-accent-deep: #27272a;
-    --tcy-on-accent: #fafafa;
-  }
-
-  /* Private Halloween palette. It is activated only for the designated account. */
-  [data-accent="halloween"] {
-    --tcy-accent: #ff8a24;
-    --tcy-accent-deep: #d95f02;
-    --tcy-on-accent: #1c1004;
-    --tcy-glow-1: rgba(255, 138, 36, 0.14);
-    --tcy-glow-2: rgba(126, 34, 206, 0.10);
-  }
-
-  [data-theme="light"][data-accent="halloween"] {
-    --tcy-accent: #c65d0a;
-    --tcy-accent-deep: #97400b;
-    --tcy-on-accent: #fff7ed;
-    --tcy-glow-1: rgba(249, 115, 22, 0.14);
-    --tcy-glow-2: rgba(126, 34, 206, 0.08);
-  }
-
   * {
     border-color: var(--tcy-line);
   }
@@ -442,12 +411,22 @@ body,
 
 #root,
 #root * {
-  font-weight: 700 !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.006em;
 }
 
 #root input::placeholder,
 #root textarea::placeholder {
-  font-weight: 700 !important;
+  font-weight: 750 !important;
+  opacity: .78;
+}
+
+#root h1,
+#root h2,
+#root h3,
+#root [role="heading"] {
+  font-weight: 900 !important;
+  letter-spacing: -0.025em;
 }
 
 .tcy-glass-surface {
