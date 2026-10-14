@@ -152,7 +152,6 @@ export default function Settings() {
             </div>
           }
         />
-      </SettingsGroup>
 
         <div className="px-4 py-4">
           <div className="mb-3">
