@@ -30,7 +30,9 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const suppressClickRef = useRef(false);
   const hidden =
     /^\/chat\/(?:\d+|telechatyou)(?:\/info)?\/?$/.test(location.pathname) ||
-    location.pathname.startsWith("/setup");
+    location.pathname.startsWith("/setup") ||
+    location.pathname.startsWith("/folders") ||
+    location.pathname.startsWith("/stickers");
   const activeTo =
     location.pathname === "/"
       ? "/"
