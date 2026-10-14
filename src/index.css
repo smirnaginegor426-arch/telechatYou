@@ -37,10 +37,10 @@
     --tcy-accent: #e4e4e7;
     --tcy-accent-deep: #a1a1aa;
     --tcy-on-accent: #09090b;
-    --tcy-selected-accent: #9b5de5;
-    --tcy-selected-accent-deep: #6d28d9;
+    --tcy-selected-accent: #a28bbf;
+    --tcy-selected-accent-deep: #78648f;
     --tcy-selected-on-accent: #ffffff;
-    --tcy-selected-header: rgba(46, 22, 69, 0.90);
+    --tcy-selected-header: rgba(35, 29, 42, 0.88);
     --tcy-selected-glass-line: rgba(255, 255, 255, 0.25);
     --tcy-selected-input: rgba(30, 16, 45, 0.58);
     --tcy-card: rgba(244, 244, 245, 0.035);
@@ -144,9 +144,12 @@
   .tcy-gradient-accent {
     background: linear-gradient(
       135deg,
-      var(--tcy-accent) 0%,
-      var(--tcy-accent-deep) 100%
+      color-mix(in srgb, var(--tcy-selected-accent) 88%, transparent) 0%,
+      color-mix(in srgb, var(--tcy-selected-accent-deep) 92%, transparent) 100%
     );
+    border: 1px solid color-mix(in srgb, var(--tcy-selected-glass-line) 70%, transparent);
+    backdrop-filter: saturate(1.12);
+    -webkit-backdrop-filter: saturate(1.12);
   }
 
   .tcy-header-blur {
@@ -166,7 +169,7 @@
   }
 
   .tcy-shadow-accent {
-    box-shadow: 0 6px 24px -8px color-mix(in srgb, var(--tcy-accent) 55%, transparent);
+    box-shadow: 0 5px 20px -9px color-mix(in srgb, var(--tcy-selected-accent) 34%, transparent);
   }
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -362,7 +365,7 @@
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  box-shadow: 0 14px 36px -20px color-mix(in srgb, var(--tcy-selected-accent) 42%, transparent),
+  box-shadow: 0 12px 30px -20px color-mix(in srgb, var(--tcy-selected-accent) 30%, transparent),
     0 8px 28px -20px rgba(0, 0, 0, .34);
 }
 .tcy-island::before {
@@ -382,7 +385,7 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tcy-selected-accent) 7%, transparent),
     0 4px 18px -10px var(--tcy-selected-accent);
 }
-.tcy-tab-spark { color: var(--tcy-selected-accent); filter: drop-shadow(0 1px 4px color-mix(in srgb, var(--tcy-selected-accent) 65%, transparent)); }
+.tcy-tab-spark { color: var(--tcy-selected-accent); filter: drop-shadow(0 1px 3px color-mix(in srgb, var(--tcy-selected-accent) 35%, transparent)); }
 .tcy-audio-range {
   display: block;
   height: 16px;
