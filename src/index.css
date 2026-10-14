@@ -836,7 +836,7 @@ html[data-theme="light"] .tcy-wallpaper-bg--wine {
     flex: 0 0 66px;
     border-radius: 16px !important;
   }
-  .tcy-main-nav .tcy-island button > span:first-of-type {
+  .tcy-main-nav .tcy-island button > .tcy-tab-icon-wrap {
     height: 37px;
   }
 
