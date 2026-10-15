@@ -11,6 +11,11 @@ import {
   FileText,
   Image as ImageIcon,
   LogOut,
+  MoreVertical,
+  Volume2,
+  VolumeX,
+  Ban,
+  Pencil,
   Mic,
   Pin,
   Shield,
@@ -94,10 +99,13 @@ export default function ChatInfo() {
   const { theme } = useTheme();
 
   const info = trpc.chats.info.useQuery({ chatId });
+  const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
+  const blockStatus = trpc.chats.blockStatus.useQuery({ chatId }, { enabled: Number.isSafeInteger(chatId) && chatId > 0 });
   const me = trpc.profile.me.useQuery();
   const myId = me.data?.profile?.userId;
 
   const [addOpen, setAddOpen] = useState(false);
+  const [chatMenuOpen, setChatMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
@@ -138,6 +146,21 @@ export default function ChatInfo() {
     onSuccess: invalidate,
     onError: (error) => alert(error.message),
   });
+  const blockUser = trpc.chats.blockUser.useMutation({
+    onSuccess: async () => {
+      await utils.chats.blockStatus.invalidate({ chatId });
+      await utils.chats.list.invalidate();
+      setChatMenuOpen(false);
+    },
+    onError: (error) => alert(error.message),
+  });
+  const unblockUser = trpc.chats.unblockUser.useMutation({
+    onSuccess: async () => {
+      await utils.chats.blockStatus.invalidate({ chatId });
+      setChatMenuOpen(false);
+    },
+    onError: (error) => alert(error.message),
+  });
   const upload = trpc.storage.upload.useMutation();
 
   const data = info.data;
@@ -145,7 +168,7 @@ export default function ChatInfo() {
   const channel = data?.channel;
   const isGroup = chat?.type === "group";
   const peer = data?.peer;
-  const name = isGroup ? chat?.title ?? (channel ? "Канал" : "Группа") : peer?.displayName ?? "…";
+  const name = isGroup ? chat?.title ?? (channel ? "Канал" : "Группа") : (peer ? contactNamesQuery.data?.names[String(peer.userId)] : undefined) ?? peer?.displayName ?? "…";
   const myRole = data?.me.role;
   const canEdit = isGroup && (myRole === "owner" || myRole === "admin");
   const canManageChannel = !!channel && myRole === "owner";
@@ -267,23 +290,111 @@ export default function ChatInfo() {
           e.target.value = "";
         }}
       />
-      <header className="relative z-10 px-4 pt-4 safe-top flex items-center justify-between">
+      <header className="relative z-20 px-4 pt-4 safe-top flex items-center justify-between">
         <button
           onClick={() => navigate(-1)}
+          aria-label="Назад"
           className="tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
         >
           <ArrowLeft size={19} />
         </button>
-        {canEdit && (
-          <button
-            onClick={() => {
-              setTitle(chat?.title ?? "");
-              setEditOpen(true);
-            }}
-            className="tcy-press h-10 px-4 rounded-full tcy-card border tcy-line text-[13px] font-bold tcy-accent"
-          >
-            Изменить
-          </button>
+        <div className="flex items-center gap-2">
+          {canEdit && (
+            <button
+              onClick={() => {
+                setTitle(chat?.title ?? "");
+                setEditOpen(true);
+              }}
+              className="tcy-press h-10 px-4 rounded-full tcy-card border tcy-line text-[13px] font-bold tcy-accent"
+            >
+              Изменить
+            </button>
+          )}
+          {!isGroup && !channel && !data.me.pinned /* display menu for personal conversations */ && (
+            <button
+              type="button"
+              onClick={() => setChatMenuOpen((open) => !open)}
+              aria-label="Действия с чатом"
+              aria-expanded={chatMenuOpen}
+              className="tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
+            >
+              <MoreVertical size={20} />
+            </button>
+          )}
+          {!isGroup && !channel && data.me.pinned && (
+            <button
+              type="button"
+              onClick={() => setChatMenuOpen((open) => !open)}
+              aria-label="Действия с чатом"
+              aria-expanded={chatMenuOpen}
+              className="tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
+            >
+              <MoreVertical size={20} />
+            </button>
+          )}
+        </div>
+        {chatMenuOpen && (
+          <>
+            <button
+              type="button"
+              aria-label="Закрыть меню чата"
+              onClick={() => setChatMenuOpen(false)}
+              className="fixed inset-0 z-[1] cursor-default"
+              style={{ background: "transparent" }}
+            />
+            <div className="absolute right-3 top-[calc(100%-2px)] z-[2] w-[min(272px,calc(100vw-24px))] overflow-hidden rounded-[20px] border tcy-line tcy-card shadow-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  flags.mutate({ chatId, muted: !data.me.muted });
+                  setChatMenuOpen(false);
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[14px] font-semibold tcy-text active:bg-[color:var(--tcy-card-strong)]"
+              >
+                {data.me.muted ? <Volume2 size={18} className="tcy-dim" /> : <VolumeX size={18} className="tcy-dim" />}
+                {data.me.muted ? "Включить звук" : "Заглушить чат"}
+              </button>
+              {peer && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChatMenuOpen(false);
+                    navigate(`/rename-chat/${chatId}`);
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[14px] font-semibold tcy-text active:bg-[color:var(--tcy-card-strong)]"
+                >
+                  <Pencil size={18} className="tcy-dim" />
+                  Изменить имя
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setChatMenuOpen(false);
+                  if (window.confirm("Удалить чат только у себя?")) remove.mutate({ chatId, leave: false });
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[14px] font-semibold"
+                style={{ color: "#ff453a" }}
+              >
+                <Trash2 size={18} />
+                Удалить чат
+              </button>
+              {peer && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (blockStatus.data?.blocked) unblockUser.mutate({ chatId });
+                    else if (window.confirm("Заблокировать пользователя? Он не сможет отправлять сообщения в этот чат.")) blockUser.mutate({ chatId });
+                  }}
+                  className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[14px] font-semibold"
+                  style={{ color: "#ff453a" }}
+                >
+                  <Ban size={18} />
+                  {blockStatus.data?.blocked ? "Разблокировать" : "Заблокировать"}
+                </button>
+              )}
+            </div>
+          </>
         )}
       </header>
 
