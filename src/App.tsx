@@ -17,6 +17,7 @@ import Chats from "@/pages/Chats";
 import ChatView from "@/pages/ChatView";
 import TeleChatYouBot from "@/pages/TeleChatYouBot";
 import ChatInfo from "@/pages/ChatInfo";
+import RenameChat from "@/pages/RenameChat";
 import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
@@ -119,7 +120,7 @@ useEffect(() => {
     ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
     : path.startsWith("/profile") || path.startsWith("/user/")
       ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
-      : ["/settings", "/halloween", "/accent", "/font", "/stickers", "/language", "/system-update"].some((route) => path.startsWith(route))
+      : ["/settings", "/halloween", "/accent", "/font", "/stickers", "/language", "/system-update", "/rename-chat"].some((route) => path.startsWith(route))
         ? { origin: "0% 100%", x: -26, y: 22, exitX: -18, exitY: 16 }
         : path.startsWith("/chat/")
           ? { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 }
@@ -170,6 +171,7 @@ useEffect(() => {
             <Route path="/chat/telechatyou" element={<TeleChatYouBot />} />
             <Route path="/chat/:id" element={<ChatView />} />
             <Route path="/chat/:id/info" element={<ChatInfo />} />
+            <Route path="/rename-chat/:chatId" element={<RenameChat />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
