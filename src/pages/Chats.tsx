@@ -126,7 +126,9 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
 
   // Keep the chat area in its loading state until the first successful
   // response. The app shell, header, and bottom navigation remain visible.
-  const showConnectionSplash = !list.data;
+  const showConnectionSplash = !list.data && (
+    !isOnline || list.isLoading || list.isFetching || list.isError
+  );
 
   return (
     <div className={desktopPanel ? "relative h-full flex flex-col tcy-desktop-chat-list" : "relative h-full flex flex-col"}>
