@@ -139,10 +139,6 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     !isOnline || list.isLoading || list.isFetching || list.isError
   );
 
-  if (showConnectionSplash) {
-    return <ConnectionLoader />;
-  }
-
   return (
     <div className={desktopPanel ? "relative h-full flex flex-col tcy-desktop-chat-list" : "relative h-full flex flex-col"}>
       {/* header / bulk selection toolbar */}
@@ -262,6 +258,12 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
 
       {/* Built-in bot can be archived and restored like other chats. */}
       <div className="tcy-chat-list-scroll flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
+        {showConnectionSplash ? (
+          <div className="flex min-h-[min(50vh,360px)] items-center justify-center">
+            <ConnectionLoader />
+          </div>
+        ) : (
+          <>
         {!selectedChatIds.length && (foldersQuery.data?.length ?? 0) > 0 && (
           <section className="px-3 pb-2">
             <div className="mb-2 flex items-center justify-between px-2">
@@ -378,6 +380,8 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
               </motion.div>
             ))}
           </div>
+        )}
+          </>
         )}
       </div>
       <Lightbox
