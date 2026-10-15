@@ -50,6 +50,10 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
   const list = trpc.chats.list.useQuery(undefined, {
     refetchInterval: 4000,
     refetchIntervalInBackground: false,
+    // Keep trying until the first successful response so startup reflects
+    // the actual connection state instead of falling into an empty/error list.
+    retry: true,
+    refetchOnReconnect: true,
   });
 
   useEffect(() => {
@@ -128,7 +132,12 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     setSelectedChatIds([]);
   };
 
-  const showConnectionSplash = !list.data && (list.isLoading || list.isFetching || !isOnline);
+  // On first entry, keep the chat list hidden until the server responds.
+  // If the device is offline or the initial request fails, the loader stays
+  // visible and the query keeps retrying; it is never shown randomly after data loads.
+  const showConnectionSplash = !list.data && (
+    !isOnline || list.isLoading || list.isFetching || list.isError
+  );
 
   if (showConnectionSplash) {
     return <ConnectionLoader />;
