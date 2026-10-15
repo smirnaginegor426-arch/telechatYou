@@ -296,15 +296,12 @@ export function MessageBubble({
             }}
           >
             <span
-              className="flex h-full w-full items-center justify-center rounded-full"
+              className="block h-full w-full rounded-full"
               style={{
                 background: swipeProgress >= 0.94 ? "var(--tcy-selected-accent)" : "var(--tcy-card)",
-                color: swipeProgress >= 0.94 ? "var(--tcy-selected-on-accent)" : "var(--tcy-selected-accent)",
                 border: swipeProgress >= 0.94 ? "none" : "1px solid var(--tcy-line)",
               }}
-            >
-              <Reply size={17} strokeWidth={2.4} />
-            </span>
+            />
           </span>
         </span>
       )}
