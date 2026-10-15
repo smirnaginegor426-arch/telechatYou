@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { trpc } from "@/providers/trpc";
 import { TabBar } from "@/components/TabBar";
+import { ConnectionLoader } from "@/components/ConnectionLoader";
 import { AccountCollectionsSync } from "@/components/AccountCollectionsSync";
 import { CustomLanguageBridge } from "@/components/CustomLanguageBridge";
 import { Logo } from "@/components/Logo";
@@ -41,30 +42,7 @@ import Maintenance from "@/pages/Maintenance";
 const MAINTENANCE_MODE = false;
 
 function Splash() {
-  return (
-    <div className="h-full flex flex-col items-center justify-center gap-6">
-      <motion.div
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{
-          duration: 1.6,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      >
-        <Logo size={76} />
-      </motion.div>
-
-      <div className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="tcy-typing-dot w-2 h-2 rounded-full tcy-accent-bg"
-            style={{ animationDelay: `${i * 0.15}s` }}
-          />
-        ))}
-      </div>
-    </div>
-  );
+  return <ConnectionLoader />;
 }
 
 function AuthedApp() {
