@@ -13,7 +13,8 @@ import {
 import { formatFileSize, formatMessageTime } from "@/lib/format";
 import type { MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
-import { AppleEmoji, EmojiText } from "./AppleEmoji";
+import { AppleEmoji } from "./AppleEmoji";
+import { MessageText } from "./MessageText";
 import { PollCard } from "./PollCard";
 
 function isStandaloneEmoji(text: string) {
@@ -497,7 +498,7 @@ export function MessageBubble({
                 }}
               >
                 <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
-                  <EmojiText text={m.body ?? ""} />
+                  <MessageText text={m.body ?? ""} />
                 </p>
                 <MessageMeta
                   m={m}
@@ -553,7 +554,7 @@ export function MessageBubble({
                 }}
               >
                 <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
-                  <EmojiText text={m.body} />
+                  <MessageText text={m.body} />
                 </p>
                 <MessageMeta
                   m={m}
@@ -566,7 +567,7 @@ export function MessageBubble({
               </div>
             ) : (
               <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
-                <EmojiText text={m.body} />
+                <MessageText text={m.body} />
               </p>
             )
           )}
