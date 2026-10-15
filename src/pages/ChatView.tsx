@@ -545,7 +545,7 @@ export default function ChatView() {
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-1.5 font-bold text-[15.5px] tcy-text">
                 <span className="truncate">{title}</span>
-                {!isGroup && isTesterUsername(peer?.username) && <TesterBadge />}
+                {!isGroup && isTesterUsername(peer?.username, peer?.userId) && <TesterBadge />}
               </div>
               <div
                 className="text-[12px] font-semibold truncate transition-colors"
