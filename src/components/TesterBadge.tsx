@@ -24,7 +24,7 @@ function TesterEmblemFallback({ size }: { size: number }) {
         </radialGradient>
       </defs>
       <g fill="url(#tester-badge-blue)">
-        {Array.from({ length: 10 }, (_, index) => (
+        {Array.from({ length: 8 }, (_, index) => (
           <rect
             key={index}
             x="105"
@@ -32,7 +32,7 @@ function TesterEmblemFallback({ size }: { size: number }) {
             width="46"
             height="65"
             rx="17"
-            transform={`rotate(${index * 36} 128 128)`}
+            transform={`rotate(${index * 45} 128 128)`}
           />
         ))}
         <circle cx="128" cy="128" r="91" />
