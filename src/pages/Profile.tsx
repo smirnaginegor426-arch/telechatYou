@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { AtSign, Camera, Check, ChevronRight, Copy, ImagePlus, LogOut, MoreVertical, Pencil, Quote, RefreshCw, Trash2, UsersRound } from "lucide-react";
@@ -31,6 +31,7 @@ export default function Profile() {
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [deleteAvatarOpen, setDeleteAvatarOpen] = useState(false);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const update = trpc.profile.update.useMutation({
@@ -41,6 +42,24 @@ export default function Profile() {
     onError: (e) => setError(e.message),
   });
   const upload = trpc.storage.upload.useMutation();
+
+  useEffect(() => {
+    if (!actionsOpen) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Node && !actionsRef.current?.contains(event.target)) {
+        setActionsOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActionsOpen(false);
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [actionsOpen]);
 
   const openEdit = () => {
     if (!profile) return;
@@ -108,6 +127,7 @@ export default function Profile() {
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
       <div
+        ref={actionsRef}
         className="absolute right-4 z-40"
         style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
