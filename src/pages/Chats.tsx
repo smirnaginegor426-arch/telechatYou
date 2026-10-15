@@ -8,6 +8,7 @@ import { Logo, Wordmark } from "@/components/Logo";
 import { EmptyState } from "@/components/EmptyState";
 import { TcButton } from "@/components/TcButton";
 import { Lightbox } from "@/components/Lightbox";
+import { ConnectionLoader } from "@/components/ConnectionLoader";
 
 function ChatSkeleton() {
   return (
@@ -46,8 +47,16 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     typeof navigator === "undefined" ? true : navigator.onLine,
   );
 
+  const list = trpc.chats.list.useQuery(undefined, {
+    refetchInterval: 4000,
+    refetchIntervalInBackground: false,
+  });
+
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+      setIsOnline(true);
+      void list.refetch();
+    };
     const handleOffline = () => setIsOnline(false);
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
@@ -55,23 +64,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
-  }, []);
-
-  const list = trpc.chats.list.useQuery(undefined, {
-    refetchInterval: 4000,
-    refetchIntervalInBackground: false,
-  });
-  const [hasInitialLoad, setHasInitialLoad] = useState(false);
-
-  useEffect(() => {
-    if (isOnline && list.isSuccess && !list.isFetching) setHasInitialLoad(true);
-  }, [isOnline, list.isSuccess, list.isFetching]);
-
-  useEffect(() => {
-    if (isOnline && list.isError && !hasInitialLoad) {
-      void list.refetch();
-    }
-  }, [isOnline, list.isError, list.refetch, hasInitialLoad]);
+  }, [list.refetch]);
   const foldersQuery = trpc.accountData.folders.list.useQuery(undefined, { retry: false });
   const ensureFavorites = trpc.chats.ensureFavorites.useMutation({
     onSuccess: () => utils.chats.list.invalidate(),
@@ -156,6 +149,10 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
         </div>
       </div>
     );
+  }
+
+  if (!list.data && (!isOnline || list.isLoading || list.isFetching)) {
+    return <ConnectionLoader />;
   }
 
   return (
