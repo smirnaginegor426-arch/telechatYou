@@ -335,7 +335,7 @@ export const chatsRouter = createRouter({
       const channel = await getDb().query.channels.findFirst({
         where: eq(channels.chatId, input.chatId),
       });
-      if (!channel) throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
+      if (!channel || channel.kind !== "channel") throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
       const actor = await getMembership(input.chatId, ctx.user.id);
       if (!actor || (actor.role !== "owner" && actor.role !== "admin")) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Недостаточно прав для удаления подписчика" });
