@@ -98,7 +98,7 @@ export const channelsRouter = createRouter({
         if (!parsed.success) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Для публичного канала укажите username от 3 до 32 символов: латиница, цифры и _",
+            message: `Для публичного ${input.kind === "group" ? "группы" : "канала"} укажите username от 3 до 32 символов: латиница, цифры и _`,
           });
         }
         username = parsed.data;
