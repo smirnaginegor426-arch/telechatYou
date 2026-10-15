@@ -32,6 +32,7 @@ import SystemUpdate from "@/pages/SystemUpdate";
 import Admin from "@/pages/Admin";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
+import CreateCommunity from "@/pages/CreateCommunity";
 import ChannelsPage from "@/pages/Channels";
 import Login from "@/pages/Login";
 import Recover from "@/pages/Recover";
@@ -124,7 +125,7 @@ useEffect(() => {
         ? { origin: "0% 100%", x: -26, y: 22, exitX: -18, exitY: 16 }
         : path.startsWith("/chat/")
           ? { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 }
-          : path.startsWith("/search") || path.startsWith("/new") || path.startsWith("/channels")
+          : path.startsWith("/search") || path.startsWith("/new") || path.startsWith("/create") || path.startsWith("/channels")
             ? { origin: "100% 50%", x: 28, y: 0, exitX: 20, exitY: 0 }
             : { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 };
 
@@ -188,6 +189,7 @@ useEffect(() => {
             <Route path="/admin" element={<Admin />} />
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
+            <Route path="/create" element={<CreateCommunity />} />
             <Route path="/channels" element={<ChannelsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
