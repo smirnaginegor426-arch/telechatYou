@@ -21,6 +21,81 @@ const batFlights: BatFlight[] = [
   { x: 108, y: 101, rotate: 31, delay: 1.72, size: 25 },
 ];
 
+
+function createTransparentIcon(source: string): Promise<string> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const context = canvas.getContext("2d", { willReadFrequently: true });
+        if (!context || !canvas.width || !canvas.height) {
+          resolve(source);
+          return;
+        }
+
+        context.drawImage(image, 0, 0);
+        const frame = context.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = frame.data;
+        const width = canvas.width;
+        const height = canvas.height;
+        const total = width * height;
+        const visited = new Uint8Array(total);
+        const queue = new Int32Array(total);
+        let head = 0;
+        let tail = 0;
+
+        // Only remove near-black pixels connected to the image edges, so the
+        // dark witch hat, lettering and bat details inside the icon remain intact.
+        const isBackground = (pixel: number) => {
+          const offset = pixel * 4;
+          return pixels[offset] < 48 && pixels[offset + 1] < 48 && pixels[offset + 2] < 48;
+        };
+        const addPixel = (pixel: number) => {
+          if (!visited[pixel] && isBackground(pixel)) {
+            visited[pixel] = 1;
+            queue[tail++] = pixel;
+          }
+        };
+
+        for (let x = 0; x < width; x++) {
+          addPixel(x);
+          addPixel((height - 1) * width + x);
+        }
+        for (let y = 0; y < height; y++) {
+          addPixel(y * width);
+          addPixel(y * width + width - 1);
+        }
+
+        while (head < tail) {
+          const pixel = queue[head++];
+          const x = pixel % width;
+          const y = Math.floor(pixel / width);
+          pixels[pixel * 4 + 3] = 0;
+          for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+              if (dx === 0 && dy === 0) continue;
+              const nx = x + dx;
+              const ny = y + dy;
+              if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+              addPixel(ny * width + nx);
+            }
+          }
+        }
+
+        context.putImageData(frame, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch {
+        resolve(source);
+      }
+    };
+    image.onerror = () => resolve(source);
+    image.src = source;
+  });
+}
+
 function getNextHalloween(now: Date) {
   const halloween = new Date(now.getFullYear(), 9, 31, 0, 0, 0, 0);
   return halloween.getTime() > now.getTime()
@@ -71,6 +146,15 @@ export default function Halloween() {
   const reduceMotion = useReducedMotion();
   const [now, setNow] = useState(() => Date.now());
   const [target, setTarget] = useState(() => getNextHalloween(new Date()));
+  const [iconSrc, setIconSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void createTransparentIcon(HALLOWEEN_ICON_DATA).then((source) => {
+      if (!cancelled) setIconSrc(source);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -99,12 +183,16 @@ export default function Halloween() {
         type="button"
         aria-label="Выйти с экрана Halloween"
         onClick={() => navigate("/settings")}
-        className="absolute z-50 flex h-10 w-10 items-center justify-center rounded-full bg-transparent p-0"
+        className="absolute z-50 flex h-10 w-10 items-center justify-center rounded-full p-0"
         style={{
           top: "max(16px, env(safe-area-inset-top))",
           left: "max(16px, env(safe-area-inset-left))",
           color: "#ff3b30",
-          boxShadow: "none",
+          background: "rgba(255,255,255,0.14)",
+          border: "1px solid rgba(255,255,255,0.3)",
+          backdropFilter: "blur(16px) saturate(160%)",
+          WebkitBackdropFilter: "blur(16px) saturate(160%)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
         }}
       >
         <X size={27} strokeWidth={2.5} />
@@ -155,23 +243,31 @@ export default function Halloween() {
             </motion.div>
           ))}
 
-          <motion.img
-            src={HALLOWEEN_ICON_DATA}
-            alt="Иконка TeleChat You на Хэллоуин"
-            draggable={false}
-            decoding="async"
-            className="relative z-10 block h-full w-full object-contain"
-            style={{
-              mixBlendMode: "lighten",
-              filter: "none",
-              imageRendering: "auto",
-              backgroundColor: "var(--tcy-selected-accent)",
-              boxShadow: "none",
-              WebkitTapHighlightColor: "transparent",
-            }}
-            animate={reduceMotion ? undefined : { scale: [0.96, 1.02, 0.96] }}
+          <motion.div
+            className="relative z-10 h-full w-full"
+            style={{ background: "transparent", border: 0, outline: "none", boxShadow: "none" }}
+            animate={reduceMotion ? undefined : { scale: [0.96, 1.025, 0.96] }}
             transition={{ duration: 3.1, repeat: Infinity, ease: "easeInOut" }}
-          />
+          >
+            <img
+              src={iconSrc ?? HALLOWEEN_ICON_DATA}
+              alt="Иконка TeleChat You на Хэллоуин"
+              draggable={false}
+              decoding="async"
+              className="block h-full w-full object-contain"
+              style={{
+                opacity: iconSrc ? 1 : 0,
+                mixBlendMode: "normal",
+                filter: "none",
+                imageRendering: "auto",
+                background: "transparent",
+                border: 0,
+                outline: "none",
+                boxShadow: "none",
+                WebkitTapHighlightColor: "transparent",
+              }}
+            />
+          </motion.div>
         </div>
 
         <div
