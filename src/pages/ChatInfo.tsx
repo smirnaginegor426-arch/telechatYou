@@ -314,7 +314,7 @@ export default function ChatInfo() {
         </motion.div>
         <div className="mt-4 flex items-center justify-center gap-2">
           <h1 className="text-[20px] font-extrabold tcy-text text-center">{name}</h1>
-          {!isGroup && isTesterUsername(peer?.username) && <TesterBadge />}
+          {!isGroup && isTesterUsername(peer?.username, peer?.userId) && <TesterBadge />}
         </div>
         <p className="mt-1 text-[12.5px] tcy-faint font-semibold">
           {channel
