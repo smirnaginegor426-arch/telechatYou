@@ -132,12 +132,9 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     setSelectedChatIds([]);
   };
 
-  // On first entry, keep the chat list hidden until the server responds.
-  // If the device is offline or the initial request fails, the loader stays
-  // visible and the query keeps retrying; it is never shown randomly after data loads.
-  const showConnectionSplash = !list.data && (
-    !isOnline || list.isLoading || list.isFetching || list.isError
-  );
+  // Keep the chat area in its loading state until the first successful
+  // response. The app shell, header, and bottom navigation remain visible.
+  const showConnectionSplash = !list.data;
 
   return (
     <div className={desktopPanel ? "relative h-full flex flex-col tcy-desktop-chat-list" : "relative h-full flex flex-col"}>
