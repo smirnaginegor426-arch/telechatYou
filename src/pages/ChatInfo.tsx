@@ -439,8 +439,8 @@ export default function ChatInfo() {
               ? `${publicGroup?.isPublic && publicGroup.username ? `@${publicGroup.username} · ` : ""}${data.members.length} участников`
               : `@${peer?.username} · ${isOnline(peer?.lastSeenAt) ? "в сети" : "не в сети"}`}
         </p>
-        {channel && channel.description && (
-          <p className="mt-2.5 text-center text-[13px] tcy-dim max-w-[300px] whitespace-pre-wrap">{channel.description}</p>
+        {(channel?.description || publicGroup?.description) && (
+          <p className="mt-2.5 text-center text-[13px] tcy-dim max-w-[300px] whitespace-pre-wrap">{channel?.description ?? publicGroup?.description}</p>
         )}
         {!isGroup && peer?.bio && (
           <p className="mt-2.5 text-center text-[13px] tcy-dim max-w-[280px]">{peer.bio}</p>
