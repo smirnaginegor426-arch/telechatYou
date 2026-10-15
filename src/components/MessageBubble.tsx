@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil, Reply } from "lucide-react";
+import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
 import { AudioFilePlayer } from "./AudioFilePlayer";
