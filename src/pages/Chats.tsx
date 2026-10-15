@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Archive, ArchiveRestore, MessageCirclePlus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
+import { Archive, ArchiveRestore, Plus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { ChatItem } from "@/components/ChatItem";
 import { Logo, Wordmark } from "@/components/Logo";
@@ -217,12 +217,13 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
                   <Search size={18} className="tcy-search-control-icon" />
                 </button>
                 <button
-                  onClick={() => navigate("/new")}
+                  onClick={() => navigate("/create")}
                   className="tcy-press w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
                   style={{ color: "var(--tcy-selected-on-accent)" }}
-                  aria-label="Новый чат"
+                  aria-label="Создать канал или группу"
+                  title="Создать канал или группу"
                 >
-                  <MessageCirclePlus size={19} />
+                  <Plus size={21} strokeWidth={2.5} />
                 </button>
               </div>
             </div>
