@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft, FileText, Mic, Search as SearchIcon, X } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { EmptyState } from "@/components/EmptyState";
 import { formatChatTime, isOnline } from "@/lib/format";
 
@@ -103,7 +105,10 @@ export default function Search() {
                         size={44}
                       />
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-[14.5px] tcy-text truncate">{title}</div>
+                        <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
+                          <span className="truncate">{title}</span>
+                          {c.chat.type === "direct" && isTesterUsername(c.peer?.username) && <TesterBadge />}
+                        </div>
                         <div className="text-[12px] tcy-faint truncate">
                           {c.chat.type === "direct" ? `@${c.peer?.username}` : `${c.membersCount} участн.`}
                         </div>
@@ -125,7 +130,10 @@ export default function Search() {
                       showOnline
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="font-bold text-[14.5px] tcy-text truncate">{p.displayName}</div>
+                      <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
+                        <span className="truncate">{p.displayName}</span>
+                        {isTesterUsername(p.username) && <TesterBadge />}
+                      </div>
                       <div className="text-[12px] truncate">
                         <span className="tcy-accent font-semibold">@{p.username}</span>
                         <span className="tcy-faint">
