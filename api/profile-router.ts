@@ -113,6 +113,17 @@ export const profileRouter = createRouter({
       return p;
     }),
 
+  /** Public profile lookup for username links such as /@username. */
+  byUsername: authedQuery
+    .input(z.object({ username: z.string().regex(usernameRe) }))
+    .query(async ({ input }) => {
+      const p = await getDb().query.profiles.findFirst({
+        where: eq(profiles.username, input.username.toLowerCase()),
+      });
+      if (!p) throw new TRPCError({ code: "NOT_FOUND" });
+      return p;
+    }),
+
   byIds: authedQuery
     .input(z.object({ userIds: z.array(z.number()).max(100) }))
     .query(({ input }) => getProfilesByIds(input.userIds)),
