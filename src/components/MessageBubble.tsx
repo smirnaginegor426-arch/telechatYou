@@ -273,6 +273,10 @@ export function MessageBubble({
       transition={{ type: "spring", stiffness: 420, damping: 34 }}
       data-message-id={m.id}
       ref={rowRef}
+      onPointerDown={handleSwipeStart}
+      onPointerMove={handleSwipeMove}
+      onPointerUp={finishSwipe}
+      onPointerCancel={finishSwipe}
       className={cn(
         "relative flex px-3 my-[3px] w-full overflow-visible touch-pan-y",
         own ? "justify-end" : "justify-start",
@@ -286,16 +290,21 @@ export function MessageBubble({
           style={{ left: swipeIndicatorX, top: "50%", transform: "translateY(-50%)" }}
         >
           <span
-            className="flex h-8 w-8 items-center justify-center rounded-full border transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full p-[2px]"
             style={{
-              background: swipeProgress >= 0.94
-                ? "var(--tcy-selected-accent)"
-                : `color-mix(in srgb, var(--tcy-selected-accent) ${Math.round(swipeProgress * 30)}%, var(--tcy-card))`,
-              borderColor: swipeProgress >= 0.94 ? "var(--tcy-selected-accent)" : "var(--tcy-line-strong)",
-              color: swipeProgress >= 0.94 ? "var(--tcy-selected-on-accent)" : "var(--tcy-dim)",
+              background: `conic-gradient(var(--tcy-selected-accent) ${Math.round(swipeProgress * 360)}deg, var(--tcy-line-strong) 0deg)`,
             }}
           >
-            <Reply size={17} strokeWidth={2.4} />
+            <span
+              className="flex h-full w-full items-center justify-center rounded-full"
+              style={{
+                background: swipeProgress >= 0.94 ? "var(--tcy-selected-accent)" : "var(--tcy-card)",
+                color: swipeProgress >= 0.94 ? "var(--tcy-selected-on-accent)" : "var(--tcy-selected-accent)",
+                border: swipeProgress >= 0.94 ? "none" : "1px solid var(--tcy-line)",
+              }}
+            >
+              <Reply size={17} strokeWidth={2.4} />
+            </span>
           </span>
         </span>
       )}
@@ -314,10 +323,6 @@ export function MessageBubble({
 
       <div
         ref={bubbleRef}
-        onPointerDown={handleSwipeStart}
-        onPointerMove={handleSwipeMove}
-        onPointerUp={finishSwipe}
-        onPointerCancel={finishSwipe}
         className={cn(
           "max-w-[78%] flex flex-col",
           own ? "items-end" : "items-start",
