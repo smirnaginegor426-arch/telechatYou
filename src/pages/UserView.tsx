@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft, AtSign, MessageCircle, Quote } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { Lightbox } from "@/components/Lightbox";
 import { TcButton } from "@/components/TcButton";
 import { formatLastSeen, isOnline } from "@/lib/format";
@@ -66,7 +68,10 @@ export default function UserView() {
               />
             </button>
           </motion.div>
-          <h1 className="mt-5 text-[22px] font-extrabold tcy-text">{p.displayName}</h1>
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <h1 className="text-[22px] font-extrabold tcy-text">{p.displayName}</h1>
+            {isTesterUsername(p.username) && <TesterBadge />}
+          </div>
           <div className="mt-1 text-[13.5px] font-semibold tcy-accent">@{p.username}</div>
           <div
             className="mt-1.5 text-[12.5px] font-semibold"
