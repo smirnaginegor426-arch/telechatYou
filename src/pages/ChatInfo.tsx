@@ -169,6 +169,7 @@ export default function ChatInfo() {
   const data = info.data;
   const chat = data?.chat;
   const channel = data?.channel;
+  const publicGroup = data?.publicGroup;
   const isGroup = chat?.type === "group";
   const peer = data?.peer;
   const name = isGroup ? chat?.title ?? (channel ? "Канал" : "Группа") : (peer ? contactNamesQuery.data?.names[String(peer.userId)] : undefined) ?? peer?.displayName ?? "…";
@@ -178,11 +179,13 @@ export default function ChatInfo() {
 
   const shareUrl = channel?.isPublic && channel.username
     ? profileShareUrl(channel.username)
-    : chatShareUrl(chatId);
+    : publicGroup?.isPublic && publicGroup.username
+      ? profileShareUrl(publicGroup.username)
+      : chatShareUrl(chatId);
 
   const copyChatLink = async () => {
     const copied = await copyTextToClipboard(shareUrl);
-    if (copied) toast.success(channel?.isPublic ? "Ссылка на канал скопирована" : "Ссылка на чат скопирована");
+    if (copied) toast.success(channel?.isPublic ? "Ссылка на канал скопирована" : publicGroup?.isPublic ? "Ссылка на группу скопирована" : "Ссылка на чат скопирована");
     else toast.error("Не удалось скопировать ссылку");
   };
 
@@ -433,7 +436,7 @@ export default function ChatInfo() {
           {channel
             ? `${channel.isPublic ? `@${channel.username}` : "Приватный канал"} · ${data.members.length} подписчиков`
             : isGroup
-              ? `${data.members.length} участников`
+              ? `${publicGroup?.isPublic && publicGroup.username ? `@${publicGroup.username} · ` : ""}${data.members.length} участников`
               : `@${peer?.username} · ${isOnline(peer?.lastSeenAt) ? "в сети" : "не в сети"}`}
         </p>
         {channel && channel.description && (
