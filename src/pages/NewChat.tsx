@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 export default function NewChat() {
   const navigate = useNavigate();
   const directory = trpc.profile.directory.useQuery(undefined, { staleTime: 30_000 });
+  const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
+  const contactNames = contactNamesQuery.data?.names ?? {};
   const [selected, setSelected] = useState<number[]>([]);
   const [title, setTitle] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -104,10 +106,10 @@ export default function NewChat() {
                 active && "tcy-card",
               )}
             >
-              <Avatar name={p.displayName} avatarKey={p.avatarKey} size={46} />
+              <Avatar name={contactNames[String(p.userId)] ?? p.displayName} avatarKey={p.avatarKey} size={46} />
               <div className="flex-1 min-w-0">
                 <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
-                  <span className="truncate">{p.displayName}</span>
+                  <span className="truncate">{contactNames[String(p.userId)] ?? p.displayName}</span>
                   {isTesterUsername(p.username, p.userId) && <TesterBadge />}
                 </div>
                 <div className="text-[12.5px] tcy-faint">@{p.username}</div>
