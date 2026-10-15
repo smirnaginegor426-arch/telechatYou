@@ -196,7 +196,9 @@ function Gate() {
     staleTime: 30_000,
   });
 
-  if (isLoading || (isAuthenticated && me.isLoading)) {
+  // Once authentication is known, render the messenger shell immediately.
+  // Chats shows its inline connection animation while profile/chat data resolves.
+  if (isLoading) {
     return <Splash />;
   }
 
