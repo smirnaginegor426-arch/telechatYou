@@ -8,6 +8,7 @@ import { TabBar } from "@/components/TabBar";
 import { AccountCollectionsSync } from "@/components/AccountCollectionsSync";
 import { CustomLanguageBridge } from "@/components/CustomLanguageBridge";
 import { Logo } from "@/components/Logo";
+import { ConnectionLoader } from "@/components/ConnectionLoader";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
 
 import Welcome from "@/pages/Welcome";
@@ -42,8 +43,14 @@ import Maintenance from "@/pages/Maintenance";
 const MAINTENANCE_MODE = false;
 
 function Splash() {
-  // Keep the pre-messenger auth gate quiet; the animated loader belongs inside the chat list.
-  return <div className="h-full w-full" style={{ background: "var(--tcy-bg)" }} aria-hidden="true" />;
+  return (
+    <div
+      className="flex h-full w-full items-center justify-center"
+      style={{ background: "var(--tcy-bg)" }}
+    >
+      <ConnectionLoader />
+    </div>
+  );
 }
 
 function AuthedApp() {
