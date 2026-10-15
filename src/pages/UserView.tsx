@@ -16,12 +16,14 @@ export default function UserView() {
   const userId = Number(id);
   const navigate = useNavigate();
   const profile = trpc.profile.byId.useQuery({ userId });
+  const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
   const createDirect = trpc.chats.createDirect.useMutation({
     onSuccess: (r) => navigate(`/chat/${r.chatId}`, { replace: true }),
   });
 
   const p = profile.data;
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
+  const displayName = p ? contactNamesQuery.data?.names[String(p.userId)] ?? p.displayName : "";
 
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar">
@@ -60,7 +62,7 @@ export default function UserView() {
               className="tcy-press block cursor-zoom-in rounded-[30%] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--tcy-accent)]"
             >
               <Avatar
-                name={p.displayName}
+                name={displayName}
                 avatarKey={p.avatarKey}
                 size={132}
                 lastSeenAt={p.lastSeenAt}
@@ -69,7 +71,7 @@ export default function UserView() {
             </button>
           </motion.div>
           <div className="mt-5 flex items-center justify-center gap-2">
-            <h1 className="text-[22px] font-extrabold tcy-text">{p.displayName}</h1>
+            <h1 className="text-[22px] font-extrabold tcy-text">{displayName}</h1>
             {isTesterUsername(p.username, userId) && <TesterBadge />}
           </div>
           <div className="mt-1 text-[13.5px] font-semibold tcy-accent">@{p.username}</div>
@@ -111,8 +113,8 @@ export default function UserView() {
       {avatarPreviewOpen && p && (
         <Lightbox
           imageKey={p.avatarKey ?? null}
-          name={p.displayName}
-          fallbackName={!p.avatarKey ? p.displayName : null}
+          name={displayName}
+          fallbackName={!p.avatarKey ? displayName : null}
           onClose={() => setAvatarPreviewOpen(false)}
         />
       )}
