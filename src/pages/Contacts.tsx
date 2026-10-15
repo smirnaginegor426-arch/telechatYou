@@ -12,6 +12,8 @@ import { formatLastSeen, isOnline } from "@/lib/format";
 export default function Contacts() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
+  const contactNames = contactNamesQuery.data?.names ?? {};
   const directory = trpc.profile.directory.useQuery(undefined, { staleTime: 30_000 });
   const search = trpc.profile.search.useQuery(
     { query: q },
@@ -79,7 +81,7 @@ export default function Contacts() {
                   className="flex items-center gap-3.5 flex-1 min-w-0 text-left tcy-press"
                 >
                   <Avatar
-                    name={p.displayName}
+                    name={contactNames[String(p.userId)] ?? p.displayName}
                     avatarKey={p.avatarKey}
                     size={48}
                     lastSeenAt={p.lastSeenAt}
@@ -87,7 +89,7 @@ export default function Contacts() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
-                      <span className="truncate">{p.displayName}</span>
+                      <span className="truncate">{contactNames[String(p.userId)] ?? p.displayName}</span>
                       {isTesterUsername(p.username, p.userId) && <TesterBadge />}
                     </div>
                     <div className="text-[12.5px] tcy-faint truncate">
