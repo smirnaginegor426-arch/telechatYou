@@ -1,8 +1,6 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { EmojiText } from "@/components/AppleEmoji";
-
-const URL_PATTERN = /https?:\/\/[^\s<>"'`]+/gi;
 
 function trimLinkPunctuation(value: string) {
   let end = value.length;
@@ -45,13 +43,13 @@ function internalAppPath(href: string): string | null {
 /** Renders URLs as blue links and keeps TeleChat You links inside the current app instance. */
 export function MessageText({ text }: { text: string }) {
   const navigate = useNavigate();
-  const nodes: React.ReactNode[] = [];
+  const nodes: ReactNode[] = [];
+  const urlPattern = /https?:\/\/[^\s<>"'`]+/gi;
   let cursor = 0;
   let match: RegExpExecArray | null;
   let index = 0;
 
-  URL_PATTERN.lastIndex = 0;
-  while ((match = URL_PATTERN.exec(text)) !== null) {
+  while ((match = urlPattern.exec(text)) !== null) {
     const raw = match[0];
     const start = match.index;
     const { url, punctuation } = trimLinkPunctuation(raw);
