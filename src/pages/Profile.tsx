@@ -137,7 +137,7 @@ export default function Profile() {
           className="mt-5 flex items-center justify-center gap-2 text-[22px] font-extrabold tcy-text"
         >
           {profile.displayName}
-          {isTesterUsername(profile.username) && <TesterBadge />}
+          {isTesterUsername(profile.username, profile.userId) && <TesterBadge />}
         </motion.h1>
         <div className="mt-1 text-[13.5px] font-semibold tcy-accent">@{profile.username}</div>
         {profile.bio && (
