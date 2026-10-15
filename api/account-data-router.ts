@@ -58,6 +58,7 @@ async function ensureRow(userId: number) {
     stickerPacks: "[]",
     favoriteStickers: "[]",
     chatFolders: "[]",
+    contactNames: "{}",
   }).onDuplicateKeyUpdate({ set: { userId } });
 
   row = await getDb().query.userCustomData.findFirst({
@@ -161,5 +162,40 @@ export const accountDataRouter = createRouter({
       }).where(eq(userCustomData.userId, ctx.user.id));
       return { ok: true };
     }),
+  }),
+
+  contactNames: createRouter({
+    get: authedQuery.query(async ({ ctx }) => {
+      const row = await ensureRow(ctx.user.id);
+      const raw = parseJson<Record<string, unknown>>(row.contactNames, {});
+      const names: Record<string, string> = {};
+      for (const [userId, value] of Object.entries(raw)) {
+        if (/^\\d+$/.test(userId) && typeof value === "string" && value.trim()) {
+          names[userId] = value.trim().slice(0, 64);
+        }
+      }
+      return { names };
+    }),
+
+    save: authedQuery
+      .input(z.object({ names: z.record(z.string(), z.string().max(64)) }))
+      .mutation(async ({ ctx, input }) => {
+        const entries = Object.entries(input.names);
+        if (entries.length > 500) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Слишком много переименованных контактов" });
+        }
+        const names: Record<string, string> = {};
+        for (const [userId, rawName] of entries) {
+          const parsedId = Number(userId);
+          const name = rawName.trim().slice(0, 64);
+          if (!/^\\d+$/.test(userId) || !Number.isSafeInteger(parsedId) || parsedId <= 0 || parsedId === ctx.user.id || !name) continue;
+          names[userId] = name;
+        }
+        await ensureRow(ctx.user.id);
+        await getDb().update(userCustomData).set({
+          contactNames: JSON.stringify(names),
+        }).where(eq(userCustomData.userId, ctx.user.id));
+        return { names };
+      }),
   }),
 });
