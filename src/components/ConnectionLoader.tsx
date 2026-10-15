@@ -33,8 +33,9 @@ export function ConnectionLoader() {
         <motion.span
           className="absolute left-1/2 top-1/2 h-3 w-3 rounded-full"
           style={{
-            marginLeft: -5,
-            marginTop: -5,
+            marginLeft: -6,
+            marginTop: -6,
+            backgroundColor: "var(--tcy-selected-accent)",
           }}
           animate={{
             x: [0, 8, 8, 0],
