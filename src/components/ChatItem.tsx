@@ -3,6 +3,8 @@ import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent }
 import { motion } from "framer-motion";
 import { Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic, Star } from "lucide-react";
 import { Avatar } from "./Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { formatChatTime } from "@/lib/format";
 import type { RouterOutput } from "@/types/api";
 
@@ -183,6 +185,7 @@ export function ChatItem({
         <div className="flex items-baseline justify-between gap-2">
           <span className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-1.5">
             {title}
+            {isDirect && isTesterUsername(item.peer?.username) && <TesterBadge />}
             {item.membership.pinned && (
               <Pin size={12} style={{ color: "var(--tcy-faint)" }} className="shrink-0 rotate-45" />
             )}
