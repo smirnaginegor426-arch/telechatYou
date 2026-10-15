@@ -1,8 +1,7 @@
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-
-const TESTER_BADGE_IMAGE = "/tester-badge.webp";
+import { TESTER_BADGE_IMAGE } from "@/lib/tester-badge-image";
 
 /** Interactive tester emblem and bottom information sheet. */
 export function TesterBadge({ size = 24 }: { size?: number }) {
