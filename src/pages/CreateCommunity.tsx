@@ -135,11 +135,12 @@ export default function CreateCommunity() {
         setError("Username должен содержать от 3 до 32 символов: латинские буквы, цифры или _.");
         return;
       }
-      if (usernameCheck.isFetching || usernameCheck.data?.username !== normalizedUsername) {
+      const availability = usernameCheck.data;
+      if (usernameCheck.isFetching || !availability || availability.username !== normalizedUsername) {
         setError("Проверяем Username. Подожди секунду и нажми «Создать!» ещё раз.");
         return;
       }
-      if (!usernameCheck.data.available) {
+      if (!availability.available) {
         setError("Этот Username уже занят. Придумай другой.");
         return;
       }
@@ -187,6 +188,7 @@ export default function CreateCommunity() {
       const message = cause instanceof Error ? cause.message : `Не удалось создать ${kindLabel}.`;
       setError(message);
       toast.error(message);
+      if (/username.*занят/i.test(message)) setStep("details");
     }
   };
 
@@ -220,9 +222,14 @@ export default function CreateCommunity() {
   };
 
   const toggleMember = (id: number) => {
-    setSelectedMembers((current) =>
-      current.includes(id) ? current.filter((memberId) => memberId !== id) : [...current, id],
-    );
+    setSelectedMembers((current) => {
+      if (current.includes(id)) return current.filter((memberId) => memberId !== id);
+      if (current.length >= 50) {
+        toast.error("В одну группу можно добавить до 50 человек за раз.");
+        return current;
+      }
+      return [...current, id];
+    });
   };
 
   return (
