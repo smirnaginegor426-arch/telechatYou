@@ -88,7 +88,7 @@ export default function Contacts() {
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
                       <span className="truncate">{p.displayName}</span>
-                      {isTesterUsername(p.username) && <TesterBadge />}
+                      {isTesterUsername(p.username, p.userId) && <TesterBadge />}
                     </div>
                     <div className="text-[12.5px] tcy-faint truncate">
                       @{p.username} ·{" "}
