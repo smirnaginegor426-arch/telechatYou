@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { Search, UserRound, Users } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { EmptyState } from "@/components/EmptyState";
 import { formatLastSeen, isOnline } from "@/lib/format";
 
@@ -84,7 +86,10 @@ export default function Contacts() {
                     showOnline
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="font-bold text-[14.5px] tcy-text truncate">{p.displayName}</div>
+                    <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
+                      <span className="truncate">{p.displayName}</span>
+                      {isTesterUsername(p.username) && <TesterBadge />}
+                    </div>
                     <div className="text-[12.5px] tcy-faint truncate">
                       @{p.username} ·{" "}
                       <span style={{ color: isOnline(p.lastSeenAt) ? "var(--tcy-accent)" : undefined }}>
