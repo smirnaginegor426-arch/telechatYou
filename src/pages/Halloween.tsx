@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { X } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { HALLOWEEN_ICON_DATA } from "@/lib/halloween-icon";
 
@@ -28,8 +30,20 @@ function getNextHalloween(now: Date) {
 
 function Bat({ size }: { size: number }) {
   return (
-    <svg width={size} height={Math.round(size * 0.72)} viewBox="0 0 32 23" fill="none" aria-hidden="true">
-      <path d="M16 8.8C12.4 4.8 7.1 2 2 2.1c1.4 3.3 1.8 6.2.8 9.2 2.7-.6 5.1.5 7.2 3.6L13 12.4l3 7.4 3-7.4 3 2.5c2.1-3.1 4.5-4.2 7.2-3.6-1-3-.6-5.9.8-9.2C25.9 2 19.6 4.8 16 8.8Z" fill="#ffc078" stroke="#ff7a1a" strokeWidth="0.7" strokeLinejoin="round" />
+    <svg
+      width={size}
+      height={Math.round(size * 0.72)}
+      viewBox="0 0 32 23"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M16 8.8C12.4 4.8 7.1 2 2 2.1c1.4 3.3 1.8 6.2.8 9.2 2.7-.6 5.1.5 7.2 3.6L13 12.4l3 7.4 3-7.4 3 2.5c2.1-3.1 4.5-4.2 7.2-3.6-1-3-.6-5.9.8-9.2C25.9 2 19.6 4.8 16 8.8Z"
+        fill="#ffc078"
+        stroke="#ff7a1a"
+        strokeWidth="0.7"
+        strokeLinejoin="round"
+      />
       <circle cx="13.8" cy="9.6" r="0.8" fill="#2b0d07" />
       <circle cx="18.2" cy="9.6" r="0.8" fill="#2b0d07" />
     </svg>
@@ -38,11 +52,14 @@ function Bat({ size }: { size: number }) {
 
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
-    <div className="flex items-baseline justify-center gap-2 leading-none">
-      <span className="w-[3.3ch] text-right text-[clamp(1.35rem,5vw,1.8rem)] font-normal tabular-nums" style={{ color: "#fff2e5" }}>
+    <div
+      className="flex min-w-[4.5rem] flex-col items-center justify-center gap-1 text-center leading-none"
+      style={{ color: "var(--tcy-selected-on-accent)", fontFamily: "inherit", textShadow: "none" }}
+    >
+      <span className="text-[clamp(1.45rem,5.5vw,1.85rem)] font-normal">
         {String(value).padStart(2, "0")}
       </span>
-      <span className="w-[5.5rem] text-left text-[12px] font-normal" style={{ color: "rgba(255, 208, 173, .8)" }}>
+      <span className="text-[12px] font-normal">
         {label}
       </span>
     </div>
@@ -50,6 +67,7 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
 }
 
 export default function Halloween() {
+  const navigate = useNavigate();
   const reduceMotion = useReducedMotion();
   const [now, setNow] = useState(() => Date.now());
   const [target, setTarget] = useState(() => getNextHalloween(new Date()));
@@ -74,42 +92,64 @@ export default function Halloween() {
   return (
     <main
       className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden"
-      style={{
-        background: "radial-gradient(ellipse at 50% 50%, #32140f 0%, #160b0c 48%, #070708 100%)",
-      }}
+      style={{ background: "var(--tcy-selected-accent)" }}
       aria-label="Halloween"
     >
-      <section className="relative z-10 flex w-full flex-col items-center px-5">
-        <div className="flex flex-col gap-3" aria-label="Обратный отсчёт до Хэллоуина">
-          <TimeUnit value={days} label="дней" />
-          <TimeUnit value={hours} label="часов" />
-          <TimeUnit value={minutes} label="минут" />
-          <TimeUnit value={seconds} label="секунд" />
-        </div>
+      <button
+        type="button"
+        aria-label="Выйти с экрана Halloween"
+        onClick={() => navigate("/settings")}
+        className="absolute z-50 flex h-10 w-10 items-center justify-center rounded-full bg-transparent p-0"
+        style={{
+          top: "max(16px, env(safe-area-inset-top))",
+          left: "max(16px, env(safe-area-inset-left))",
+          color: "#ff3b30",
+          boxShadow: "none",
+        }}
+      >
+        <X size={27} strokeWidth={2.5} />
+      </button>
 
-        <div className="relative mt-5 flex w-full max-w-[min(72vw,340px)] items-center justify-center" style={{ aspectRatio: "1 / 1" }}>
+      <section className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-4 px-5 pt-8 pb-24">
+        <div
+          className="relative flex w-full max-w-[min(76vw,360px)] items-center justify-center"
+          style={{ aspectRatio: "1 / 1" }}
+        >
           {batFlights.map((bat, index) => (
             <motion.div
               key={index}
               aria-hidden="true"
               className="pointer-events-none absolute left-1/2 top-1/2 flex items-center justify-center"
-              style={{ marginLeft: -bat.size / 2, marginTop: -bat.size * 0.36, width: bat.size, height: bat.size * 0.72 }}
-              animate={reduceMotion ? { opacity: 0, scale: 0.1 } : {
-                x: [0, bat.x * 0.58, bat.x, bat.x * 0.76, 0],
-                y: [0, bat.y * 0.58, bat.y, bat.y * 0.35, 0],
-                rotate: [0, bat.rotate, bat.rotate + 15, bat.rotate - 8, 0],
-                scale: [0.08, 1, 0.82, 0.7, 0.08],
-                opacity: [0, 1, 1, 1, 0],
-                zIndex: [0, 30, 30, 20, 0],
+              style={{
+                marginLeft: -bat.size / 2,
+                marginTop: -bat.size * 0.36,
+                width: bat.size,
+                height: bat.size * 0.72,
               }}
-              transition={reduceMotion ? { duration: 0.01 } : {
-                duration: 3.2,
-                delay: bat.delay,
-                repeat: Infinity,
-                repeatDelay: 2.1,
-                times: [0, 0.25, 0.57, 0.82, 1],
-                ease: "easeInOut",
-              }}
+              animate={
+                reduceMotion
+                  ? { opacity: 0, scale: 0.1 }
+                  : {
+                      x: [0, bat.x * 0.58, bat.x, bat.x * 0.76, 0],
+                      y: [0, bat.y * 0.58, bat.y, bat.y * 0.35, 0],
+                      rotate: [0, bat.rotate, bat.rotate + 15, bat.rotate - 8, 0],
+                      scale: [0.08, 1, 0.82, 0.7, 0.08],
+                      opacity: [0, 1, 1, 1, 0],
+                      zIndex: [0, 30, 30, 20, 0],
+                    }
+              }
+              transition={
+                reduceMotion
+                  ? { duration: 0.01 }
+                  : {
+                      duration: 3.2,
+                      delay: bat.delay,
+                      repeat: Infinity,
+                      repeatDelay: 2.1,
+                      times: [0, 0.25, 0.57, 0.82, 1],
+                      ease: "easeInOut",
+                    }
+              }
             >
               <Bat size={bat.size} />
             </motion.div>
@@ -119,11 +159,28 @@ export default function Halloween() {
             src={HALLOWEEN_ICON_DATA}
             alt="Иконка TeleChat You на Хэллоуин"
             draggable={false}
+            decoding="async"
             className="relative z-10 block h-full w-full object-contain"
-            style={{ mixBlendMode: "screen" }}
-            animate={reduceMotion ? undefined : { scale: [0.94, 1.04, 0.94] }}
+            style={{
+              mixBlendMode: "screen",
+              filter: "brightness(1.08) contrast(1.04)",
+              imageRendering: "auto",
+              background: "transparent",
+              boxShadow: "none",
+            }}
+            animate={reduceMotion ? undefined : { scale: [0.96, 1.02, 0.96] }}
             transition={{ duration: 3.1, repeat: Infinity, ease: "easeInOut" }}
           />
+        </div>
+
+        <div
+          className="flex flex-col items-center gap-4"
+          aria-label="Обратный отсчёт до Хэллоуина"
+        >
+          <TimeUnit value={days} label="дней" />
+          <TimeUnit value={hours} label="часов" />
+          <TimeUnit value={minutes} label="минут" />
+          <TimeUnit value={seconds} label="секунд" />
         </div>
       </section>
     </main>
