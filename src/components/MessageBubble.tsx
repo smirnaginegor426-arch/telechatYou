@@ -292,7 +292,7 @@ export function MessageBubble({
           <span
             className="flex h-8 w-8 items-center justify-center rounded-full p-[2px]"
             style={{
-              background: `conic-gradient(var(--tcy-selected-accent) ${Math.round(swipeProgress * 360)}deg, var(--tcy-line-strong) 0deg)`,
+              background: `conic-gradient(var(--tcy-selected-accent) 0deg ${Math.round(swipeProgress * 360)}deg, var(--tcy-line-strong) ${Math.round(swipeProgress * 360)}deg 360deg)`,
             }}
           >
             <span
