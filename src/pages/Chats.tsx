@@ -128,30 +128,9 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     setSelectedChatIds([]);
   };
 
-  const showConnectionSplash = !hasInitialLoad && (list.isLoading || list.isFetching || !isOnline);
+  const showConnectionSplash = !list.data && (list.isLoading || list.isFetching || !isOnline);
 
   if (showConnectionSplash) {
-    return (
-      <div className={desktopPanel ? "relative h-full w-full overflow-hidden tcy-solid" : "relative h-full w-full overflow-hidden tcy-solid"}>
-        <div className="absolute inset-0 z-30 flex items-center justify-center" role="status" aria-label="Подключение к TeleChat You">
-          <div className="relative flex h-12 w-12 items-center justify-center" aria-hidden="true">
-            <motion.span
-              className="absolute h-[14px] w-[7px] rounded-l-full tcy-accent-bg"
-              animate={{ x: [0, -8, -8, 0], rotate: [0, -180, -360, -720], scaleY: [1, 0.92, 1, 1] }}
-              transition={{ duration: 1.25, times: [0, 0.28, 0.68, 1], repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.span
-              className="absolute h-[14px] w-[7px] rounded-r-full tcy-accent-bg"
-              animate={{ x: [0, 8, 8, 0], rotate: [0, 180, 360, 720], scaleY: [1, 0.92, 1, 1] }}
-              transition={{ duration: 1.25, times: [0, 0.28, 0.68, 1], repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!list.data && (!isOnline || list.isLoading || list.isFetching)) {
     return <ConnectionLoader />;
   }
 
