@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import { useNavigate } from "react-router";
 import { EmojiText } from "@/components/AppleEmoji";
 
-const URL_PATTERN = /https?:\\/\\/[^\\s<>"'`]+/gi;
+const URL_PATTERN = /https?:\/\/[^\s<>"'`]+/gi;
 
 function trimLinkPunctuation(value: string) {
   let end = value.length;
@@ -11,8 +11,8 @@ function trimLinkPunctuation(value: string) {
   // A closing parenthesis belongs to the URL only when it has a matching opener.
   while (end > 0 && value[end - 1] === ")") {
     const candidate = value.slice(0, end);
-    const opens = (candidate.match(/\\(/g) ?? []).length;
-    const closes = (candidate.match(/\\)/g) ?? []).length;
+    const opens = (candidate.match(/\(/g) ?? []).length;
+    const closes = (candidate.match(/\)/g) ?? []).length;
     if (closes <= opens) break;
     end--;
   }
@@ -32,10 +32,10 @@ function internalAppPath(href: string): string | null {
 
     if (!isMessengerHost) return null;
 
-    const path = url.pathname.replace(/\\/$/, "");
+    const path = url.pathname.replace(/\/$/, "");
     if (/^\/@[a-zA-Z0-9_]{3,32}$/.test(path)) return path;
-    if (/^\/chat\/\\d+$/.test(path)) return path;
-    if (/^\/user\/\\d+$/.test(path)) return path;
+    if (/^\/chat\/\d+$/.test(path)) return path;
+    if (/^\/user\/\d+$/.test(path)) return path;
     return null;
   } catch {
     return null;
