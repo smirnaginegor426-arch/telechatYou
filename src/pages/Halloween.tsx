@@ -39,10 +39,10 @@ function Bat({ size }: { size: number }) {
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex items-baseline justify-center gap-2 leading-none">
-      <span className="w-[3.3ch] text-right text-[clamp(1.35rem,5vw,1.8rem)] font-semibold tabular-nums" style={{ color: "#fff2e5" }}>
+      <span className="w-[3.3ch] text-right text-[clamp(1.35rem,5vw,1.8rem)] font-normal tabular-nums" style={{ color: "#fff2e5" }}>
         {String(value).padStart(2, "0")}
       </span>
-      <span className="w-[5.5rem] text-left text-[12px] font-medium" style={{ color: "rgba(255, 208, 173, .8)" }}>
+      <span className="w-[5.5rem] text-left text-[12px] font-normal" style={{ color: "rgba(255, 208, 173, .8)" }}>
         {label}
       </span>
     </div>
@@ -79,10 +79,6 @@ export default function Halloween() {
       }}
       aria-label="Halloween"
     >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute left-1/2 top-1/2 h-[min(80vw,440px)] w-[min(80vw,440px)] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl" style={{ background: "rgba(255, 94, 13, .09)" }} />
-      </div>
-
       <section className="relative z-10 flex w-full flex-col items-center px-5">
         <div className="flex flex-col gap-3" aria-label="Обратный отсчёт до Хэллоуина">
           <TimeUnit value={days} label="дней" />
@@ -124,7 +120,7 @@ export default function Halloween() {
             alt="Иконка TeleChat You на Хэллоуин"
             draggable={false}
             className="relative z-10 block h-full w-full object-contain"
-            style={{ filter: "drop-shadow(0 0 26px rgba(255, 92, 12, .16))" }}
+            style={{ mixBlendMode: "screen" }}
             animate={reduceMotion ? undefined : { scale: [0.94, 1.04, 0.94] }}
             transition={{ duration: 3.1, repeat: Infinity, ease: "easeInOut" }}
           />
