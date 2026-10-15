@@ -282,7 +282,7 @@ export default function CreateCommunity() {
         )}
       </header>
 
-      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto no-scrollbar px-4 pb-32">
+      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto no-scrollbar px-4 pb-8">
         <AnimatePresence mode="wait" initial={false}>
           {step === "choose" && (
             <motion.section
@@ -451,9 +451,6 @@ export default function CreateCommunity() {
 
               {error && <p role="alert" className="rounded-[15px] border px-3.5 py-3 text-[12.5px]" style={{ borderColor: "var(--tcy-danger)", color: "var(--tcy-danger)" }}>{error}</p>}
 
-              <TcButton size="lg" disabled={!title.trim()} onClick={continueToAvatar}>
-                Создать! <ChevronRight size={18} />
-              </TcButton>
             </motion.section>
           )}
 
@@ -511,11 +508,6 @@ export default function CreateCommunity() {
               )}
 
               {error && <p role="alert" className="mt-5 text-[12.5px]" style={{ color: "var(--tcy-danger)" }}>{error}</p>}
-              <div className="mt-8 w-full max-w-[330px]">
-                <TcButton size="lg" loading={busy} onClick={() => void create()}>
-                  Далее! <ChevronRight size={18} />
-                </TcButton>
-              </div>
             </motion.section>
           )}
 
@@ -542,11 +534,6 @@ export default function CreateCommunity() {
               </h2>
               <p className="mt-3 text-[15px] font-semibold tcy-accent">Успешно создан!</p>
               {isPublic && <p className="mt-2 text-[13px] tcy-dim">@{normalizedUsername}</p>}
-              <div className="mt-9 w-full max-w-[330px]">
-                <TcButton size="lg" onClick={finish}>
-                  Завершить <Check size={18} />
-                </TcButton>
-              </div>
             </motion.section>
           )}
 
@@ -622,24 +609,53 @@ export default function CreateCommunity() {
               )}
 
               {error && <p role="alert" className="mt-4 rounded-[15px] border px-3.5 py-3 text-[12.5px]" style={{ borderColor: "var(--tcy-danger)", color: "var(--tcy-danger)" }}>{error}</p>}
-              <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-                <TcButton size="lg" loading={busy} onClick={() => void finishMembers()}>
-                  <UserRoundPlus size={18} /> {selectedMembers.length ? `Добавить участников (${selectedMembers.length})` : "Перейти в группу"}
-                </TcButton>
-                {selectedMembers.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedMembers([]); }}
-                    className="rounded-[18px] px-4 py-3 text-[12.5px] font-bold tcy-dim tcy-press"
-                  >
-                    Очистить выбор
-                  </button>
-                )}
-              </div>
+              {selectedMembers.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedMembers([])}
+                  className="mt-5 rounded-[18px] px-4 py-3 text-[12.5px] font-bold tcy-dim tcy-press"
+                >
+                  Очистить выбор
+                </button>
+              )}
             </motion.section>
           )}
         </AnimatePresence>
       </div>
+
+      {step !== "choose" && (
+        <footer
+          className="relative z-20 shrink-0 border-t tcy-line px-4 pt-3"
+          style={{
+            background: "color-mix(in srgb, var(--tcy-bg) 91%, transparent)",
+            backdropFilter: "blur(20px)",
+            paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
+          }}
+        >
+          <div className="mx-auto w-full max-w-[640px]">
+            {step === "details" && (
+              <TcButton size="lg" disabled={!title.trim()} onClick={continueToAvatar}>
+                Создать! <ChevronRight size={18} />
+              </TcButton>
+            )}
+            {step === "avatar" && (
+              <TcButton size="lg" loading={busy} onClick={() => void create()}>
+                Далее! <ChevronRight size={18} />
+              </TcButton>
+            )}
+            {step === "success" && (
+              <TcButton size="lg" onClick={finish}>
+                Завершить <Check size={18} />
+              </TcButton>
+            )}
+            {step === "members" && (
+              <TcButton size="lg" loading={busy} onClick={() => void finishMembers()}>
+                <UserRoundPlus size={18} /> {selectedMembers.length ? `Добавить участников (${selectedMembers.length})` : "Перейти в группу"}
+              </TcButton>
+            )}
+          </div>
+        </footer>
+      )}
 
       <AvatarEditor
         file={avatarToEdit}
