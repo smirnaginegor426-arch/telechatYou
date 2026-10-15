@@ -4,31 +4,28 @@ export function ConnectionLoader() {
   return (
     <div
       role="status"
-      aria-label="Загрузка мессенджера"
-      className="fixed inset-0 z-[100] flex items-center justify-center"
-      style={{ background: "var(--tcy-bg)" }}
+      aria-label="Подключение к чатам"
+      className="flex w-full items-center justify-center py-8"
     >
-      <div className="relative flex h-12 w-12 items-center justify-center" aria-hidden="true">
+      <div className="relative h-8 w-8" aria-hidden="true">
         <motion.span
-          className="absolute h-[14px] w-[7px] rounded-l-full tcy-accent-bg"
+          className="absolute left-1/2 top-1/2 h-[8px] w-[8px] -translate-x-1/2 -translate-y-1/2 rounded-full tcy-accent-bg"
           animate={{
-            x: [0, -8, -8, 0],
-            rotate: [0, -180, -360, -720],
-            scaleY: [1, 0.92, 1, 1],
+            x: [0, -9, -9, 0],
+            y: [0, -2, -2, 0],
           }}
           transition={{
-            duration: 1.25,
-            times: [0, 0.28, 0.68, 1],
+            duration: 1.15,
+            times: [0, 0.36, 0.64, 1],
             repeat: Infinity,
             ease: "easeInOut",
           }}
         />
         <motion.span
-          className="absolute h-[14px] w-[7px] rounded-r-full tcy-accent-bg"
+          className="absolute left-1/2 top-1/2 h-[8px] w-[8px] -translate-x-1/2 -translate-y-1/2 rounded-full tcy-accent-bg"
           animate={{
-            x: [0, 8, 8, 0],
-            rotate: [0, 180, 360, 720],
-            scaleY: [1, 0.92, 1, 1],
+            x: [0, 9, 9, 0],
+            y: [0, 2, 2, 0],
           }}
           transition={{
             duration: 1.25,
