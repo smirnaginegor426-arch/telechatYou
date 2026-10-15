@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, eq, ne } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { channels, chatMembers, chats, messages, profiles } from "@db/schema";
+import { channels, chatMembers, chats, messages, profiles, userBlocks } from "@db/schema";
 import {
   getChatMembers,
   getLastMessage,
@@ -182,6 +182,61 @@ export const chatsRouter = createRouter({
         if (other?.userId) peer = (await getProfilesByIds([other.userId]))[0] ?? null;
       }
       return { chat, members, me, peer, channel };
+    }),
+
+  blockStatus: authedQuery
+    .input(z.object({ chatId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const chat = await getDb().query.chats.findFirst({ where: eq(chats.id, input.chatId) });
+      if (!chat) throw new TRPCError({ code: "NOT_FOUND" });
+      if (chat.type !== "direct" || !chat.directKey) return { blocked: false, peerId: null };
+      const participants = chat.directKey.split(":").map(Number);
+      const peerId = participants.find((id) => id !== ctx.user.id) ?? null;
+      if (!peerId || !Number.isSafeInteger(peerId) || peerId <= 0) return { blocked: false, peerId: null };
+      const existing = await getDb().query.userBlocks.findFirst({
+        where: and(eq(userBlocks.blockerId, ctx.user.id), eq(userBlocks.blockedId, peerId)),
+      });
+      return { blocked: !!existing, peerId };
+    }),
+
+  blockUser: authedQuery
+    .input(z.object({ chatId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const chat = await getDb().query.chats.findFirst({ where: eq(chats.id, input.chatId) });
+      if (!chat || chat.type !== "direct" || !chat.directKey) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Блокировка доступна только в личном чате" });
+      }
+      const peerId = chat.directKey.split(":").map(Number).find((id) => id !== ctx.user.id);
+      if (!peerId || !Number.isSafeInteger(peerId) || peerId <= 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Нельзя заблокировать этот чат" });
+      }
+      await getDb().insert(userBlocks).values({ blockerId: ctx.user.id, blockedId: peerId })
+        .onDuplicateKeyUpdate({ set: { blockerId: ctx.user.id } });
+      return { ok: true, peerId };
+    }),
+
+  unblockUser: authedQuery
+    .input(z.object({ chatId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const chat = await getDb().query.chats.findFirst({ where: eq(chats.id, input.chatId) });
+      if (!chat || chat.type !== "direct" || !chat.directKey) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Это не личный чат" });
+      }
+      const peerId = chat.directKey.split(":").map(Number).find((id) => id !== ctx.user.id);
+      if (!peerId || !Number.isSafeInteger(peerId) || peerId <= 0) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Нельзя разблокировать этот чат" });
+      }
+      await getDb().delete(userBlocks).where(and(
+        eq(userBlocks.blockerId, ctx.user.id),
+        eq(userBlocks.blockedId, peerId),
+      ));
+      return { ok: true, peerId };
     }),
 
   updateGroup: authedQuery
