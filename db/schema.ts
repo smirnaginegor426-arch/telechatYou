@@ -336,6 +336,7 @@ export const userCustomData = mysqlTable("user_custom_data", {
   stickerPacks: longtext("stickerPacks").notNull(),
   favoriteStickers: longtext("favoriteStickers").notNull(),
   chatFolders: longtext("chatFolders").notNull(),
+  contactNames: longtext("contactNames").notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
     .notNull()
@@ -344,3 +345,21 @@ export const userCustomData = mysqlTable("user_custom_data", {
 
 export type UserCustomData = typeof userCustomData.$inferSelect;
 
+
+/** One-way account blocks for direct conversations. */
+export const userBlocks = mysqlTable(
+  "user_blocks",
+  {
+    id: serial("id").primaryKey(),
+    blockerId: bigint("blockerId", { mode: "number", unsigned: true }).notNull(),
+    blockedId: bigint("blockedId", { mode: "number", unsigned: true }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    pairUnique: uniqueIndex("user_blocks_pair_uniq").on(t.blockerId, t.blockedId),
+    blockerIdx: index("user_blocks_blocker_idx").on(t.blockerId),
+    blockedIdx: index("user_blocks_blocked_idx").on(t.blockedId),
+  }),
+);
+
+export type UserBlock = typeof userBlocks.$inferSelect;
