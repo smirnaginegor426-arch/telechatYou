@@ -5,6 +5,8 @@ import { AtSign, Camera, Check, ChevronRight, LogOut, Pencil, Quote, UsersRound 
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { Lightbox } from "@/components/Lightbox";
 import { BottomSheet } from "@/components/BottomSheet";
@@ -132,9 +134,10 @@ export default function Profile() {
           initial={{ y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="mt-5 text-[22px] font-extrabold tcy-text"
+          className="mt-5 flex items-center justify-center gap-2 text-[22px] font-extrabold tcy-text"
         >
           {profile.displayName}
+          {isTesterUsername(profile.username) && <TesterBadge />}
         </motion.h1>
         <div className="mt-1 text-[13.5px] font-semibold tcy-accent">@{profile.username}</div>
         {profile.bio && (
