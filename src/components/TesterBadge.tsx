@@ -3,9 +3,40 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { TESTER_BADGE_IMAGE } from "@/lib/tester-badge-image";
 
+function TesterEmblemFallback({ size }: { size: number }) {
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 256 256"
+      className="shrink-0"
+    >
+      <defs>
+        <linearGradient id="tester-avatar" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#303136" />
+          <stop offset="100%" stopColor="#080809" />
+        </linearGradient>
+        <linearGradient id="tester-check" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#168bff" />
+          <stop offset="100%" stopColor="#0061e8" />
+        </linearGradient>
+      </defs>
+      <circle cx="128" cy="69" r="31" fill="url(#tester-avatar)" />
+      <path
+        d="M64 220 C69 171 81 137 106 126 C119 120 137 120 150 126 C175 137 187 171 192 220 C193 234 181 241 167 241 H89 C75 241 63 234 64 220Z"
+        fill="url(#tester-avatar)"
+      />
+      <circle cx="173" cy="158" r="28" fill="#087cff" />
+      <path d="M159 158 L169 168 L188 147" fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** Interactive tester emblem and bottom information sheet. */
 export function TesterBadge({ size = 24 }: { size?: number }) {
   const [open, setOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   const openSheet = (event: MouseEvent<HTMLSpanElement>) => {
     event.stopPropagation();
@@ -19,6 +50,20 @@ export function TesterBadge({ size = 24 }: { size?: number }) {
     setOpen(true);
   };
 
+  const emblem = (displaySize: number) =>
+    imageFailed ? (
+      <TesterEmblemFallback size={displaySize} />
+    ) : (
+      <img
+        src={TESTER_BADGE_IMAGE}
+        alt=""
+        draggable={false}
+        onError={() => setImageFailed(true)}
+        className="object-contain"
+        style={{ width: displaySize, height: displaySize }}
+      />
+    );
+
   return (
     <>
       <span
@@ -31,12 +76,7 @@ export function TesterBadge({ size = 24 }: { size?: number }) {
         className="inline-flex shrink-0 cursor-pointer items-center justify-center align-middle rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--tcy-accent)]"
         style={{ width: size, height: size }}
       >
-        <img
-          src={TESTER_BADGE_IMAGE}
-          alt=""
-          draggable={false}
-          className="h-full w-full object-contain"
-        />
+        {emblem(size)}
       </span>
 
       {typeof document !== "undefined" &&
@@ -79,12 +119,7 @@ export function TesterBadge({ size = 24 }: { size?: number }) {
                     <div className="w-10 h-1.5 rounded-full" style={{ background: "var(--tcy-line-strong)" }} />
                   </div>
                   <div className="px-6 pt-5 pb-8 safe-bottom flex flex-col items-center gap-3.5 text-center">
-                    <img
-                      src={TESTER_BADGE_IMAGE}
-                      alt="Значок тестера TeleChat You"
-                      draggable={false}
-                      className="h-[92px] w-[92px] object-contain"
-                    />
+                    {emblem(92)}
                     <p className="max-w-[300px] text-[15px] leading-relaxed font-semibold tcy-text">
                       Это официальный тестер мессенджера TeleChat You
                     </p>
