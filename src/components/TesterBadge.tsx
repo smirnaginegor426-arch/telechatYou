@@ -1,10 +1,11 @@
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check } from "lucide-react";
 
-/** Interactive badge that explains the TeleChat You tester status in a bottom sheet. */
-export function TesterBadge({ size = 16 }: { size?: number }) {
+const TESTER_BADGE_IMAGE = "/tester-badge.webp";
+
+/** Interactive tester emblem and bottom information sheet. */
+export function TesterBadge({ size = 24 }: { size?: number }) {
   const [open, setOpen] = useState(false);
 
   const openSheet = (event: MouseEvent<HTMLSpanElement>) => {
@@ -19,8 +20,6 @@ export function TesterBadge({ size = 16 }: { size?: number }) {
     setOpen(true);
   };
 
-  const iconSize = Math.max(10, Math.round(size * 0.625));
-
   return (
     <>
       <span
@@ -30,15 +29,15 @@ export function TesterBadge({ size = 16 }: { size?: number }) {
         title="Тестер TeleChat You"
         onClick={openSheet}
         onKeyDown={onKeyDown}
-        className="inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full align-middle focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--tcy-accent)]"
-        style={{
-          width: size,
-          height: size,
-          background: "#3498db",
-          color: "#ffffff",
-        }}
+        className="inline-flex shrink-0 cursor-pointer items-center justify-center align-middle rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--tcy-accent)]"
+        style={{ width: size, height: size }}
       >
-        <Check size={iconSize} strokeWidth={3.5} />
+        <img
+          src={TESTER_BADGE_IMAGE}
+          alt=""
+          draggable={false}
+          className="h-full w-full object-contain"
+        />
       </span>
 
       {typeof document !== "undefined" &&
@@ -80,17 +79,24 @@ export function TesterBadge({ size = 16 }: { size?: number }) {
                   <div className="pt-3 pb-1 flex justify-center">
                     <div className="w-10 h-1.5 rounded-full" style={{ background: "var(--tcy-line-strong)" }} />
                   </div>
-                  <div className="px-6 pt-6 pb-8 safe-bottom flex flex-col items-center gap-4 text-center">
-                    <span
-                      aria-hidden="true"
-                      className="inline-flex shrink-0 items-center justify-center rounded-full"
-                      style={{ width: 56, height: 56, background: "#3498db", color: "#ffffff" }}
-                    >
-                      <Check size={35} strokeWidth={3.5} />
-                    </span>
+                  <div className="px-6 pt-5 pb-8 safe-bottom flex flex-col items-center gap-3.5 text-center">
+                    <img
+                      src={TESTER_BADGE_IMAGE}
+                      alt="Значок тестера TeleChat You"
+                      draggable={false}
+                      className="h-[92px] w-[92px] object-contain"
+                    />
                     <p className="max-w-[300px] text-[15px] leading-relaxed font-semibold tcy-text">
                       Это официальный тестер мессенджера TeleChat You
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      className="tcy-press mt-1 w-full max-w-[260px] rounded-full px-5 py-3 text-[14px] font-bold tcy-gradient-accent"
+                      style={{ color: "var(--tcy-on-accent)" }}
+                    >
+                      Понятно
+                    </button>
                   </div>
                 </motion.div>
               </div>
