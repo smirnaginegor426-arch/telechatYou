@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { Archive, ArchiveRestore, MessageCirclePlus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
@@ -27,6 +27,10 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
   const [avatarPreview, setAvatarPreview] = useState<{ key: string | null; name: string; username?: string | null } | null>(null);
   const utils = trpc.useUtils();
   const [showArchived, setShowArchived] = useState(false);
+  const [archiveGestureVisible, setArchiveGestureVisible] = useState(false);
+  const archiveTouchStart = useRef<number | null>(null);
+  const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
+  const contactNames = contactNamesQuery.data?.names ?? {};
   const [selectedChatIds, setSelectedChatIds] = useState<number[]>([]);
   const [botArchived, setBotArchived] = useState(() => {
     try {
@@ -233,19 +237,6 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
         )}
       </header>
 
-      {/* archived entry */}
-      {!selectedChatIds.length && !showArchived && hasArchived && (
-        <button
-          onClick={() => setShowArchived(true)}
-          className="mx-4 mb-1 flex items-center gap-3 px-4 py-3 rounded-[18px] tcy-card border tcy-line tcy-press"
-        >
-          <Archive size={17} className="tcy-dim" />
-          <span className="text-[13.5px] font-semibold tcy-dim flex-1 text-left">Архив</span>
-          {archivedUnread > 0 && (
-            <span className="text-[11.5px] font-bold tcy-accent">{archivedUnread} новых</span>
-          )}
-        </button>
-      )}
       {!selectedChatIds.length && showArchived && (
         <button
           onClick={() => setShowArchived(false)}
@@ -256,7 +247,44 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
       )}
 
       {/* Built-in bot can be archived and restored like other chats. */}
-      <div className="tcy-chat-list-scroll flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
+      <div
+        className="tcy-chat-list-scroll flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10"
+        onTouchStart={(event) => {
+          archiveTouchStart.current = event.currentTarget.scrollTop <= 2
+            ? event.touches[0]?.clientY ?? null
+            : null;
+        }}
+        onTouchMove={(event) => {
+          const start = archiveTouchStart.current;
+          if (start === null || !hasArchived || showArchived) return;
+          const current = event.touches[0]?.clientY;
+          if (current !== undefined && current - start >= 58) {
+            setArchiveGestureVisible(true);
+            archiveTouchStart.current = null;
+          }
+        }}
+        onTouchEnd={() => { archiveTouchStart.current = null; }}
+        onScroll={(event) => {
+          if (event.currentTarget.scrollTop > 12) {
+            setArchiveGestureVisible(false);
+            archiveTouchStart.current = null;
+          }
+        }}
+      >
+        {!showArchived && archiveGestureVisible && hasArchived && !selectedChatIds.length && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowArchived(true);
+              setArchiveGestureVisible(false);
+            }}
+            className="mx-3 mb-2 mt-1 flex w-[calc(100%-1.5rem)] items-center gap-3 rounded-[18px] border tcy-line tcy-card px-4 py-3 text-left tcy-press"
+          >
+            <Archive size={17} className="tcy-dim" />
+            <span className="flex-1 text-[13.5px] font-semibold tcy-dim">Архив</span>
+            {archivedUnread > 0 && <span className="text-[11.5px] font-bold tcy-accent">{archivedUnread} новых</span>}
+          </button>
+        )}
         {showConnectionSplash ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <ConnectionLoader />
@@ -359,6 +387,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
               >
                 <ChatItem
                   item={item}
+                  contactNames={contactNames}
                   index={i}
                   selected={selectedChatIds.includes(item.chat.id)}
                   selecting={selectedChatIds.length > 0}
