@@ -28,6 +28,8 @@ export default function Search() {
     { enabled: query.length >= 2, staleTime: 10_000 },
   );
   const chatList = trpc.chats.list.useQuery(undefined, { staleTime: 15_000 });
+  const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
+  const contactNames = contactNamesQuery.data?.names ?? {};
   const createDirect = trpc.chats.createDirect.useMutation({
     onSuccess: (r) => navigate(`/chat/${r.chatId}`, { replace: true }),
   });
@@ -39,11 +41,11 @@ export default function Search() {
     return all.filter((c) => {
       const title =
         c.chat.type === "direct"
-          ? `${c.peer?.displayName ?? ""} ${c.peer?.username ?? ""}`
+          ? `${(c.peer?.userId ? contactNames[String(c.peer.userId)] : undefined) ?? c.peer?.displayName ?? ""} ${c.peer?.username ?? ""}`
           : c.chat.title ?? "";
       return title.toLowerCase().includes(lower);
     });
-  }, [chatList.data, query]);
+  }, [chatList.data, query, contactNames]);
 
   const hasResults =
     matchedChats.length > 0 || (users.data?.length ?? 0) > 0 || (msgSearch.data?.length ?? 0) > 0;
@@ -96,7 +98,7 @@ export default function Search() {
               <Section title="Чаты">
                 {matchedChats.map((c, i) => {
                   const title =
-                    c.chat.type === "direct" ? c.peer?.displayName ?? "?" : c.chat.title ?? "Группа";
+                    c.chat.type === "direct" ? (c.peer?.userId ? contactNames[String(c.peer.userId)] : undefined) ?? c.peer?.displayName ?? "?" : c.chat.title ?? "Группа";
                   return (
                     <Row key={c.chat.id} index={i} onClick={() => navigate(`/chat/${c.chat.id}`)}>
                       <Avatar
@@ -123,7 +125,7 @@ export default function Search() {
                 {users.data!.map((p, i) => (
                   <Row key={p.id} index={i} onClick={() => createDirect.mutate({ userId: p.userId })}>
                     <Avatar
-                      name={p.displayName}
+                      name={contactNames[String(p.userId)] ?? p.displayName}
                       avatarKey={p.avatarKey}
                       size={44}
                       lastSeenAt={p.lastSeenAt}
@@ -131,7 +133,7 @@ export default function Search() {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
-                        <span className="truncate">{p.displayName}</span>
+                        <span className="truncate">{contactNames[String(p.userId)] ?? p.displayName}</span>
                         {isTesterUsername(p.username, p.userId) && <TesterBadge />}
                       </div>
                       <div className="text-[12px] truncate">
@@ -156,7 +158,7 @@ export default function Search() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="font-bold text-[13.5px] tcy-text truncate">
-                        {m.sender?.displayName ?? "Сообщение"}
+                        {(m.sender?.userId ? contactNames[String(m.sender.userId)] : undefined) ?? m.sender?.displayName ?? "Сообщение"}
                       </div>
                       <div className="text-[12.5px] tcy-dim truncate">
                         {m.kind === "voice" ? "Голосовое сообщение" : m.body}
