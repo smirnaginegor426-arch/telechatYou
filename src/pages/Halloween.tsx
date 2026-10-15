@@ -54,7 +54,7 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div
       className="flex min-w-[4.5rem] flex-col items-center justify-center gap-1 text-center leading-none"
-      style={{ color: "var(--tcy-selected-on-accent)", fontFamily: "inherit", textShadow: "none" }}
+      style={{ color: "var(--tcy-selected-on-accent)", fontFamily: "Arial, Helvetica, sans-serif", fontVariantNumeric: "tabular-nums", textShadow: "none" }}
     >
       <span className="text-[clamp(1.45rem,5.5vw,1.85rem)] font-normal">
         {String(value).padStart(2, "0")}
@@ -113,7 +113,7 @@ export default function Halloween() {
       <section className="relative z-10 flex h-full w-full flex-col items-center justify-center gap-4 px-5 pt-8 pb-24">
         <div
           className="relative flex w-full max-w-[min(76vw,360px)] items-center justify-center"
-          style={{ aspectRatio: "1 / 1" }}
+          style={{ aspectRatio: "1 / 1", backgroundColor: "var(--tcy-selected-accent)" }}
         >
           {batFlights.map((bat, index) => (
             <motion.div
@@ -162,11 +162,12 @@ export default function Halloween() {
             decoding="async"
             className="relative z-10 block h-full w-full object-contain"
             style={{
-              mixBlendMode: "screen",
-              filter: "brightness(1.08) contrast(1.04)",
+              mixBlendMode: "lighten",
+              filter: "none",
               imageRendering: "auto",
-              background: "transparent",
+              backgroundColor: "var(--tcy-selected-accent)",
               boxShadow: "none",
+              WebkitTapHighlightColor: "transparent",
             }}
             animate={reduceMotion ? undefined : { scale: [0.96, 1.02, 0.96] }}
             transition={{ duration: 3.1, repeat: Infinity, ease: "easeInOut" }}
