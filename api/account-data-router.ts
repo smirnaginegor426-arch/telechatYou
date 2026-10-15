@@ -170,7 +170,7 @@ export const accountDataRouter = createRouter({
       const raw = parseJson<Record<string, unknown>>(row.contactNames, {});
       const names: Record<string, string> = {};
       for (const [userId, value] of Object.entries(raw)) {
-        if (/^\\d+$/.test(userId) && typeof value === "string" && value.trim()) {
+        if (/^\d+$/.test(userId) && typeof value === "string" && value.trim()) {
           names[userId] = value.trim().slice(0, 64);
         }
       }
@@ -188,7 +188,7 @@ export const accountDataRouter = createRouter({
         for (const [userId, rawName] of entries) {
           const parsedId = Number(userId);
           const name = rawName.trim().slice(0, 64);
-          if (!/^\\d+$/.test(userId) || !Number.isSafeInteger(parsedId) || parsedId <= 0 || parsedId === ctx.user.id || !name) continue;
+          if (!/^\d+$/.test(userId) || !Number.isSafeInteger(parsedId) || parsedId <= 0 || parsedId === ctx.user.id || !name) continue;
           names[userId] = name;
         }
         await ensureRow(ctx.user.id);
