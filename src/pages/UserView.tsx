@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, AtSign, MessageCircle, Quote } from "lucide-react";
+import { ArrowLeft, AtSign, MessageCircle, Quote, Radio } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
 import { TesterBadge } from "@/components/TesterBadge";
@@ -9,21 +9,38 @@ import { isTesterUsername } from "@/lib/testers";
 import { Lightbox } from "@/components/Lightbox";
 import { TcButton } from "@/components/TcButton";
 import { formatLastSeen, isOnline } from "@/lib/format";
+import { profileShareUrl } from "@/lib/share-links";
+import { toast } from "sonner";
 
 /** Public profile of another user */
 export default function UserView() {
   const { id, username } = useParams<{ id: string; username: string }>();
   const parsedUserId = Number(id);
   const navigate = useNavigate();
+  const utils = trpc.useUtils();
   const profileById = trpc.profile.byId.useQuery(
     { userId: parsedUserId },
-    { enabled: !!id && Number.isFinite(parsedUserId) },
+    { enabled: !!id && Number.isFinite(parsedUserId), retry: false },
   );
   const profileByUsername = trpc.profile.byUsername.useQuery(
     { username: username ?? "" },
-    { enabled: !!username },
+    { enabled: !!username, retry: false },
   );
+  const channelByUsername = trpc.channels.byUsername.useQuery(
+    { username: username ?? "" },
+    { enabled: !!username, retry: false },
+  );
+  const joinPublicChannel = trpc.channels.joinPublic.useMutation({
+    onSuccess: async (result) => {
+      await utils.chats.list.invalidate();
+      navigate(`/chat/${result.chatId}`, { replace: true });
+    },
+    onError: (error) => toast.error(error.message),
+  });
   const profile = username ? profileByUsername : profileById;
+  const loading = username
+    ? profileByUsername.isLoading || channelByUsername.isLoading
+    : profileById.isLoading;
   const userId = profile.data?.userId ?? parsedUserId;
   const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
   const createDirect = trpc.chats.createDirect.useMutation({
@@ -31,6 +48,7 @@ export default function UserView() {
   });
 
   const p = profile.data;
+  const channel = !p && username ? channelByUsername.data : undefined;
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const displayName = p ? contactNamesQuery.data?.names[String(p.userId)] ?? p.displayName : "";
 
@@ -44,13 +62,55 @@ export default function UserView() {
           <ArrowLeft size={19} />
         </button>
       </header>
-      {profile.isLoading ? (
+      {loading ? (
         <div className="flex flex-col items-center pt-14 gap-4">
           <div className="tcy-skeleton w-32 h-32" style={{ borderRadius: "32%" }} />
           <div className="tcy-skeleton h-5 w-40 rounded-full" />
         </div>
+      ) : !p && channel ? (
+        <div className="flex flex-col items-center pt-8 px-8 pb-12">
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            className="mt-5"
+          >
+            <Avatar name={channel.title} avatarKey={channel.avatarKey} size={132} />
+          </motion.div>
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <h1 className="text-[22px] font-extrabold tcy-text text-center">{channel.title}</h1>
+            <Radio size={19} className="shrink-0" style={{ color: "#2787f5" }} />
+          </div>
+          <p className="mt-1 text-[12.5px] font-semibold" style={{ color: "#2787f5" }}>
+            Публичный канал · {channel.membersCount} подписчиков
+          </p>
+          <a
+            href={profileShareUrl(channel.username)}
+            onClick={(event) => {
+              event.preventDefault();
+              navigate(`/@${channel.username}`);
+            }}
+            className="mt-2 max-w-full break-all text-center text-[12px] underline underline-offset-2"
+            style={{ color: "#2787f5" }}
+          >
+            {profileShareUrl(channel.username)}
+          </a>
+          {channel.description && (
+            <p className="mt-4 text-center text-[13.5px] tcy-dim leading-relaxed max-w-[300px] whitespace-pre-wrap">
+              {channel.description}
+            </p>
+          )}
+          <TcButton
+            size="lg"
+            className="mt-7 max-w-[300px]"
+            loading={joinPublicChannel.isPending}
+            onClick={() => joinPublicChannel.mutate({ username: channel.username })}
+          >
+            <Radio size={18} /> Подписаться и открыть канал
+          </TcButton>
+        </div>
       ) : !p ? (
-        <p className="text-center tcy-dim pt-20">Пользователь не найден</p>
+        <p className="text-center tcy-dim pt-20">Пользователь или публичный канал не найден</p>
       ) : (
         <div className="flex flex-col items-center pt-8 px-8">
           <div
