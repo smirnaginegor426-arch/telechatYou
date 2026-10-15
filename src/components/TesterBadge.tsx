@@ -1,7 +1,6 @@
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { TESTER_BADGE_IMAGE } from "@/lib/tester-badge-image";
 
 function TesterEmblemFallback({ size }: { size: number }) {
   return (
@@ -10,25 +9,44 @@ function TesterEmblemFallback({ size }: { size: number }) {
       width={size}
       height={size}
       viewBox="0 0 256 256"
-      className="shrink-0"
+      className="shrink-0 object-contain"
     >
       <defs>
-        <linearGradient id="tester-avatar" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#303136" />
-          <stop offset="100%" stopColor="#080809" />
+        <linearGradient id="tester-badge-blue" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#56b5ff" />
+          <stop offset="52%" stopColor="#1684ed" />
+          <stop offset="100%" stopColor="#0755bb" />
         </linearGradient>
-        <linearGradient id="tester-check" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#168bff" />
-          <stop offset="100%" stopColor="#0061e8" />
-        </linearGradient>
+        <radialGradient id="tester-badge-center" cx="38%" cy="28%" r="78%">
+          <stop offset="0%" stopColor="#44a8f8" />
+          <stop offset="72%" stopColor="#1674d5" />
+          <stop offset="100%" stopColor="#0755bb" />
+        </radialGradient>
       </defs>
-      <circle cx="128" cy="69" r="31" fill="url(#tester-avatar)" />
+      <g fill="url(#tester-badge-blue)">
+        {Array.from({ length: 10 }, (_, index) => (
+          <rect
+            key={index}
+            x="105"
+            y="6"
+            width="46"
+            height="65"
+            rx="17"
+            transform={`rotate(${index * 36} 128 128)`}
+          />
+        ))}
+        <circle cx="128" cy="128" r="91" />
+      </g>
+      <circle cx="128" cy="128" r="72" fill="#0753af" opacity="0.82" />
+      <circle cx="128" cy="124" r="62" fill="url(#tester-badge-center)" stroke="#5cb8ff" strokeWidth="4" />
       <path
-        d="M64 220 C69 171 81 137 106 126 C119 120 137 120 150 126 C175 137 187 171 192 220 C193 234 181 241 167 241 H89 C75 241 63 234 64 220Z"
-        fill="url(#tester-avatar)"
+        d="M91 127 L118 154 L169 98"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="19"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
-      <circle cx="173" cy="158" r="28" fill="#087cff" />
-      <path d="M159 158 L169 168 L188 147" fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -36,7 +54,6 @@ function TesterEmblemFallback({ size }: { size: number }) {
 /** Interactive tester emblem and bottom information sheet. */
 export function TesterBadge({ size = 24 }: { size?: number }) {
   const [open, setOpen] = useState(false);
-  const [imageFailed, setImageFailed] = useState(false);
 
   const openSheet = (event: MouseEvent<HTMLSpanElement>) => {
     event.stopPropagation();
@@ -50,19 +67,7 @@ export function TesterBadge({ size = 24 }: { size?: number }) {
     setOpen(true);
   };
 
-  const emblem = (displaySize: number) =>
-    imageFailed ? (
-      <TesterEmblemFallback size={displaySize} />
-    ) : (
-      <img
-        src={TESTER_BADGE_IMAGE}
-        alt=""
-        draggable={false}
-        onError={() => setImageFailed(true)}
-        className="object-contain"
-        style={{ width: displaySize, height: displaySize }}
-      />
-    );
+  const emblem = (displaySize: number) => <TesterEmblemFallback size={displaySize} />;
 
   return (
     <>
@@ -118,9 +123,9 @@ export function TesterBadge({ size = 24 }: { size?: number }) {
                   <div className="pt-3 pb-1 flex justify-center">
                     <div className="w-10 h-1.5 rounded-full" style={{ background: "var(--tcy-line-strong)" }} />
                   </div>
-                  <div className="px-6 pt-5 pb-8 safe-bottom flex flex-col items-center gap-3.5 text-center">
-                    {emblem(92)}
-                    <p className="max-w-[300px] text-[15px] leading-relaxed font-semibold tcy-text">
+                  <div className="px-6 pt-6 pb-10 safe-bottom flex flex-col items-center gap-4 text-center">
+                    {emblem(110)}
+                    <p className="max-w-[320px] text-[15.5px] leading-relaxed font-semibold tcy-text">
                       Это официальный тестер мессенджера TeleChat You
                     </p>
                     <button
