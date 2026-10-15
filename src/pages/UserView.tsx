@@ -12,10 +12,19 @@ import { formatLastSeen, isOnline } from "@/lib/format";
 
 /** Public profile of another user */
 export default function UserView() {
-  const { id } = useParams<{ id: string }>();
-  const userId = Number(id);
+  const { id, username } = useParams<{ id: string; username: string }>();
+  const parsedUserId = Number(id);
   const navigate = useNavigate();
-  const profile = trpc.profile.byId.useQuery({ userId });
+  const profileById = trpc.profile.byId.useQuery(
+    { userId: parsedUserId },
+    { enabled: !!id && Number.isFinite(parsedUserId) },
+  );
+  const profileByUsername = trpc.profile.byUsername.useQuery(
+    { username: username ?? "" },
+    { enabled: !!username },
+  );
+  const profile = username ? profileByUsername : profileById;
+  const userId = profile.data?.userId ?? parsedUserId;
   const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
   const createDirect = trpc.chats.createDirect.useMutation({
     onSuccess: (r) => navigate(`/chat/${r.chatId}`, { replace: true }),
