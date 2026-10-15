@@ -7,6 +7,7 @@ import {
   BellOff,
   Camera,
   Check,
+  Copy,
   Crown,
   FileText,
   Image as ImageIcon,
@@ -24,6 +25,8 @@ import {
   UserPlus,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
+import { toast } from "sonner";
+import { chatShareUrl, copyTextToClipboard, profileShareUrl } from "@/lib/share-links";
 import { useTheme } from "@/hooks/useTheme";
 import { Avatar } from "@/components/Avatar";
 import { TesterBadge } from "@/components/TesterBadge";
@@ -172,6 +175,16 @@ export default function ChatInfo() {
   const myRole = data?.me.role;
   const canEdit = isGroup && (myRole === "owner" || myRole === "admin");
   const canManageChannel = !!channel && myRole === "owner";
+
+  const shareUrl = channel?.isPublic && channel.username
+    ? profileShareUrl(channel.username)
+    : chatShareUrl(chatId);
+
+  const copyChatLink = async () => {
+    const copied = await copyTextToClipboard(shareUrl);
+    if (copied) toast.success(channel?.isPublic ? "Ссылка на канал скопирована" : "Ссылка на чат скопирована");
+    else toast.error("Не удалось скопировать ссылку");
+  };
 
   // shared media/files: load recent messages and pick attachments
   const recentMedia = trpc.messages.list.useQuery({ chatId });
@@ -429,10 +442,30 @@ export default function ChatInfo() {
         {!isGroup && peer?.bio && (
           <p className="mt-2.5 text-center text-[13px] tcy-dim max-w-[280px]">{peer.bio}</p>
         )}
+        <a
+          href={shareUrl}
+          onClick={(event) => {
+            event.preventDefault();
+            const target = new URL(shareUrl);
+            navigate(target.pathname + target.search + target.hash);
+          }}
+          className="mt-3 max-w-full break-all text-center text-[12px] underline underline-offset-2"
+          style={{ color: "#2787f5" }}
+        >
+          {shareUrl}
+        </a>
       </div>
 
       {/* quick actions */}
       <div className="mx-4 mt-6 rounded-[24px] tcy-card border tcy-line divide-y divide-[color:var(--tcy-line)]">
+        <button
+          type="button"
+          onClick={() => void copyChatLink()}
+          className="w-full flex items-center gap-3.5 px-4 py-3.5 tcy-press text-left"
+        >
+          <Copy size={17} className="tcy-accent" />
+          <span className="text-[14px] font-semibold tcy-text flex-1">Скопировать ссылку</span>
+        </button>
         <button
           onClick={() => flags.mutate({ chatId, pinned: !data.me.pinned })}
           className="w-full flex items-center gap-3.5 px-4 py-3.5 tcy-press"

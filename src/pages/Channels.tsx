@@ -260,7 +260,17 @@ export default function ChannelsPage() {
                   <Avatar name={channel.title} avatarKey={channel.avatarKey} size={48} />
                   <div className="min-w-0 flex-1">
                     <div className="text-[14px] font-bold tcy-text truncate">{channel.title}</div>
-                    <div className="text-[11.5px] tcy-accent truncate">@{channel.username} · {channel.membersCount} подписч.</div>
+                    <div className="text-[11.5px] truncate">
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/@${channel.username}`)}
+                        className="underline underline-offset-2"
+                        style={{ color: "#2787f5" }}
+                      >
+                        @{channel.username}
+                      </button>
+                      <span className="tcy-accent"> · {channel.membersCount} подписч.</span>
+                    </div>
                     {channel.description && (
                       <p className="text-[11.5px] tcy-dim mt-1 line-clamp-2">{channel.description}</p>
                     )}

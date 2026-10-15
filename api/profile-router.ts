@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { eq, ne } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { profiles, users } from "@db/schema";
+import { channels, profiles, users } from "@db/schema";
 import {
   ensureSettings,
   getProfileByUserId,
@@ -24,10 +24,12 @@ export const profileRouter = createRouter({
   checkUsername: authedQuery
     .input(z.object({ username: z.string().regex(usernameRe) }))
     .query(async ({ ctx, input }) => {
-      const taken = await getDb().query.profiles.findFirst({
-        where: eq(profiles.username, input.username.toLowerCase()),
-      });
-      return { available: !taken || taken.userId === ctx.user.id };
+      const username = input.username.toLowerCase();
+      const [taken, takenChannel] = await Promise.all([
+        getDb().query.profiles.findFirst({ where: eq(profiles.username, username) }),
+        getDb().query.channels.findFirst({ where: eq(channels.username, username) }),
+      ]);
+      return { available: (!taken || taken.userId === ctx.user.id) && !takenChannel };
     }),
 
   /** finish onboarding: create profile */
@@ -48,6 +50,10 @@ export const profileRouter = createRouter({
         where: eq(profiles.username, username),
       });
       if (taken) throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят" });
+      const takenChannel = await getDb().query.channels.findFirst({
+        where: eq(channels.username, username),
+      });
+      if (takenChannel) throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят каналом" });
       await getDb().insert(profiles).values({
         userId: ctx.user.id,
         username,
@@ -86,6 +92,11 @@ export const profileRouter = createRouter({
         });
         if (taken && taken.userId !== ctx.user.id)
           throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят" });
+        const takenChannel = await getDb().query.channels.findFirst({
+          where: eq(channels.username, username),
+        });
+        if (takenChannel)
+          throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят каналом" });
         patch.username = username;
       }
       await getDb().update(profiles).set(patch).where(eq(profiles.userId, ctx.user.id));

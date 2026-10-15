@@ -14,6 +14,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
+import { copyTextToClipboard, profileShareUrl } from "@/lib/share-links";
 
 export default function Profile() {
   const { logout } = useAuth();
@@ -92,32 +93,7 @@ export default function Profile() {
 
   const copyProfileLink = async () => {
     if (!profile) return;
-    const profileUrl = window.location.origin + "/@" + encodeURIComponent(profile.username);
-    let copied = false;
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(profileUrl);
-        copied = true;
-      }
-    } catch {
-      // Older Android WebViews may deny the Clipboard API; try the fallback below.
-    }
-
-    if (!copied) {
-      const input = document.createElement("textarea");
-      input.value = profileUrl;
-      input.setAttribute("readonly", "");
-      input.style.position = "fixed";
-      input.style.opacity = "0";
-      document.body.appendChild(input);
-      input.select();
-      try {
-        copied = document.execCommand("copy");
-      } finally {
-        input.remove();
-      }
-    }
-
+    const copied = await copyTextToClipboard(profileShareUrl(profile.username));
     if (copied) toast.success("Ссылка на профиль скопирована");
     else toast.error("Не удалось скопировать ссылку");
     setActionsOpen(false);
