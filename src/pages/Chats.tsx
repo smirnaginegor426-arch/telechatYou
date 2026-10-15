@@ -248,7 +248,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
       {/* Built-in bot can be archived and restored like other chats. */}
       <div className="tcy-chat-list-scroll flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
         {showConnectionSplash ? (
-          <div className="flex min-h-[min(50vh,360px)] items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center">
             <ConnectionLoader />
           </div>
         ) : (
