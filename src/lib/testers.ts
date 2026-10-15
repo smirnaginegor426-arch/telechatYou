@@ -1,12 +1,23 @@
 /**
- * Usernames allowed to display the TeleChat You tester badge.
- * Add tester usernames here (with or without "@"); matching is case-insensitive.
+ * Accounts allowed to display the TeleChat You tester badge.
+ * Both username and numeric user ID must match.
  */
-const TESTER_USERNAMES: readonly string[] = [];
+const TESTERS = [
+  { username: "artemizzz", userId: 848009 },
+] as const;
 
-export function isTesterUsername(username?: string | null): boolean {
+export function isTesterUsername(
+  username?: string | null,
+  userId?: number | string | null,
+): boolean {
   const normalized = username?.trim().replace(/^@/, "").toLowerCase();
-  return !!normalized && TESTER_USERNAMES.some(
-    (tester) => tester.trim().replace(/^@/, "").toLowerCase() === normalized,
-  );
+  const normalizedUserId = userId == null || userId === "" ? NaN : Number(userId);
+
+  return !!normalized &&
+    Number.isSafeInteger(normalizedUserId) &&
+    TESTERS.some(
+      (tester) =>
+        tester.username === normalized &&
+        tester.userId === normalizedUserId,
+    );
 }
