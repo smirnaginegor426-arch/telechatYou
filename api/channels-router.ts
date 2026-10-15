@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, like } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { channels, chatMembers, chats } from "@db/schema";
+import { channels, chatMembers, chats, profiles } from "@db/schema";
 import { getChatMembers, getMembership } from "./queries/telechat";
 
 const channelUsername = z.string().trim().toLowerCase().min(3).max(32).regex(
@@ -41,6 +41,31 @@ export const channelsRouter = createRouter({
       })));
     }),
 
+  /** Resolve a public channel handle for links like https://telechatyou.app/@name. */
+  byUsername: authedQuery
+    .input(z.object({ username: channelUsername }))
+    .query(async ({ input }) => {
+      const rows = await getDb()
+        .select({ channel: channels, chat: chats })
+        .from(channels)
+        .innerJoin(chats, eq(channels.chatId, chats.id))
+        .where(and(eq(channels.username, input.username), eq(channels.isPublic, true)))
+        .limit(1);
+      const found = rows[0];
+      if (!found || !found.channel.username) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Публичный канал не найден" });
+      }
+
+      return {
+        chatId: found.chat.id,
+        title: found.chat.title ?? "Канал",
+        avatarKey: found.chat.avatarKey,
+        description: found.channel.description,
+        username: found.channel.username,
+        membersCount: (await getChatMembers(found.chat.id)).length,
+      };
+    }),
+
   create: authedQuery
     .input(z.object({
       title: z.string().trim().min(1).max(96),
@@ -65,6 +90,12 @@ export const channelsRouter = createRouter({
         });
         if (existing) {
           throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят" });
+        }
+        const existingProfile = await getDb().query.profiles.findFirst({
+          where: eq(profiles.username, username),
+        });
+        if (existingProfile) {
+          throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят пользователем" });
         }
       }
 
