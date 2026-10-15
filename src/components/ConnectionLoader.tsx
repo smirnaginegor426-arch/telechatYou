@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
 
-const transition = {
-  duration: 1.25,
-  times: [0, 0.16, 0.36, 0.58, 0.78, 1],
+const splitTransition = {
+  duration: 1.4,
+  times: [0, 0.2, 0.8, 1],
   repeat: Infinity,
   ease: "easeInOut" as const,
 };
@@ -11,29 +11,38 @@ export function ConnectionLoader() {
   return (
     <div
       role="status"
-      aria-label="Подключение к чатам"
-      className="flex w-full items-center justify-center py-8"
+      aria-label="Загрузка чатов"
+      className="flex min-h-[min(50vh,360px)] w-full items-center justify-center pointer-events-none"
     >
-      <div className="relative h-12 w-12" aria-hidden="true">
-        {/* Two synchronized copies start as one dot, split apart,
-            orbit past one another, and meet at the exact same center again. */}
+      <div className="relative h-8 w-8" aria-hidden="true">
+        {/* Two clipped semicircles form one dot, then split, spin twice, and rejoin. */}
         <motion.span
-          className="absolute left-1/2 top-1/2 h-[8px] w-[8px] -translate-x-1/2 -translate-y-1/2 rounded-full tcy-accent-bg"
-          animate={{
-            x: [0, -6, -10, -8, -3, 0],
-            y: [0, -5, 0, 6, 4, 0],
-            scale: [1, 0.95, 0.82, 0.92, 0.98, 1],
+          className="absolute left-1/2 top-1/2 h-2.5 w-2.5 rounded-full tcy-accent-bg"
+          style={{
+            marginLeft: -5,
+            marginTop: -5,
+            clipPath: "inset(0 50% 0 0)",
           }}
-          transition={transition}
+          animate={{
+            x: [0, -8, -8, 0],
+            y: [0, -3, -3, 0],
+            rotate: [0, 0, 720, 720],
+          }}
+          transition={splitTransition}
         />
         <motion.span
-          className="absolute left-1/2 top-1/2 h-[8px] w-[8px] -translate-x-1/2 -translate-y-1/2 rounded-full tcy-accent-bg"
-          animate={{
-            x: [0, 6, 10, 8, 3, 0],
-            y: [0, 5, 0, -6, -4, 0],
-            scale: [1, 0.95, 0.82, 0.92, 0.98, 1],
+          className="absolute left-1/2 top-1/2 h-2.5 w-2.5 rounded-full tcy-accent-bg"
+          style={{
+            marginLeft: -5,
+            marginTop: -5,
+            clipPath: "inset(0 0 0 50%)",
           }}
-          transition={transition}
+          animate={{
+            x: [0, 8, 8, 0],
+            y: [0, 3, 3, 0],
+            rotate: [0, 0, -720, -720],
+          }}
+          transition={splitTransition}
         />
       </div>
     </div>
