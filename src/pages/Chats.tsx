@@ -64,8 +64,8 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
   const [hasInitialLoad, setHasInitialLoad] = useState(false);
 
   useEffect(() => {
-    if (list.isSuccess && !list.isFetching) setHasInitialLoad(true);
-  }, [list.isSuccess, list.isFetching]);
+    if (isOnline && list.isSuccess && !list.isFetching) setHasInitialLoad(true);
+  }, [isOnline, list.isSuccess, list.isFetching]);
 
   useEffect(() => {
     if (isOnline && list.isError && !hasInitialLoad) {
