@@ -108,7 +108,7 @@ export default function NewChat() {
               <div className="flex-1 min-w-0">
                 <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
                   <span className="truncate">{p.displayName}</span>
-                  {isTesterUsername(p.username) && <TesterBadge />}
+                  {isTesterUsername(p.username, p.userId) && <TesterBadge />}
                 </div>
                 <div className="text-[12.5px] tcy-faint">@{p.username}</div>
               </div>
