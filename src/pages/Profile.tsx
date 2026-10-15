@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { motion } from "framer-motion";
-import { AtSign, Camera, Check, ChevronRight, LogOut, Pencil, Quote, UsersRound } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { AtSign, Camera, Check, ChevronRight, Copy, ImagePlus, LogOut, MoreVertical, Pencil, Quote, RefreshCw, Trash2, UsersRound } from "lucide-react";
+import { toast } from "sonner";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
@@ -28,6 +29,8 @@ export default function Profile() {
   const [error, setError] = useState("");
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [deleteAvatarOpen, setDeleteAvatarOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const update = trpc.profile.update.useMutation({
@@ -65,9 +68,32 @@ export default function Profile() {
       folder: "avatars",
     });
     await update.mutateAsync({ avatarKey: res.key });
+    toast.success(profile?.avatarKey ? "Аватарка заменена" : "Аватарка добавлена");
   };
 
+  const copyProfileLink = async () => {
+    if (!profile) return;
+    const profileUrl = window.location.origin + "/@" + encodeURIComponent(profile.username);
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      toast.success("Ссылка на профиль скопирована");
+    } catch {
+      toast.error("Не удалось скопировать ссылку");
+    }
+    setActionsOpen(false);
+  };
 
+  const removeAvatar = async () => {
+    try {
+      await update.mutateAsync({ avatarKey: null });
+      setAvatarPreviewOpen(false);
+      setDeleteAvatarOpen(false);
+      setActionsOpen(false);
+      toast.success("Аватарка удалена");
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "Не удалось удалить аватарку");
+    }
+  };
 
   if (me.isLoading || !profile) {
     return (
@@ -81,6 +107,83 @@ export default function Profile() {
 
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
+      <div
+        className="absolute right-4 z-40"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+      >
+        <button
+          type="button"
+          aria-label="Действия с профилем"
+          aria-expanded={actionsOpen}
+          onClick={() => setActionsOpen((open) => !open)}
+          className="tcy-press flex h-11 w-11 items-center justify-center rounded-full tcy-card border tcy-line tcy-text"
+        >
+          <MoreVertical size={20} />
+        </button>
+        <AnimatePresence>
+          {actionsOpen && (
+            <motion.div
+              role="menu"
+              initial={{ opacity: 0, y: -8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.97 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+              className="absolute right-0 top-[calc(100%+8px)] w-64 origin-top-right rounded-[20px] tcy-card border tcy-line p-1.5 shadow-2xl backdrop-blur-2xl"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={copyProfileLink}
+                className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-text"
+              >
+                <Copy size={17} className="tcy-accent" />
+                <span>Скопировать ссылку</span>
+              </button>
+              {!profile.avatarKey ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setActionsOpen(false);
+                    fileRef.current?.click();
+                  }}
+                  className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-text"
+                >
+                  <ImagePlus size={17} className="tcy-accent" />
+                  <span>Добавить аватарку</span>
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setActionsOpen(false);
+                      fileRef.current?.click();
+                    }}
+                    className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-text"
+                  >
+                    <RefreshCw size={17} className="tcy-accent" />
+                    <span>Заменить аватарку</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setActionsOpen(false);
+                      setDeleteAvatarOpen(true);
+                    }}
+                    className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-danger"
+                  >
+                    <Trash2 size={17} />
+                    <span>Удалить аватарку</span>
+                  </button>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       <input
         ref={fileRef}
         type="file"
@@ -196,6 +299,16 @@ export default function Profile() {
           TeleChatYou · ID {profile.userId}
         </p>
       </div>
+
+      <BottomSheet open={deleteAvatarOpen} onClose={() => setDeleteAvatarOpen(false)} title="Удалить аватарку?">
+        <div className="px-5 pb-5 space-y-4">
+          <p className="text-[13.5px] leading-relaxed tcy-dim">Текущая фотография профиля будет удалена. Вместо неё будет отображаться стандартная аватарка.</p>
+          <div className="flex items-center justify-end gap-2">
+            <TcButton size="sm" variant="soft" onClick={() => setDeleteAvatarOpen(false)}>Отмена</TcButton>
+            <TcButton size="sm" variant="danger" loading={update.isPending} onClick={removeAvatar}><Trash2 size={15} /> Удалить</TcButton>
+          </div>
+        </div>
+      </BottomSheet>
 
       {/* edit sheet */}
       <BottomSheet open={editOpen} onClose={() => setEditOpen(false)} title="Редактировать профиль">
