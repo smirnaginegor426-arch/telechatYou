@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { Composer } from "@/components/Composer";
 import { BottomSheet } from "@/components/BottomSheet";
 import { MessageBubble, ReplyPreviewBar } from "@/components/MessageBubble";
@@ -541,7 +543,10 @@ export default function ChatView() {
               showOnline={!isGroup}
             />
             <div className="min-w-0">
-              <div className="font-bold text-[15.5px] tcy-text truncate">{title}</div>
+              <div className="flex min-w-0 items-center gap-1.5 font-bold text-[15.5px] tcy-text">
+                <span className="truncate">{title}</span>
+                {!isGroup && isTesterUsername(peer?.username) && <TesterBadge />}
+              </div>
               <div
                 className="text-[12px] font-semibold truncate transition-colors"
                 style={{ color: online ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
