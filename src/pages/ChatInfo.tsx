@@ -310,18 +310,7 @@ export default function ChatInfo() {
               Изменить
             </button>
           )}
-          {!isGroup && !channel && !data.me.pinned /* display menu for personal conversations */ && (
-            <button
-              type="button"
-              onClick={() => setChatMenuOpen((open) => !open)}
-              aria-label="Действия с чатом"
-              aria-expanded={chatMenuOpen}
-              className="tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
-            >
-              <MoreVertical size={20} />
-            </button>
-          )}
-          {!isGroup && !channel && data.me.pinned && (
+          {!isGroup && !channel && (
             <button
               type="button"
               onClick={() => setChatMenuOpen((open) => !open)}
