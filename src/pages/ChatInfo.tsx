@@ -21,6 +21,8 @@ import {
 import { trpc } from "@/providers/trpc";
 import { useTheme } from "@/hooks/useTheme";
 import { Avatar } from "@/components/Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
@@ -310,7 +312,10 @@ export default function ChatInfo() {
             </button>
           )}
         </motion.div>
-        <h1 className="mt-4 text-[20px] font-extrabold tcy-text text-center">{name}</h1>
+        <div className="mt-4 flex items-center justify-center gap-2">
+          <h1 className="text-[20px] font-extrabold tcy-text text-center">{name}</h1>
+          {!isGroup && isTesterUsername(peer?.username) && <TesterBadge />}
+        </div>
         <p className="mt-1 text-[12.5px] tcy-faint font-semibold">
           {channel
             ? `${channel.isPublic ? `@${channel.username}` : "Приватный канал"} · ${data.members.length} подписчиков`
