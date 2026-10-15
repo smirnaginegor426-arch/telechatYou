@@ -40,9 +40,10 @@ async function buildChatListItem(m: typeof chatMembers.$inferSelect, userId: num
   const selfKey = `${userId}:${userId}`;
   const isFavorites = chat.type === "direct" && chat.directKey === selfKey;
   if (isFavorites && !peer) peer = (await getProfilesByIds([userId]))[0] ?? null;
-  const channel = chat.type === "group"
+  const community = chat.type === "group"
     ? await getDb().query.channels.findFirst({ where: eq(channels.chatId, chat.id) }) ?? null
     : null;
+  const channel = community?.kind === "channel" ? community : null;
   if (isFavorites && chat.title !== "Избранное") {
     await getDb().update(chats).set({ title: "Избранное" }).where(eq(chats.id, chat.id));
     chat.title = "Избранное";
@@ -173,15 +174,17 @@ export const chatsRouter = createRouter({
       });
       if (!chat) throw new TRPCError({ code: "NOT_FOUND" });
       const members = await getChatMembers(chat.id);
-      const channel = await getDb().query.channels.findFirst({
+      const community = await getDb().query.channels.findFirst({
         where: eq(channels.chatId, chat.id),
       }) ?? null;
+      const channel = community?.kind === "channel" ? community : null;
+      const publicGroup = community?.kind === "group" ? community : null;
       let peer: typeof profiles.$inferSelect | null = null;
       if (chat.type === "direct") {
         const other = members.find((m) => m.userId !== ctx.user.id);
         if (other?.userId) peer = (await getProfilesByIds([other.userId]))[0] ?? null;
       }
-      return { chat, members, me, peer, channel };
+      return { chat, members, me, peer, channel, publicGroup };
     }),
 
   blockStatus: authedQuery
@@ -272,7 +275,7 @@ export const chatsRouter = createRouter({
       const channel = await getDb().query.channels.findFirst({
         where: eq(channels.chatId, input.chatId),
       });
-      if (channel && me.role !== "owner" && me.role !== "admin") {
+      if (channel && channel.kind === "channel" && me.role !== "owner" && me.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Добавлять участников в канал может только владелец или администратор" });
       }
       const existing = await getChatMembers(input.chatId);
@@ -282,7 +285,7 @@ export const chatsRouter = createRouter({
         await getDb()
           .insert(chatMembers)
           .values(fresh.map((u) => ({ chatId: input.chatId, userId: u, role: "member" as const })));
-        if (!channel) {
+        if (!channel || channel.kind === "group") {
           const profs = await getProfilesByIds(fresh);
           const meProfile = (await getProfilesByIds([ctx.user.id]))[0];
           await getDb().insert(messages).values({
@@ -305,7 +308,7 @@ export const chatsRouter = createRouter({
       const channel = await getDb().query.channels.findFirst({
         where: eq(channels.chatId, input.chatId),
       });
-      if (!channel) throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
+      if (!channel || channel.kind !== "channel") throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
       const actor = await getMembership(input.chatId, ctx.user.id);
       if (!actor || actor.role !== "owner") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Только владелец канала может менять администраторов" });
@@ -332,7 +335,7 @@ export const chatsRouter = createRouter({
       const channel = await getDb().query.channels.findFirst({
         where: eq(channels.chatId, input.chatId),
       });
-      if (!channel) throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
+      if (!channel || channel.kind !== "channel") throw new TRPCError({ code: "BAD_REQUEST", message: "Это не канал" });
       const actor = await getMembership(input.chatId, ctx.user.id);
       if (!actor || (actor.role !== "owner" && actor.role !== "admin")) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Недостаточно прав для удаления подписчика" });

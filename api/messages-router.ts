@@ -283,7 +283,7 @@ export const messagesRouter = createRouter({
       if (!me) throw new TRPCError({ code: "FORBIDDEN" });
       await assertDirectChatNotBlocked(input.chatId, ctx.user.id);
       const channel = await getDb().query.channels.findFirst({ where: eq(channels.chatId, input.chatId) });
-      if (channel && me.role !== "owner" && me.role !== "admin") {
+      if (channel && channel.kind === "channel" && me.role !== "owner" && me.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "В канале могут публиковать только владелец и администраторы" });
       }
       if (input.kind === "text" && !input.body?.trim())
@@ -361,7 +361,7 @@ export const messagesRouter = createRouter({
       if (!target) throw new TRPCError({ code: "FORBIDDEN" });
       await assertDirectChatNotBlocked(input.targetChatId, ctx.user.id);
       const targetChannel = await getDb().query.channels.findFirst({ where: eq(channels.chatId, input.targetChatId) });
-      if (targetChannel && target.role !== "owner" && target.role !== "admin") {
+      if (targetChannel && targetChannel.kind === "channel" && target.role !== "owner" && target.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Публиковать в канале могут только владелец и администраторы" });
       }
       const source = await getDb()

@@ -131,6 +131,7 @@ export const channels = mysqlTable(
     id: serial("id").primaryKey(),
     chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull().unique(),
     ownerId: bigint("ownerId", { mode: "number", unsigned: true }).notNull(),
+    kind: mysqlEnum("kind", ["channel", "group"]).default("channel").notNull(),
     username: varchar("username", { length: 32 }).unique(),
     description: varchar("description", { length: 280 }).default("").notNull(),
     isPublic: boolean("isPublic").default(false).notNull(),

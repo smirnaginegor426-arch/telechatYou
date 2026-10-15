@@ -35,7 +35,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
     location.pathname.startsWith("/setup") ||
     location.pathname.startsWith("/folders") ||
     location.pathname.startsWith("/stickers");
-  const hidden = deviceMode !== "desktop" && hiddenOnMobile;
+  const hidden = location.pathname.startsWith("/create") || (deviceMode !== "desktop" && hiddenOnMobile);
   const activeTo =
     location.pathname === "/"
       ? "/"

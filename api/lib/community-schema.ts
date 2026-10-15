@@ -12,6 +12,7 @@ export async function ensureCommunitySchema(): Promise<void> {
       id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       chatId BIGINT UNSIGNED NOT NULL,
       ownerId BIGINT UNSIGNED NOT NULL,
+      kind ENUM('channel','group') NOT NULL DEFAULT 'channel',
       username VARCHAR(32) NULL,
       description VARCHAR(280) NOT NULL DEFAULT '',
       isPublic BOOLEAN NOT NULL DEFAULT FALSE,
@@ -56,5 +57,17 @@ export async function ensureCommunitySchema(): Promise<void> {
 
   for (const statement of statements) {
     await getDb().execute(sql.raw(statement));
+  }
+
+  // Existing Render databases may have been created before public groups existed.
+  // Try the additive migration on every boot and ignore only MySQL's duplicate-column error.
+  try {
+    await getDb().execute(sql.raw(
+      "ALTER TABLE channels ADD COLUMN kind ENUM('channel','group') NOT NULL DEFAULT 'channel' AFTER ownerId",
+    ));
+  } catch (error) {
+    const cause = error as { code?: string; cause?: { code?: string } };
+    const code = cause.code ?? cause.cause?.code;
+    if (code !== "ER_DUP_FIELDNAME") throw error;
   }
 }

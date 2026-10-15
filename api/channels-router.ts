@@ -17,9 +17,10 @@ export const channelsRouter = createRouter({
     .input(z.object({ query: z.string().trim().max(64).optional() }).optional())
     .query(async ({ input }) => {
       const query = input?.query?.trim().replace(/^@/, "");
+      const isChannel = eq(channels.kind, "channel");
       const where = query
-        ? and(eq(channels.isPublic, true), like(channels.username, `%${query}%`))
-        : eq(channels.isPublic, true);
+        ? and(eq(channels.isPublic, true), isChannel, like(channels.username, `%${query}%`))
+        : and(eq(channels.isPublic, true), isChannel);
       const rows = await getDb()
         .select({ channel: channels, chat: chats })
         .from(channels)
@@ -58,7 +59,8 @@ export const channelsRouter = createRouter({
 
       return {
         chatId: found.chat.id,
-        title: found.chat.title ?? "Канал",
+        kind: found.channel.kind,
+        title: found.chat.title ?? (found.channel.kind === "group" ? "Группа" : "Канал"),
         avatarKey: found.chat.avatarKey,
         description: found.channel.description,
         username: found.channel.username,
@@ -66,8 +68,23 @@ export const channelsRouter = createRouter({
       };
     }),
 
+  usernameAvailable: authedQuery
+    .input(z.object({ username: z.string().trim().toLowerCase().max(32) }))
+    .query(async ({ input }) => {
+      const username = input.username;
+      if (!/^[a-z0-9_]{3,32}$/.test(username)) {
+        return { username, available: false };
+      }
+      const [existingChannel, existingProfile] = await Promise.all([
+        getDb().query.channels.findFirst({ where: eq(channels.username, username) }),
+        getDb().query.profiles.findFirst({ where: eq(profiles.username, username) }),
+      ]);
+      return { username, available: !existingChannel && !existingProfile };
+    }),
+
   create: authedQuery
     .input(z.object({
+      kind: z.enum(["channel", "group"]).default("channel"),
       title: z.string().trim().min(1).max(96),
       description: z.string().trim().max(280).default(""),
       avatarKey: z.string().max(255).optional(),
@@ -81,7 +98,7 @@ export const channelsRouter = createRouter({
         if (!parsed.success) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "Для публичного канала укажите username от 3 до 32 символов: латиница, цифры и _",
+            message: `Для публичного ${input.kind === "group" ? "группы" : "канала"} укажите username от 3 до 32 символов: латиница, цифры и _`,
           });
         }
         username = parsed.data;
@@ -119,6 +136,7 @@ export const channelsRouter = createRouter({
         await getDb().insert(channels).values({
           chatId,
           ownerId: ctx.user.id,
+          kind: input.kind,
           username,
           description: input.description,
           isPublic: input.isPublic,

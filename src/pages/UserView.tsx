@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, AtSign, MessageCircle, Quote, Radio } from "lucide-react";
+import { ArrowLeft, AtSign, MessageCircle, Quote, Radio, Users } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
 import { TesterBadge } from "@/components/TesterBadge";
@@ -79,10 +79,10 @@ export default function UserView() {
           </motion.div>
           <div className="mt-5 flex items-center justify-center gap-2">
             <h1 className="text-[22px] font-extrabold tcy-text text-center">{channel.title}</h1>
-            <Radio size={19} className="shrink-0" style={{ color: "#2787f5" }} />
+            {channel.kind === "group" ? <Users size={19} className="shrink-0" style={{ color: "#2787f5" }} /> : <Radio size={19} className="shrink-0" style={{ color: "#2787f5" }} />}
           </div>
           <p className="mt-1 text-[12.5px] font-semibold" style={{ color: "#2787f5" }}>
-            Публичный канал · {channel.membersCount} подписчиков
+            {channel.kind === "group" ? `Публичная группа · ${channel.membersCount} участников` : `Публичный канал · ${channel.membersCount} подписчиков`}
           </p>
           <a
             href={profileShareUrl(channel.username)}
@@ -106,7 +106,8 @@ export default function UserView() {
             loading={joinPublicChannel.isPending}
             onClick={() => joinPublicChannel.mutate({ username: channel.username })}
           >
-            <Radio size={18} /> Подписаться и открыть канал
+            {channel.kind === "group" ? <Users size={18} /> : <Radio size={18} />}
+            {channel.kind === "group" ? "Вступить в группу" : "Подписаться и открыть канал"}
           </TcButton>
         </div>
       ) : !p ? (
