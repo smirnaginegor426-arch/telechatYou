@@ -93,12 +93,33 @@ export default function Profile() {
   const copyProfileLink = async () => {
     if (!profile) return;
     const profileUrl = window.location.origin + "/@" + encodeURIComponent(profile.username);
+    let copied = false;
     try {
-      await navigator.clipboard.writeText(profileUrl);
-      toast.success("Ссылка на профиль скопирована");
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(profileUrl);
+        copied = true;
+      }
     } catch {
-      toast.error("Не удалось скопировать ссылку");
+      // Older Android WebViews may deny the Clipboard API; try the fallback below.
     }
+
+    if (!copied) {
+      const input = document.createElement("textarea");
+      input.value = profileUrl;
+      input.setAttribute("readonly", "");
+      input.style.position = "fixed";
+      input.style.opacity = "0";
+      document.body.appendChild(input);
+      input.select();
+      try {
+        copied = document.execCommand("copy");
+      } finally {
+        input.remove();
+      }
+    }
+
+    if (copied) toast.success("Ссылка на профиль скопирована");
+    else toast.error("Не удалось скопировать ссылку");
     setActionsOpen(false);
   };
 
