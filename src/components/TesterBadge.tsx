@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
+import { TESTER_BADGE_IMAGE } from "@/lib/tester-badge-image";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -54,6 +55,7 @@ function TesterEmblemFallback({ size }: { size: number }) {
 /** Interactive tester emblem and bottom information sheet. */
 export function TesterBadge({ size = 24 }: { size?: number }) {
   const [open, setOpen] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   const openSheet = (event: MouseEvent<HTMLSpanElement>) => {
     event.stopPropagation();
@@ -67,7 +69,19 @@ export function TesterBadge({ size = 24 }: { size?: number }) {
     setOpen(true);
   };
 
-  const emblem = (displaySize: number) => <TesterEmblemFallback size={displaySize} />;
+  const emblem = (displaySize: number) =>
+    imageFailed ? (
+      <TesterEmblemFallback size={displaySize} />
+    ) : (
+      <img
+        src={TESTER_BADGE_IMAGE}
+        alt=""
+        draggable={false}
+        onError={() => setImageFailed(true)}
+        className="object-contain"
+        style={{ width: displaySize, height: displaySize }}
+      />
+    );
 
   return (
     <>
