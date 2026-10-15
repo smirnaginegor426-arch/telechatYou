@@ -51,7 +51,7 @@ function createTransparentIcon(source: string): Promise<string> {
         // dark witch hat, lettering and bat details inside the icon remain intact.
         const isBackground = (pixel: number) => {
           const offset = pixel * 4;
-          return pixels[offset] < 48 && pixels[offset + 1] < 48 && pixels[offset + 2] < 48;
+          return pixels[offset] < 18 && pixels[offset + 1] < 18 && pixels[offset + 2] < 18;
         };
         const addPixel = (pixel: number) => {
           if (!visited[pixel] && isBackground(pixel)) {
