@@ -43,10 +43,6 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
       // Archive state remains session-local when storage is unavailable.
     }
   }, [botArchived]);
-  const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine,
-  );
-
   const list = trpc.chats.list.useQuery(undefined, {
     refetchInterval: 4000,
     refetchIntervalInBackground: false,
@@ -58,15 +54,11 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
 
   useEffect(() => {
     const handleOnline = () => {
-      setIsOnline(true);
       void list.refetch();
     };
-    const handleOffline = () => setIsOnline(false);
     window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
     return () => {
       window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
     };
   }, [list.refetch]);
   const foldersQuery = trpc.accountData.folders.list.useQuery(undefined, { retry: false });
