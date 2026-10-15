@@ -458,13 +458,15 @@ export default function ChatView() {
     ? "Личные сохранённые сообщения"
     : channel
       ? channel.isPublic ? `Публичный канал · @${channel.username}` : "Приватный канал"
-      : isGroup
-        ? `${info.data?.members.length ?? 0} участн.`
-        : online
-          ? "в сети"
-          : peer
-            ? formatLastSeen(peer.lastSeenAt)
-            : "";
+      : info.data?.publicGroup?.isPublic && info.data.publicGroup.username
+        ? `Публичная группа · @${info.data.publicGroup.username}`
+        : isGroup
+          ? `${info.data?.members.length ?? 0} участн.`
+          : online
+            ? "в сети"
+            : peer
+              ? formatLastSeen(peer.lastSeenAt)
+              : "";
   const visibleMessages = isChannel ? messages.filter((message) => message.kind !== "system") : messages;
   const activePinnedMessage = localPinned ?? personalPinned.data?.message ?? sharedPinned.data?.message ?? null;
   const activePinnedId = activePinnedMessage?.id ?? null;
