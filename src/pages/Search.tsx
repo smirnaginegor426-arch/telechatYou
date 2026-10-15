@@ -107,7 +107,7 @@ export default function Search() {
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
                           <span className="truncate">{title}</span>
-                          {c.chat.type === "direct" && isTesterUsername(c.peer?.username) && <TesterBadge />}
+                          {c.chat.type === "direct" && isTesterUsername(c.peer?.username, c.peer?.userId) && <TesterBadge />}
                         </div>
                         <div className="text-[12px] tcy-faint truncate">
                           {c.chat.type === "direct" ? `@${c.peer?.username}` : `${c.membersCount} участн.`}
@@ -132,7 +132,7 @@ export default function Search() {
                     <div className="min-w-0 flex-1">
                       <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
                         <span className="truncate">{p.displayName}</span>
-                        {isTesterUsername(p.username) && <TesterBadge />}
+                        {isTesterUsername(p.username, p.userId) && <TesterBadge />}
                       </div>
                       <div className="text-[12px] truncate">
                         <span className="tcy-accent font-semibold">@{p.username}</span>
