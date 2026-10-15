@@ -1,12 +1,28 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { channels, chatMembers, messages, personalPinnedMessages, pinnedMessages, pollOptions, polls, pollVotes, reactions } from "@db/schema";
+import { channels, chatMembers, chats, messages, personalPinnedMessages, pinnedMessages, pollOptions, polls, pollVotes, reactions, userBlocks } from "@db/schema";
 import { getMembership, getProfilesByIds, searchMessages, touchChat } from "./queries/telechat";
 
 const PAGE = 40;
+
+async function assertDirectChatNotBlocked(chatId: number, userId: number): Promise<void> {
+  const chat = await getDb().query.chats.findFirst({ where: eq(chats.id, chatId) });
+  if (!chat || chat.type !== "direct" || !chat.directKey) return;
+  const peerId = chat.directKey.split(":").map(Number).find((id) => id !== userId);
+  if (!peerId || !Number.isSafeInteger(peerId) || peerId <= 0) return;
+  const blocked = await getDb().query.userBlocks.findFirst({
+    where: or(
+      and(eq(userBlocks.blockerId, userId), eq(userBlocks.blockedId, peerId)),
+      and(eq(userBlocks.blockerId, peerId), eq(userBlocks.blockedId, userId)),
+    ),
+  });
+  if (blocked) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Отправка сообщений в этот чат заблокирована." });
+  }
+}
 
 async function hydrate(rows: (typeof messages.$inferSelect)[], viewerId: number) {
   if (!rows.length) return [];
@@ -265,6 +281,7 @@ export const messagesRouter = createRouter({
     .mutation(async ({ ctx, input }) => {
       const me = await getMembership(input.chatId, ctx.user.id);
       if (!me) throw new TRPCError({ code: "FORBIDDEN" });
+      await assertDirectChatNotBlocked(input.chatId, ctx.user.id);
       const channel = await getDb().query.channels.findFirst({ where: eq(channels.chatId, input.chatId) });
       if (channel && me.role !== "owner" && me.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "В канале могут публиковать только владелец и администраторы" });
@@ -342,6 +359,7 @@ export const messagesRouter = createRouter({
     .mutation(async ({ ctx, input }) => {
       const target = await getMembership(input.targetChatId, ctx.user.id);
       if (!target) throw new TRPCError({ code: "FORBIDDEN" });
+      await assertDirectChatNotBlocked(input.targetChatId, ctx.user.id);
       const targetChannel = await getDb().query.channels.findFirst({ where: eq(channels.chatId, input.targetChatId) });
       if (targetChannel && target.role !== "owner" && target.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Публиковать в канале могут только владелец и администраторы" });
@@ -386,6 +404,7 @@ export const messagesRouter = createRouter({
     .mutation(async ({ ctx, input }) => {
       const me = await getMembership(input.chatId, ctx.user.id);
       if (!me) throw new TRPCError({ code: "FORBIDDEN" });
+      await assertDirectChatNotBlocked(input.chatId, ctx.user.id);
       const channel = await getDb().query.channels.findFirst({ where: eq(channels.chatId, input.chatId) });
       if (channel && me.role !== "owner" && me.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "Создавать опросы в канале могут только администраторы" });
