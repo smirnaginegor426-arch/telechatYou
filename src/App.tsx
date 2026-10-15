@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { trpc } from "@/providers/trpc";
 import { TabBar } from "@/components/TabBar";
-import { ConnectionLoader } from "@/components/ConnectionLoader";
 import { AccountCollectionsSync } from "@/components/AccountCollectionsSync";
 import { CustomLanguageBridge } from "@/components/CustomLanguageBridge";
 import { Logo } from "@/components/Logo";
@@ -42,7 +41,8 @@ import Maintenance from "@/pages/Maintenance";
 const MAINTENANCE_MODE = false;
 
 function Splash() {
-  return <ConnectionLoader />;
+  // Keep the pre-messenger auth gate quiet; the animated loader belongs inside the chat list.
+  return <div className="h-full w-full" style={{ background: "var(--tcy-bg)" }} aria-hidden="true" />;
 }
 
 function AuthedApp() {
