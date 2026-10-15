@@ -70,7 +70,7 @@ export default function UserView() {
           </motion.div>
           <div className="mt-5 flex items-center justify-center gap-2">
             <h1 className="text-[22px] font-extrabold tcy-text">{p.displayName}</h1>
-            {isTesterUsername(p.username) && <TesterBadge />}
+            {isTesterUsername(p.username, userId) && <TesterBadge />}
           </div>
           <div className="mt-1 text-[13.5px] font-semibold tcy-accent">@{p.username}</div>
           <div
