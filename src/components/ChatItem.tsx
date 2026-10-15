@@ -185,7 +185,7 @@ export function ChatItem({
         <div className="flex items-baseline justify-between gap-2">
           <span className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-1.5">
             {title}
-            {isDirect && isTesterUsername(item.peer?.username) && <TesterBadge />}
+            {isDirect && isTesterUsername(item.peer?.username, item.peer?.userId) && <TesterBadge />}
             {item.membership.pinned && (
               <Pin size={12} style={{ color: "var(--tcy-faint)" }} className="shrink-0 rotate-45" />
             )}
