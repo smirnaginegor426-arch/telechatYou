@@ -44,6 +44,7 @@ function lastMessagePreview(item: ChatListItem): React.ReactNode {
 
 export function ChatItem({
   item,
+  contactNames = {},
   onClick,
   onAvatarClick,
   index,
@@ -53,6 +54,7 @@ export function ChatItem({
   onLongPress,
 }: {
   item: ChatListItem;
+  contactNames?: Record<string, string>;
   onClick: () => void;
   onAvatarClick?: () => void;
   index: number;
@@ -64,7 +66,8 @@ export function ChatItem({
   const isDirect = item.chat.type === "direct";
   const directParts = item.chat.directKey?.split(":") ?? [];
   const isFavorites = isDirect && directParts.length === 2 && directParts[0] === directParts[1];
-  const title = isFavorites ? "Избранное" : isDirect ? item.peer?.displayName ?? "Пользователь" : item.chat.title ?? "Группа";
+  const peerId = item.peer?.userId;
+  const title = isFavorites ? "Избранное" : isDirect ? (peerId ? contactNames[String(peerId)] : undefined) ?? item.peer?.displayName ?? "Пользователь" : item.chat.title ?? "Группа";
   const subtitle = isFavorites ? "Личные сохранённые сообщения" : isDirect ? `@${item.peer?.username ?? ""}` : `${item.membersCount} участн.`;
   const own =
     item.lastMessage && item.peer && item.lastMessage.senderId !== item.peer.userId;
