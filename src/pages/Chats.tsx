@@ -42,50 +42,18 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
       // Archive state remains session-local when storage is unavailable.
     }
   }, [botArchived]);
-  const [brandPhase, setBrandPhase] = useState<"connecting" | "updating" | "ready">("connecting");
+  const [isOnline, setIsOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
 
   useEffect(() => {
-    // Ask the browser to refresh the current location on entry. Coordinates are
-    // deliberately not stored or sent to our server; this check only drives the status animation.
-    let cancelled = false;
-    let completed = false;
-    const timers: number[] = [];
-    const startedAt = Date.now();
-    let fallbackTimer: number | undefined;
-
-    const finishLocationCheck = () => {
-      if (cancelled || completed) return;
-      completed = true;
-      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
-
-      // Keep "Соединение…" visible long enough to read, even if geolocation answers quickly.
-      const delay = Math.max(0, 1250 - (Date.now() - startedAt));
-      timers.push(window.setTimeout(() => {
-        if (cancelled) return;
-        setBrandPhase("updating");
-        timers.push(window.setTimeout(() => {
-          if (!cancelled) setBrandPhase("ready");
-        }, 1050));
-      }, delay));
-    };
-
-    if (!("geolocation" in navigator)) {
-      timers.push(window.setTimeout(finishLocationCheck, 900));
-    } else {
-      // A timeout prevents the header from staying in a loading state indefinitely
-      // if the person declines the permission request or the device can't locate them.
-      fallbackTimer = window.setTimeout(finishLocationCheck, 4000);
-      navigator.geolocation.getCurrentPosition(
-        () => finishLocationCheck(),
-        () => finishLocationCheck(),
-        { enableHighAccuracy: false, maximumAge: 0, timeout: 3500 },
-      );
-    }
-
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
     return () => {
-      cancelled = true;
-      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
-      timers.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
@@ -93,6 +61,17 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     refetchInterval: 4000,
     refetchIntervalInBackground: false,
   });
+  const [hasInitialLoad, setHasInitialLoad] = useState(false);
+
+  useEffect(() => {
+    if (list.isSuccess && !list.isFetching) setHasInitialLoad(true);
+  }, [list.isSuccess, list.isFetching]);
+
+  useEffect(() => {
+    if (isOnline && list.isError && !hasInitialLoad) {
+      void list.refetch();
+    }
+  }, [isOnline, list.isError, list.refetch, hasInitialLoad]);
   const foldersQuery = trpc.accountData.folders.list.useQuery(undefined, { retry: false });
   const ensureFavorites = trpc.chats.ensureFavorites.useMutation({
     onSuccess: () => utils.chats.list.invalidate(),
@@ -155,6 +134,29 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     selectedItems.forEach((item) => remove.mutate({ chatId: item.chat.id, leave: false }));
     setSelectedChatIds([]);
   };
+
+  const showConnectionSplash = !hasInitialLoad && (list.isLoading || list.isFetching || !isOnline);
+
+  if (showConnectionSplash) {
+    return (
+      <div className={desktopPanel ? "relative h-full w-full overflow-hidden tcy-solid" : "relative h-full w-full overflow-hidden tcy-solid"}>
+        <div className="absolute inset-0 z-30 flex items-center justify-center" role="status" aria-label="Подключение к TeleChat You">
+          <div className="relative flex h-12 w-12 items-center justify-center" aria-hidden="true">
+            <motion.span
+              className="absolute h-[14px] w-[7px] rounded-l-full tcy-accent-bg"
+              animate={{ x: [0, -8, -8, 0], rotate: [0, -180, -360, -720], scaleY: [1, 0.92, 1, 1] }}
+              transition={{ duration: 1.25, times: [0, 0.28, 0.68, 1], repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.span
+              className="absolute h-[14px] w-[7px] rounded-r-full tcy-accent-bg"
+              animate={{ x: [0, 8, 8, 0], rotate: [0, 180, 360, 720], scaleY: [1, 0.92, 1, 1] }}
+              transition={{ duration: 1.25, times: [0, 0.28, 0.68, 1], repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={desktopPanel ? "relative h-full flex flex-col tcy-desktop-chat-list" : "relative h-full flex flex-col"}>
@@ -220,36 +222,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Logo size={34} />
-                {brandPhase === "ready" ? (
-                  <Wordmark />
-                ) : (
-                  <motion.div
-                    key={brandPhase}
-                    initial={{ opacity: 0, y: 3 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    className="flex items-center font-extrabold tracking-tight text-[18px] tcy-text select-none"
-                    aria-live="polite"
-                    aria-label={brandPhase === "connecting" ? "Соединение" : "Обновление"}
-                  >
-                    <span>{brandPhase === "connecting" ? "Соединение" : "Обновление"}</span>
-                    <span className="ml-1.5 inline-flex items-center gap-[3px]" aria-hidden="true">
-                      {[0, 1, 2].map((dot) => (
-                        <motion.span
-                          key={dot}
-                          className="inline-block h-[4px] w-[4px] rounded-full tcy-accent-bg"
-                          animate={{ opacity: [0.25, 1, 0.25], y: [0, -2, 0] }}
-                          transition={{
-                            duration: 0.8,
-                            delay: dot * 0.15,
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                          }}
-                        />
-                      ))}
-                    </span>
-                  </motion.div>
-                )}
+                <Wordmark />
               </div>
               <div className="flex items-center gap-2">
                 <button
