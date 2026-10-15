@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Camera, Check, Radio, Users } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
+import { TesterBadge } from "@/components/TesterBadge";
+import { isTesterUsername } from "@/lib/testers";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
@@ -104,7 +106,10 @@ export default function NewChat() {
             >
               <Avatar name={p.displayName} avatarKey={p.avatarKey} size={46} />
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-[14.5px] tcy-text truncate">{p.displayName}</div>
+                <div className="flex min-w-0 items-center gap-1.5 font-bold text-[14.5px] tcy-text">
+                  <span className="truncate">{p.displayName}</span>
+                  {isTesterUsername(p.username) && <TesterBadge />}
+                </div>
                 <div className="text-[12.5px] tcy-faint">@{p.username}</div>
               </div>
               <span
