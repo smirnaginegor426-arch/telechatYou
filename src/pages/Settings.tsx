@@ -8,6 +8,7 @@ import {
   Database,
   Eye,
   Globe,
+  Ghost,
   Image as ImageIcon,
   Info,
   Keyboard,
@@ -366,6 +367,15 @@ export default function Settings() {
           onClick={() => setStorageOpen(true)}
         />
         <SettingsRow icon={<Globe size={17} />} title="Мой язык" subtitle="Создать, изменить и сохранить свой язык" onClick={() => navigate("/language")} />
+      </SettingsGroup>
+
+      <SettingsGroup title="Сезонное">
+        <SettingsRow
+          icon={<Ghost size={17} />}
+          title="Halloween"
+          subtitle="Обратный отсчёт и хэллоуинская анимация"
+          onClick={() => navigate("/halloween")}
+        />
       </SettingsGroup>
 
       <SettingsGroup title="О приложении">
