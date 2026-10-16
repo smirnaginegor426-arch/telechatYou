@@ -8,6 +8,7 @@ import {
   timestamp,
   bigint,
   boolean,
+  int,
   index,
   uniqueIndex,
 } from "drizzle-orm/mysql-core";
@@ -20,6 +21,7 @@ export const users = mysqlTable("users", {
   passwordHash: varchar("passwordHash", { length: 255 }),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
+  emailVerifiedAt: timestamp("emailVerifiedAt"),
   avatar: text("avatar"),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -79,6 +81,27 @@ export const recoverySecrets = mysqlTable(
   },
   (t) => ({
     secretUserIdx: index("recovery_secrets_user_idx").on(t.userId),
+  }),
+);
+
+/** One-time email verification and password recovery codes. Codes are HMAC-hashed, short-lived and single-use. */
+export const emailVerificationCodes = mysqlTable(
+  "email_verification_codes",
+  {
+    id: serial("id").primaryKey(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
+    email: varchar("email", { length: 320 }).notNull(),
+    purpose: mysqlEnum("purpose", ["link", "password_reset"]).notNull(),
+    codeHash: varchar("codeHash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    usedAt: timestamp("usedAt"),
+    attempts: int("attempts").default(0).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    userIdx: index("email_verification_codes_user_idx").on(t.userId, t.purpose),
+    emailIdx: index("email_verification_codes_email_idx").on(t.email, t.purpose),
+    expiryIdx: index("email_verification_codes_expiry_idx").on(t.expiresAt),
   }),
 );
 
