@@ -17,7 +17,7 @@ import {
 } from "./lib/session";
 import { hashPassword, verifyPassword } from "./lib/passwords";
 import { and, desc, eq, gt, isNull } from "drizzle-orm";
-import { recoveryCodes, recoverySecrets } from "@db/schema";
+import { channels, profiles, recoveryCodes, recoverySecrets } from "@db/schema";
 import { getDb } from "./queries/connection";
 import { assertRateLimit, affectedRows } from "./lib/rate-limit";
 import {
@@ -117,6 +117,19 @@ function sessionMeta(req: Request) {
 
 export const authRouter = createRouter({
   me: authedQuery.query(({ ctx }) => ctx.user),
+
+  /** Public availability check for the account/profile username chosen during registration. */
+  checkUsername: publicQuery
+    .input(z.object({ username: usernameSchema }))
+    .query(async ({ input }) => {
+      const username = input.username.toLowerCase();
+      const [account, profile, channel] = await Promise.all([
+        findUserByUsername(username),
+        getDb().query.profiles.findFirst({ where: eq(profiles.username, username) }),
+        getDb().query.channels.findFirst({ where: eq(channels.username, username) }),
+      ]);
+      return { available: !account && !profile && !channel };
+    }),
 
   register: publicQuery
     .input(z.object({ username: usernameSchema, password: passwordSchema, slotId: accountSlotIdSchema.optional() }))
