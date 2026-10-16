@@ -13,8 +13,11 @@ import { useDeviceMode } from "@/hooks/useDeviceMode";
 import { useTesterMode } from "@/hooks/useTesterMode";
 
 import Welcome from "@/pages/Welcome";
+import WelcomeLegacy from "@/pages/WelcomeLegacy";
 import Setup from "@/pages/Setup";
+import SetupLegacy from "@/pages/SetupLegacy";
 import RegisterWizard from "@/pages/RegisterWizard";
+import RegisterWizardLegacy from "@/pages/RegisterWizardLegacy";
 import Chats from "@/pages/Chats";
 import ChatView from "@/pages/ChatView";
 import TeleChatYouBot from "@/pages/TeleChatYouBot";
@@ -205,7 +208,7 @@ useEffect(() => {
   );
 }
 
-function Gate() {
+function Gate({ plush }: { plush: boolean }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   const me = trpc.profile.me.useQuery(undefined, {
@@ -221,11 +224,11 @@ function Gate() {
   }
 
   if (!isAuthenticated) {
-    return <Welcome />;
+    return plush ? <Welcome /> : <WelcomeLegacy />;
   }
 
   if (me.data && !me.data.profile) {
-    return <Setup />;
+    return plush ? <Setup /> : <SetupLegacy />;
   }
 
   return <AuthedApp />;
@@ -272,7 +275,7 @@ export default function App() {
 
       <div className="relative z-10 h-full">
         {location.pathname === "/register" ? (
-          <RegisterWizard />
+          {isPrivateTester ? <RegisterWizard /> : <RegisterWizardLegacy />}
         ) : location.pathname === "/recover" ? (
           <Recover />
         ) : location.pathname === "/accounts" ? (
@@ -284,7 +287,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
           </Routes>
         ) : (
-          <Gate />
+          <Gate plush={isPrivateTester} />
         )}
       </div>
     </div>
