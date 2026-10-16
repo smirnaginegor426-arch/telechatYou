@@ -152,7 +152,11 @@ export function MessageBubble({
   onStickerOpen,
   onReaction,
   onSwipeReply,
+  onContextAction,
+  onSelectToggle,
   highlighted = false,
+  selected = false,
+  selectionMode = false,
 }: {
   m: MessageItem;
   own: boolean;
@@ -166,7 +170,11 @@ export function MessageBubble({
   onStickerOpen?: (m: MessageItem) => void;
   onReaction: (m: MessageItem, emoji: string) => void;
   onSwipeReply?: (m: MessageItem) => void;
+  onContextAction?: (m: MessageItem) => void;
+  onSelectToggle?: (m: MessageItem) => void;
   highlighted?: boolean;
+  selected?: boolean;
+  selectionMode?: boolean;
 }) {
   const imgUrl = useFileUrl(m.kind === "image" ? m.attachmentKey : null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
@@ -176,9 +184,45 @@ export function MessageBubble({
   const bubbleRef = useRef<HTMLDivElement | null>(null);
   const swipeRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const swipeProgressRef = useRef(0);
+  const longPressRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressTriggeredRef = useRef(false);
   const [swipeProgress, setSwipeProgress] = useState(0);
   const [swipeIndicatorX, setSwipeIndicatorX] = useState<number | null>(null);
   const swipeDirection = own ? 1 : -1;
+
+  const cancelLongPress = () => {
+    if (longPressTimerRef.current !== null) window.clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = null;
+  };
+
+  const handleBubblePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" || event.button !== 0 || selectionMode) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest("button, a, input, textarea, video, audio")) return;
+    longPressTriggeredRef.current = false;
+    longPressRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    cancelLongPress();
+    longPressTimerRef.current = window.setTimeout(() => {
+      if (longPressRef.current?.pointerId !== event.pointerId) return;
+      longPressTriggeredRef.current = true;
+      onLongPress(m);
+    }, 480);
+  };
+
+  const handleBubblePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const start = longPressRef.current;
+    if (!start || start.pointerId !== event.pointerId) return;
+    if (Math.abs(event.clientX - start.x) > 10 || Math.abs(event.clientY - start.y) > 10) {
+      cancelLongPress();
+    }
+  };
+
+  const handleBubblePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (longPressRef.current?.pointerId !== event.pointerId) return;
+    cancelLongPress();
+    longPressRef.current = null;
+  };
 
   const handleSwipeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" || event.button !== 0) return;
@@ -274,6 +318,23 @@ export function MessageBubble({
       transition={{ type: "spring", stiffness: 420, damping: 34 }}
       data-message-id={m.id}
       ref={rowRef}
+      style={selected ? {
+        background: "color-mix(in srgb, var(--tcy-selected-accent) 12%, transparent)",
+        outline: "1px solid var(--tcy-selected-accent)",
+        outlineOffset: "-1px",
+        borderRadius: "22px",
+      } : undefined}
+      onClickCapture={selectionMode ? (event) => {
+        if (longPressTriggeredRef.current) {
+          longPressTriggeredRef.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        onSelectToggle?.(m);
+      } : undefined}
       onPointerDown={handleSwipeStart}
       onPointerMove={handleSwipeMove}
       onPointerUp={finishSwipe}
@@ -331,11 +392,22 @@ export function MessageBubble({
         }}
       >
         <div
+          onPointerDown={handleBubblePointerDown}
+          onPointerMove={handleBubblePointerMove}
+          onPointerUp={handleBubblePointerUp}
+          onPointerCancel={handleBubblePointerUp}
           onContextMenu={(e) => {
             e.preventDefault();
-            onLongPress(m);
+            if (longPressTriggeredRef.current) return;
+            if (longPressRef.current) {
+              longPressTriggeredRef.current = true;
+              cancelLongPress();
+              onLongPress(m);
+              return;
+            }
+            onContextAction?.(m);
           }}
-          onDoubleClick={() => onReaction(m, "❤️")}
+          onDoubleClick={() => { if (!selectionMode) onReaction(m, "❤️"); }}
           className={cn(
             "relative select-none cursor-default tcy-no-select",
             isImage || isPoll || isStickerMessage || hasMediaCaption ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
