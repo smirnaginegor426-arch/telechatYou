@@ -116,7 +116,14 @@ export default function Login() {
             <button
               type="button"
               className="w-full mt-5 text-sm font-semibold tcy-accent"
-              onClick={() => { setError(""); setMode((current) => current === "login" ? "register" : "login"); }}
+              onClick={() => {
+                setError("");
+                if (mode === "login") {
+                  navigate(isAddingAccount ? "/register?addAccount=1" : "/register");
+                } else {
+                  setMode("login");
+                }
+              }}
             >
               {mode === "login" ? "Нет аккаунта? Зарегистрироваться" : "Уже есть аккаунт? Войти"}
             </button>
