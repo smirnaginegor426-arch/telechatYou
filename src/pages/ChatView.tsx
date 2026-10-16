@@ -130,7 +130,7 @@ export default function ChatView() {
   const [actionMsg, setActionMsg] = useState<MessageItem | null>(null);
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<number[]>([]);
-  const [selectionToolbarPosition, setSelectionToolbarPosition] = useState<{ left: number; top: number } | null>(null);
+  const [selectionToolbarAnchor, setSelectionToolbarAnchor] = useState<HTMLElement | null>(null);
   const [forwardMessageIds, setForwardMessageIds] = useState<number[]>([]);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
   const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null } | null>(null);
@@ -147,48 +147,17 @@ export default function ChatView() {
 
   useLayoutEffect(() => {
     if (selectedMessageIds.length === 0) {
-      setSelectionToolbarPosition(null);
+      setSelectionToolbarAnchor(null);
       return;
     }
 
-    const updatePosition = () => {
-      const anchorId = selectedMessageIds[selectedMessageIds.length - 1];
-      const row = scrollRef.current?.querySelector<HTMLElement>(`[data-message-id="${anchorId}"]`);
-      const anchor = row?.querySelector<HTMLElement>(".tcy-no-select") ?? row;
-      if (!anchor) {
-        setSelectionToolbarPosition(null);
-        return;
-      }
-
-      const rect = anchor.getBoundingClientRect();
-      const toolbarWidth = Math.min(248, window.innerWidth - 16);
-      const left = Math.max(
-        toolbarWidth / 2 + 8,
-        Math.min(window.innerWidth - toolbarWidth / 2 - 8, rect.left + rect.width / 2),
-      );
-
-      // Always anchor the toolbar above the selected message. Never flip it below.
-      const top = rect.top - 8;
-
-      setSelectionToolbarPosition((current) =>
-        current &&
-        Math.abs(current.left - left) < 0.5 &&
-        Math.abs(current.top - top) < 0.5
-          ? current
-          : { left, top },
-      );
-    };
-
-    updatePosition();
-    window.addEventListener("resize", updatePosition);
-    // Capture scroll from the message pane as well as any parent scrolling container.
-    window.addEventListener("scroll", updatePosition, true);
-    return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
-    };
+    // Mount the toolbar inside the actual selected message bubble, so it cannot
+    // drift to another screen coordinate while the chat scrolls.
+    const anchorId = selectedMessageIds[selectedMessageIds.length - 1];
+    const row = scrollRef.current?.querySelector<HTMLElement>(`[data-message-id="${anchorId}"]`);
+    const anchor = row?.querySelector<HTMLElement>(".tcy-no-select") ?? null;
+    setSelectionToolbarAnchor((current) => current === anchor ? current : anchor);
   }, [selectedMessageIds]);
-
 
   useEffect(() => {
     const loadSavedWallpaper = () => {
@@ -724,14 +693,10 @@ export default function ChatView() {
         )}
       </header>
 
-      {selectedMessageIds.length > 0 && selectionToolbarPosition && typeof document !== "undefined" && createPortal(
+      {selectedMessageIds.length > 0 && selectionToolbarAnchor && typeof document !== "undefined" && createPortal(
         <div
-          className="fixed z-[10000]"
-          style={{
-            left: selectionToolbarPosition.left,
-            top: selectionToolbarPosition.top,
-            transform: "translate(-50%, -100%)",
-          }}
+          className="absolute left-1/2 top-0 z-[10000]"
+          style={{ transform: "translate(-50%, calc(-100% - 8px))" }}
         >
           <AnimatePresence>
             <motion.div
@@ -807,7 +772,7 @@ export default function ChatView() {
             </motion.div>
           </AnimatePresence>
         </div>,
-        document.body,
+        selectionToolbarAnchor,
       )}
 
       {activePinnedMessage && activePinnedId !== null && (
