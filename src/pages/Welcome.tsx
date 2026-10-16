@@ -40,14 +40,23 @@ export default function Welcome() {
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden">
-      <motion.div
+      <div
         aria-hidden="true"
         className="absolute inset-0"
-        animate={{
-          background: theme === "dark"
-            ? "radial-gradient(circle at 12% 18%, rgba(155,139,179,.19), transparent 38%), radial-gradient(circle at 88% 78%, rgba(91,135,184,.14), transparent 39%), var(--tcy-bg)"
-            : "radial-gradient(circle at 12% 18%, rgba(155,139,179,.17), transparent 38%), radial-gradient(circle at 88% 78%, rgba(224,179,106,.17), transparent 39%), var(--tcy-bg)",
-        }}
+        style={{ background: "var(--tcy-bg)", transition: "background-color 800ms ease" }}
+      />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(circle at 12% 18%, rgba(155,139,179,.20), transparent 38%), radial-gradient(circle at 88% 78%, rgba(91,135,184,.15), transparent 39%)" }}
+        animate={{ opacity: theme === "dark" ? 1 : 0 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(circle at 12% 18%, rgba(155,139,179,.16), transparent 38%), radial-gradient(circle at 88% 78%, rgba(224,179,106,.19), transparent 39%)" }}
+        animate={{ opacity: theme === "light" ? 1 : 0 }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
       />
 
