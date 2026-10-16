@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ClipboardPaste, Copy, FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, Scissors, SendHorizonal, Sticker, Trash2, X } from "lucide-react";
+import { ArrowUp, ClipboardPaste, Copy, FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, Scissors, Sticker, Trash2, X } from "lucide-react";
 import { StickerPicker } from "./StickerPicker";
 import type { StickerAsset, StickerPack } from "@/lib/stickers";
 import { formatDuration } from "@/lib/format";
@@ -525,41 +525,47 @@ export function Composer({
                 <Sticker size={22} />
               </button>
               )}
-              {hasContent ? (
-                <motion.button
-                  key="send"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 26 }}
-                  onClick={submit}
-                  disabled={sending}
-                  className="tcy-press w-11 h-11 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center shrink-0"
-                  style={{ color: "var(--tcy-on-accent)" }}
-                  aria-label="Отправить"
-                >
-                  <SendHorizonal size={19} className="-ml-0.5" />
-                </motion.button>
-              ) : (
-                <motion.button
-                  key="mic"
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 26 }}
-                  onPointerDown={onMicDown}
-                  onPointerMove={onMicMove}
-                  onPointerUp={onMicUp}
-                  onPointerCancel={() => recording && stopRecording(false)}
-                  onContextMenu={(e) => e.preventDefault()}
-                  className="tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 touch-none"
-                  style={{
-                    background: recording ? "var(--tcy-danger)" : "var(--tcy-card-strong)",
-                    color: recording ? "#fff" : "var(--tcy-dim)",
-                  }}
-                  aria-label="Удерживайте для голосового"
-                >
-                  {recording ? <Trash2 size={19} /> : <Mic size={20} />}
-                </motion.button>
-              )}
+              <div className="relative w-11 h-11 shrink-0">
+                <AnimatePresence initial={false} mode="sync">
+                  {hasContent ? (
+                    <motion.button
+                      key="send"
+                      initial={{ scale: 0.35, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.12, opacity: 0, transition: { duration: 0.12, ease: "easeIn" } }}
+                      transition={{ type: "spring", stiffness: 720, damping: 30, mass: 0.62 }}
+                      onClick={submit}
+                      disabled={sending}
+                      className="tcy-press absolute inset-0 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
+                      style={{ color: "var(--tcy-on-accent)" }}
+                      aria-label="Отправить"
+                    >
+                      <ArrowUp size={23} strokeWidth={2.4} />
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      key="mic"
+                      initial={{ scale: 0.3, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.12, opacity: 0, transition: { duration: 0.12, ease: "easeIn" } }}
+                      transition={{ type: "spring", stiffness: 720, damping: 30, mass: 0.62 }}
+                      onPointerDown={onMicDown}
+                      onPointerMove={onMicMove}
+                      onPointerUp={onMicUp}
+                      onPointerCancel={() => recording && stopRecording(false)}
+                      onContextMenu={(e) => e.preventDefault()}
+                      className="tcy-press absolute inset-0 rounded-full flex items-center justify-center touch-none"
+                      style={{
+                        background: recording ? "var(--tcy-danger)" : "var(--tcy-card-strong)",
+                        color: recording ? "#fff" : "var(--tcy-dim)",
+                      }}
+                      aria-label="Удерживайте для голосового"
+                    >
+                      {recording ? <Trash2 size={19} /> : <Mic size={20} />}
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
             </>
           )}
         </div>
