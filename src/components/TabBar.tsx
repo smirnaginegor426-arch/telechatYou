@@ -2,15 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router";
-import { MessageCircle, Users, UserRound, Settings2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
 
 const tabs = [
-  { to: "/", label: "Чаты", icon: MessageCircle },
-  { to: "/contacts", label: "Друзья", icon: Users },
-  { to: "/profile", label: "Профиль", icon: UserRound },
-  { to: "/settings", label: "Настройки", icon: Settings2 },
+  { to: "/", label: "Чаты", emoji: "💌" },
+  { to: "/contacts", label: "Друзья", emoji: "🐰" },
+  { to: "/profile", label: "Профиль", emoji: "🐱" },
+  { to: "/settings", label: "Настройки", emoji: "🌈" },
 ];
 
 type Gesture = {
@@ -161,7 +161,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
     >
       <div className="tcy-island mx-5 mb-2 rounded-[22px] border tcy-line tcy-header-blur">
         <div className="grid grid-cols-4 h-[56px]">
-          {tabs.map(({ to, label, icon: Icon }) => {
+          {tabs.map(({ to, label, emoji }) => {
             const active = activeTo === to;
             const highlighted = dragTarget ? dragTarget === to : active;
             return (
@@ -195,10 +195,12 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                 )}
                 <span className="tcy-tab-icon-wrap relative z-[1] flex h-10 items-center justify-center pointer-events-none">
                   <motion.span
-                    animate={{ scale: highlighted ? 1.04 : 1, y: highlighted ? -1 : 0 }}
+                    animate={{ scale: highlighted ? 1.12 : 1, y: highlighted ? -1 : 0, rotate: highlighted ? [0, -3, 3, 0] : 0 }}
                     transition={{ type: "spring", stiffness: 320, damping: 30, mass: 0.8 }}
+                    className="tcy-tab-emoji"
+                    aria-hidden="true"
                   >
-                    <Icon size={23} strokeWidth={highlighted ? 2.35 : 1.8} />
+                    {emoji}
                   </motion.span>
                   {to === "/" && unreadTotal > 0 && (
                     <motion.span
