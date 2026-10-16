@@ -27,6 +27,7 @@ import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
+import EmailBinding from "@/pages/EmailBinding";
 import Halloween from "@/pages/Halloween";
 import AccentSettings from "@/pages/Accent";
 import FontSettings from "@/pages/FontSettings";
@@ -124,8 +125,10 @@ useEffect(() => {
 
   // Each screen enters from its own corner.
   const path = location.pathname;
-  const routeMotion = path.startsWith("/contacts")
-    ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
+  const routeMotion = path.startsWith("/email-binding")
+    ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
+    : path.startsWith("/contacts")
+      ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
     : path.startsWith("/profile") || path.startsWith("/user/")
       ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
       : ["/settings", "/halloween", "/accent", "/font", "/stickers", "/language", "/system-update", "/rename-chat"].some((route) => path.startsWith(route))
@@ -185,6 +188,7 @@ useEffect(() => {
             <Route path="/@:username" element={<UserView />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/email-binding" element={<EmailBinding />} />
             <Route path="/halloween" element={<Halloween />} />
             <Route path="/accent" element={<AccentSettings />} />
             <Route path="/font" element={<FontSettings />} />
