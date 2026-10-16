@@ -11,6 +11,7 @@ import { Logo } from "@/components/Logo";
 import { ConnectionLoader } from "@/components/ConnectionLoader";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
 import { useTesterMode } from "@/hooks/useTesterMode";
+import { useTesterMode } from "@/hooks/useTesterMode";
 
 import Welcome from "@/pages/Welcome";
 import Setup from "@/pages/Setup";
@@ -61,7 +62,6 @@ function AuthedApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const deviceMode = useDeviceMode();
-  const { enabled: isPrivateTester } = useTesterMode();
   const isDesktop = deviceMode === "desktop";
 
   useEffect(() => {
@@ -246,6 +246,17 @@ function Gate() {
 export default function App() {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
+  const { enabled: isPrivateTester } = useTesterMode();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isPrivateTester) {
+      root.dataset.tcyPlush = "true";
+    } else {
+      delete root.dataset.tcyPlush;
+    }
+  }, [isPrivateTester]);
+
 
   const maintenanceUser = trpc.profile.me.useQuery(undefined, {
     enabled: isAuthenticated,
