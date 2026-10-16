@@ -9,6 +9,7 @@ import {
   Check,
   Eye,
   EyeOff,
+  Heart,
   LockKeyhole,
   Sparkles,
   UserRound,
