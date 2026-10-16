@@ -74,6 +74,8 @@ export default function RegisterWizard() {
   const [registered, setRegistered] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const registeredRef = useRef(false);
+  const profileCreatedRef = useRef(false);
+  const avatarKeyRef = useRef<string | undefined>(undefined);
   const [slotId] = useState(() => createAccountSlotId());
 
   const usernameOk = /^[a-zA-Z0-9_]{3,32}$/.test(username);
@@ -147,22 +149,24 @@ export default function RegisterWizard() {
         });
       }
 
-      let avatarKey: string | undefined;
-      if (avatarFile) {
+      if (!avatarKeyRef.current && avatarFile) {
         const result = await upload.mutateAsync({
           name: (avatarFile.name || "avatar.jpg").slice(0, 190),
           contentBase64: await fileToBase64(avatarFile),
           contentType: avatarFile.type || "image/jpeg",
           folder: "avatars",
         });
-        avatarKey = result.key;
+        avatarKeyRef.current = result.key;
       }
 
-      await createProfile.mutateAsync({
-        displayName: displayName.trim(),
-        username: normalized,
-        avatarKey,
-      });
+      if (!profileCreatedRef.current) {
+        await createProfile.mutateAsync({
+          displayName: displayName.trim(),
+          username: normalized,
+          avatarKey: avatarKeyRef.current,
+        });
+        profileCreatedRef.current = true;
+      }
       // Keep the appearance chosen during the welcome flow after the first profile is created.
       await saveTheme.mutateAsync({ theme });
 
@@ -170,7 +174,7 @@ export default function RegisterWizard() {
         slotId: existing?.slotId ?? slotId,
         username: normalized,
         displayName: displayName.trim(),
-        avatarKey,
+        avatarKey: avatarKeyRef.current,
       });
       await utils.invalidate();
       navigate("/", { replace: true });
@@ -349,7 +353,7 @@ export default function RegisterWizard() {
                   </button>
                 </div>
                 {avatarPreview && (
-                  <button type="button" className="text-[12.5px] font-bold tcy-danger" onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}>
+                  <button type="button" className="text-[12.5px] font-bold tcy-danger" onClick={() => { setAvatarFile(null); setAvatarPreview(null); avatarKeyRef.current = undefined; }}>
                     Удалить выбранную аватарку
                   </button>
                 )}
@@ -505,6 +509,7 @@ export default function RegisterWizard() {
         file={avatarToEdit}
         onCancel={() => setAvatarToEdit(null)}
         onSave={(editedFile) => {
+          avatarKeyRef.current = undefined;
           setAvatarFile(editedFile);
           setAvatarPreview(URL.createObjectURL(editedFile));
         }}
