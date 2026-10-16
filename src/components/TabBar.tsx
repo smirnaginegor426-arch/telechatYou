@@ -8,7 +8,7 @@ import { useDeviceMode } from "@/hooks/useDeviceMode";
 
 const tabs = [
   { to: "/", label: "Чаты", icon: MessageCircle },
-  { to: "/contacts", label: "Люди", icon: Users },
+  { to: "/contacts", label: "Друзья", icon: Users },
   { to: "/profile", label: "Профиль", icon: UserRound },
   { to: "/settings", label: "Настройки", icon: Settings2 },
 ];
