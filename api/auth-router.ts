@@ -47,7 +47,7 @@ const RECOVERY_RATE_WINDOW_MS = 60 * 60 * 1000;
 const EMAIL_CODE_TTL_MS = 10 * 60 * 1000;
 const EMAIL_CODE_MAX_ATTEMPTS = 5;
 const emailSchema = z.string().trim().email("Введи корректный адрес электронной почты.").max(320).transform((email) => email.toLowerCase());
-const emailCodeSchema = z.string().regex(/^\\d{6}$/, "Код должен состоять из 6 цифр.");
+const emailCodeSchema = z.string().regex(/^\d{6}$/, "Код должен состоять из 6 цифр.");
 
 function createEmailCode(): string {
   return randomInt(0, 1_000_000).toString().padStart(6, "0");
