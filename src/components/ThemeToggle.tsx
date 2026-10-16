@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -23,9 +24,18 @@ export function ThemeToggle() {
           transition: "background 650ms ease",
         }}
       />
-      <span className="relative z-10 transition-transform duration-500">
-        {theme === "dark" ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
-      </span>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.span
+          key={theme}
+          initial={{ opacity: 0, rotate: -50, scale: 0.65 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ opacity: 0, rotate: 50, scale: 0.7 }}
+          transition={{ duration: 0.24, ease: "easeOut" }}
+          className="relative z-10 flex items-center justify-center"
+        >
+          {theme === "dark" ? <Sun size={18} strokeWidth={2} /> : <Moon size={18} strokeWidth={2} />}
+        </motion.span>
+      </AnimatePresence>
     </button>
   );
 }
