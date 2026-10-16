@@ -12,6 +12,7 @@ import { ensureRecoverySecretSchema } from "./lib/recovery-secret-schema";
 import { ensurePinnedMessageSchema } from "./lib/pinned-message-schema";
 import { ensureUserCustomDataSchema } from "./lib/user-custom-data-schema";
 import { ensureUserBlocksSchema } from "./lib/user-blocks-schema";
+import { ensureEmailVerificationSchema } from "./lib/email-verification-schema";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -75,6 +76,7 @@ if (env.isProduction) {
   await ensurePinnedMessageSchema();
   await ensureUserCustomDataSchema();
   await ensureUserBlocksSchema();
+  await ensureEmailVerificationSchema();
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);
