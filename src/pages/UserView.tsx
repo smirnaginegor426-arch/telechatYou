@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, AtSign, MessageCircle, Quote, Radio, Users } from "lucide-react";
 import { trpc } from "@/providers/trpc";
@@ -17,6 +17,9 @@ export default function UserView() {
   const { id, username } = useParams<{ id: string; username: string }>();
   const parsedUserId = Number(id);
   const navigate = useNavigate();
+  const location = useLocation();
+  const autoOpen = new URLSearchParams(location.search).get("open") === "1";
+  const autoOpenKeyRef = useRef<string | null>(null);
   const utils = trpc.useUtils();
   const profileById = trpc.profile.byId.useQuery(
     { userId: parsedUserId },
@@ -44,13 +47,44 @@ export default function UserView() {
   const userId = profile.data?.userId ?? parsedUserId;
   const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
   const createDirect = trpc.chats.createDirect.useMutation({
-    onSuccess: (r) => navigate(`/chat/${r.chatId}`, { replace: true }),
+    onSuccess: async (r) => {
+      await utils.chats.list.invalidate();
+      navigate(`/chat/${r.chatId}`, { replace: true });
+    },
+    onError: (error) => {
+      toast.error(error.message);
+      navigate(`/@${username ?? ""}`, { replace: true });
+    },
   });
 
   const p = profile.data;
   const channel = !p && username ? channelByUsername.data : undefined;
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const displayName = p ? contactNamesQuery.data?.names[String(p.userId)] ?? p.displayName : "";
+
+  // Mention links navigate here immediately, then this page resolves the name
+  // into a direct chat or a public channel/group and opens it automatically.
+  useEffect(() => {
+    if (!autoOpen || !username || loading) return;
+    const key = username.toLowerCase();
+    if (autoOpenKeyRef.current === key) return;
+
+    if (p) {
+      autoOpenKeyRef.current = key;
+      createDirect.mutate({ userId: p.userId });
+      return;
+    }
+
+    if (channel) {
+      autoOpenKeyRef.current = key;
+      joinPublicChannel.mutate({ username: channel.username });
+      return;
+    }
+
+    // The profile and public-channel lookups both finished without a match.
+    autoOpenKeyRef.current = key;
+    navigate(`/@${username}`, { replace: true });
+  }, [autoOpen, username, loading, p?.userId, channel?.username, createDirect, joinPublicChannel, navigate]);
 
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar">
