@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, AtSign, Copy, Hash, KeyRound, LockKeyhole } from "lucide-react";
+import { ArrowLeft, AtSign, Copy, Hash, KeyRound, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import {
   createAccountSlotId,
   MAX_SAVED_ACCOUNTS,
@@ -13,14 +13,23 @@ import { TcInput } from "@/components/TcInput";
 import { Logo } from "@/components/Logo";
 import { trpc } from "@/providers/trpc";
 
+type RecoveryMethod = "email" | "secret";
+
 export default function Recover() {
   const navigate = useNavigate();
   const [newSlotId] = useState(() => createAccountSlotId());
+  const [method, setMethod] = useState<RecoveryMethod>("email");
   const [username, setUsername] = useState("");
   const [accountId, setAccountId] = useState("");
   const [recoverySecret, setRecoverySecret] = useState("");
   const [key, setKey] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [emailResetSent, setEmailResetSent] = useState(false);
+  const [emailResetCompleted, setEmailResetCompleted] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const utils = trpc.useUtils();
@@ -55,7 +64,38 @@ export default function Recover() {
     },
   });
 
+  const requestEmailReset = trpc.auth.requestPasswordResetByEmail.useMutation({
+    onSuccess: (result) => {
+      if (!result.deliveryConfigured) {
+        setEmailResetSent(false);
+        setError("Восстановление по почте пока не включено: почтовый сервис не настроен на сервере.");
+        setNotice("");
+        return;
+      }
+      setEmailResetSent(true);
+      setError("");
+      setNotice("Если для этой почты есть подтверждённый аккаунт, письмо с кодом отправлено. Проверь входящие и папку «Спам».");
+    },
+    onError: (e) => {
+      setError(e.message);
+      setNotice("");
+    },
+  });
+
+  const resetPasswordByEmail = trpc.auth.resetPasswordWithEmailCode.useMutation({
+    onSuccess: () => {
+      setEmailResetCompleted(true);
+      setError("");
+      setNotice("Пароль изменён. Теперь войди с новым паролем.");
+    },
+    onError: (e) => {
+      setError(e.message);
+      setNotice("");
+    },
+  });
+
   const normalizedUsername = username.trim().toLowerCase();
+  const normalizedEmail = email.trim().toLowerCase();
   const parsedAccountId = Number(accountId);
   const accountIdValid = Number.isSafeInteger(parsedAccountId) && parsedAccountId > 0;
   const savedAccounts = readSavedAccounts();
@@ -111,6 +151,45 @@ export default function Recover() {
     });
   };
 
+  const handleRequestEmailReset = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      setError("Введи корректный адрес электронной почты.");
+      return;
+    }
+    setEmailCode("");
+    requestEmailReset.mutate({ email: normalizedEmail });
+  };
+
+  const handleResetPassword = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+    if (!emailResetSent) {
+      setError("Сначала запроси код на почту.");
+      return;
+    }
+    if (!/^\d{6}$/.test(emailCode)) {
+      setError("Введи 6 цифр из письма.");
+      return;
+    }
+    if (newPassword.length < 8 || newPassword.length > 128) {
+      setError("Пароль должен содержать от 8 до 128 символов.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setError("Пароли не совпадают.");
+      return;
+    }
+    resetPasswordByEmail.mutate({
+      email: normalizedEmail,
+      code: emailCode,
+      newPassword,
+    });
+  };
+
   const copyKey = async () => {
     try {
       await navigator.clipboard.writeText(key);
@@ -133,115 +212,226 @@ export default function Recover() {
         <Card className="w-full tcy-card border tcy-line">
           <CardHeader className="items-center text-center space-y-3">
             <Logo size={58} />
-            <CardTitle className="text-2xl tcy-text">Восстановление входа</CardTitle>
+            <CardTitle className="text-2xl tcy-text">Восстановление аккаунта</CardTitle>
             <p className="text-sm tcy-dim">
-              Укажи username, ID аккаунта и личный резервный секрет, который ты заранее сохранил в настройках.
+              Самый простой способ — подтвердить привязанную почту и задать новый пароль. Резервный секрет тоже остаётся доступен.
             </p>
           </CardHeader>
+          <div className="grid grid-cols-2 gap-2 px-6 pb-4">
+            <button
+              type="button"
+              aria-pressed={method === "email"}
+              onClick={() => { setMethod("email"); setError(""); setNotice(""); }}
+              className={`rounded-[15px] border px-3 py-3 text-[12.5px] font-bold ${method === "email" ? "tcy-gradient-accent" : "tcy-card tcy-line tcy-text"}`}
+            >
+              <Mail size={16} className="inline mr-1.5" /> По почте
+            </button>
+            <button
+              type="button"
+              aria-pressed={method === "secret"}
+              onClick={() => { setMethod("secret"); setError(""); setNotice(""); }}
+              className={`rounded-[15px] border px-3 py-3 text-[12.5px] font-bold ${method === "secret" ? "tcy-gradient-accent" : "tcy-card tcy-line tcy-text"}`}
+            >
+              <KeyRound size={16} className="inline mr-1.5" /> Резервный секрет
+            </button>
+          </div>
           <CardContent className="space-y-5">
-            <form onSubmit={handleRequestKey} className="space-y-3.5">
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium tcy-text">Имя пользователя</span>
-                <div className="relative block">
-                  <AtSign size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
-                  <TcInput
-                    className="pl-11"
-                    autoComplete="username"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
-                    minLength={3}
-                    maxLength={32}
-                    required
-                    placeholder="username"
-                  />
+            {method === "email" ? (
+              emailResetCompleted ? (
+                <div className="space-y-4 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full tcy-card-strong">
+                    <ShieldCheck size={28} className="tcy-accent" />
+                  </div>
+                  <h2 className="text-lg font-bold tcy-text">Пароль обновлён!</h2>
+                  <p className="text-sm tcy-dim">Теперь войди в TeleChatYou с новым паролем. Другие активные сеансы были завершены для защиты аккаунта.</p>
+                  <TcButton size="lg" onClick={() => navigate("/login", { replace: true })}>Ко входу</TcButton>
                 </div>
-              </label>
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium tcy-text">ID аккаунта</span>
-                <div className="relative block">
-                  <Hash size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
-                  <TcInput
-                    className="pl-11"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    value={accountId}
-                    onChange={(e) => setAccountId(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
-                    required
-                    placeholder="Например, 123"
-                  />
-                </div>
-              </label>
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium tcy-text">Личный резервный секрет</span>
-                <div className="relative block">
-                  <LockKeyhole size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
-                  <TcInput
-                    type="password"
-                    className="pl-11 font-mono tracking-wide"
-                    autoComplete="off"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    value={recoverySecret}
-                    onChange={(e) => setRecoverySecret(e.target.value)}
-                    maxLength={100}
-                    required
-                    placeholder="Секрет, сохранённый в настройках"
-                  />
-                </div>
-              </label>
-              <TcButton type="submit" size="lg" loading={requestKey.isPending}>
-                Получить одноразовый ключ
-              </TcButton>
-            </form>
-
-            <form onSubmit={handleLogin} className="space-y-3.5">
-              <label className="block space-y-1.5">
-                <span className="text-sm font-medium tcy-text">Одноразовый ключ</span>
-                <div className="relative block">
-                  <KeyRound size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
-                  <TcInput
-                    className="pl-11 pr-12 font-mono tracking-wide"
-                    autoComplete="one-time-code"
-                    autoCapitalize="none"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    value={key}
-                    onChange={(e) => setKey(e.target.value)}
-                    maxLength={80}
-                    placeholder="Вставь или получи ключ выше"
-                  />
-                  {key && (
-                    <button
-                      type="button"
-                      onClick={copyKey}
-                      aria-label="Скопировать ключ"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 tcy-dim"
-                    >
-                      <Copy size={17} />
-                    </button>
+              ) : (
+                <>
+                  <form onSubmit={handleRequestEmailReset} className="space-y-3.5">
+                    <label className="block space-y-1.5">
+                      <span className="text-sm font-medium tcy-text">Почта, привязанная к аккаунту</span>
+                      <div className="relative block">
+                        <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
+                        <TcInput
+                          type="email"
+                          className="pl-11"
+                          autoComplete="email"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          value={email}
+                          onChange={(event) => {
+                            setEmail(event.target.value);
+                            setEmailResetSent(false);
+                            setError("");
+                            setNotice("");
+                          }}
+                          maxLength={320}
+                          required
+                          placeholder="name@example.com"
+                        />
+                      </div>
+                    </label>
+                    <TcButton type="submit" size="lg" loading={requestEmailReset.isPending}>
+                      Отправить код на почту
+                    </TcButton>
+                  </form>
+                  {emailResetSent && (
+                    <form onSubmit={handleResetPassword} className="space-y-3.5 border-t tcy-line pt-4">
+                      <p className="text-sm leading-relaxed tcy-dim">Если адрес связан с подтверждённым аккаунтом, письмо отправлено. Код действует 10 минут и может использоваться только один раз.</p>
+                      <label className="block space-y-1.5">
+                        <span className="text-sm font-medium tcy-text">Код из письма</span>
+                        <TcInput
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          className="font-mono text-center tracking-[0.35em]"
+                          value={emailCode}
+                          onChange={(event) => setEmailCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+                          maxLength={6}
+                          required
+                          placeholder="123456"
+                        />
+                      </label>
+                      <label className="block space-y-1.5">
+                        <span className="text-sm font-medium tcy-text">Новый пароль</span>
+                        <TcInput
+                          type="password"
+                          autoComplete="new-password"
+                          value={newPassword}
+                          onChange={(event) => setNewPassword(event.target.value)}
+                          minLength={8}
+                          maxLength={128}
+                          required
+                          placeholder="От 8 до 128 символов"
+                        />
+                      </label>
+                      <label className="block space-y-1.5">
+                        <span className="text-sm font-medium tcy-text">Повтори новый пароль</span>
+                        <TcInput
+                          type="password"
+                          autoComplete="new-password"
+                          value={confirmNewPassword}
+                          onChange={(event) => setConfirmNewPassword(event.target.value)}
+                          minLength={8}
+                          maxLength={128}
+                          required
+                          placeholder="Ещё раз"
+                        />
+                      </label>
+                      <TcButton type="submit" size="lg" loading={resetPasswordByEmail.isPending}>
+                        <LockKeyhole size={17} /> Сохранить новый пароль
+                      </TcButton>
+                    </form>
                   )}
-                </div>
-                {expiresAt && (
-                  <span className="block text-xs tcy-dim">
-                    Действует до {new Date(expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.
-                  </span>
-                )}
-              </label>
-              {error && <p role="alert" className="text-sm tcy-danger">{error}</p>}
-              {notice && <p role="status" className="text-sm tcy-accent">{notice}</p>}
-              <TcButton type="submit" size="lg" variant="soft" loading={loginWithKey.isPending}>
-                <LockKeyhole size={17} /> Войти по ключу
-              </TcButton>
-            </form>
+                </>
+              )
+            ) : (
+              <>
+                <form onSubmit={handleRequestKey} className="space-y-3.5">
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-medium tcy-text">Имя пользователя</span>
+                    <div className="relative block">
+                      <AtSign size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
+                      <TcInput
+                        className="pl-11"
+                        autoComplete="username"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                        minLength={3}
+                        maxLength={32}
+                        required
+                        placeholder="username"
+                      />
+                    </div>
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-medium tcy-text">ID аккаунта</span>
+                    <div className="relative block">
+                      <Hash size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
+                      <TcInput
+                        className="pl-11"
+                        inputMode="numeric"
+                        autoComplete="off"
+                        value={accountId}
+                        onChange={(e) => setAccountId(e.target.value.replace(/[^0-9]/g, "").slice(0, 10))}
+                        required
+                        placeholder="Например, 123"
+                      />
+                    </div>
+                  </label>
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-medium tcy-text">Личный резервный секрет</span>
+                    <div className="relative block">
+                      <LockKeyhole size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
+                      <TcInput
+                        type="password"
+                        className="pl-11 font-mono tracking-wide"
+                        autoComplete="off"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        value={recoverySecret}
+                        onChange={(e) => setRecoverySecret(e.target.value)}
+                        maxLength={100}
+                        required
+                        placeholder="Секрет, сохранённый в настройках"
+                      />
+                    </div>
+                  </label>
+                  <TcButton type="submit" size="lg" loading={requestKey.isPending}>
+                    Получить одноразовый ключ
+                  </TcButton>
+                </form>
 
-            <p className="text-xs leading-relaxed tcy-faint text-center">
-              Ключ действует 15 минут, хранится на сервере только в виде хеша и после входа становится недействительным.
-              Резервный секрет обязателен. Если ты его ещё не создал, восстановление пока недоступно. Не передавай ключ другим людям.
-            </p>
+                <form onSubmit={handleLogin} className="space-y-3.5">
+                  <label className="block space-y-1.5">
+                    <span className="text-sm font-medium tcy-text">Одноразовый ключ</span>
+                    <div className="relative block">
+                      <KeyRound size={17} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
+                      <TcInput
+                        className="pl-11 pr-12 font-mono tracking-wide"
+                        autoComplete="one-time-code"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        value={key}
+                        onChange={(e) => setKey(e.target.value)}
+                        maxLength={80}
+                        placeholder="Вставь или получи ключ выше"
+                      />
+                      {key && (
+                        <button
+                          type="button"
+                          onClick={copyKey}
+                          aria-label="Скопировать ключ"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 tcy-dim"
+                        >
+                          <Copy size={17} />
+                        </button>
+                      )}
+                    </div>
+                    {expiresAt && (
+                      <span className="block text-xs tcy-dim">
+                        Действует до {new Date(expiresAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.
+                      </span>
+                    )}
+                  </label>
+                  <TcButton type="submit" size="lg" variant="soft" loading={loginWithKey.isPending}>
+                    <LockKeyhole size={17} /> Войти по ключу
+                  </TcButton>
+                </form>
+                <p className="text-xs leading-relaxed tcy-faint text-center">
+                  Ключ действует 15 минут, хранится на сервере только в виде хеша и после входа становится недействительным.
+                  Резервный секрет обязателен. Не передавай ключ другим людям.
+                </p>
+              </>
+            )}
+            {error && <p role="alert" className="text-sm tcy-danger">{error}</p>}
+            {notice && <p role="status" className="text-sm tcy-accent">{notice}</p>}
           </CardContent>
         </Card>
       </div>
