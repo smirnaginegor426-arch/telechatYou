@@ -275,7 +275,7 @@ export default function App() {
 
       <div className="relative z-10 h-full">
         {location.pathname === "/register" ? (
-          {isPrivateTester ? <RegisterWizard /> : <RegisterWizardLegacy />}
+          isPrivateTester ? <RegisterWizard /> : <RegisterWizardLegacy />
         ) : location.pathname === "/recover" ? (
           <Recover />
         ) : location.pathname === "/accounts" ? (
