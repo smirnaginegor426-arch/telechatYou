@@ -960,3 +960,20 @@ body,
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Registration illustrations keep strong contrast in both themes. */
+.tcy-onboarding-illustration {
+  filter: invert(0);
+  transition: filter 650ms ease;
+}
+
+html[data-theme="dark"] .tcy-onboarding-illustration {
+  filter: invert(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tcy-onboarding-illustration {
+    transition-duration: 0.01ms !important;
+  }
+}

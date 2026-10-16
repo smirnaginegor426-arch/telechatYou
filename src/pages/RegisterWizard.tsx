@@ -430,7 +430,7 @@ export default function RegisterWizard() {
                   <img
                     src={ONBOARDING[step - 4].image}
                     alt={ONBOARDING[step - 4].alt}
-                    className="h-full w-full object-contain drop-shadow-sm"
+                    className="tcy-onboarding-illustration h-full w-full object-contain"
                     draggable={false}
                   />
                 </motion.div>
