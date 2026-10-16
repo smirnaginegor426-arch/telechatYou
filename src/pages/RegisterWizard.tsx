@@ -10,9 +10,7 @@ import {
   Eye,
   EyeOff,
   LockKeyhole,
-  MessageCircle,
   Sparkles,
-  UsersRound,
   UserRound,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
@@ -283,51 +281,33 @@ export default function RegisterWizard() {
               <div className="flex flex-col items-center text-center">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.72, rotate: -10 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 220, damping: 18 }}
-                  className="relative mb-8 flex h-[min(42vw,190px)] w-[min(42vw,190px)] items-center justify-center"
+                  animate={{ opacity: 1, scale: 1, rotate: 0, y: [0, -4, 0] }}
+                  transition={{
+                    opacity: { duration: 0.35 },
+                    scale: { type: "spring", stiffness: 220, damping: 18 },
+                    rotate: { type: "spring", stiffness: 220, damping: 18 },
+                    y: { duration: 4.2, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                  className="relative mb-8 flex h-[min(48vw,220px)] w-[min(48vw,220px)] items-center justify-center"
                 >
                   <motion.div
                     aria-hidden="true"
-                    className="absolute inset-2 rounded-[42px] border"
+                    className="absolute inset-[-16px] rounded-full"
                     style={{
-                      borderColor: "color-mix(in srgb, var(--tcy-selected-accent) 24%, var(--tcy-line))",
-                      background: "color-mix(in srgb, var(--tcy-selected-accent) 7%, var(--tcy-card))",
+                      background: "radial-gradient(circle, color-mix(in srgb, var(--tcy-selected-accent) 21%, transparent), transparent 72%)",
                     }}
-                    animate={{ rotate: [0, 7, 0], scale: [1, 1.04, 1] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <motion.div
-                    aria-hidden="true"
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background: "radial-gradient(circle, color-mix(in srgb, var(--tcy-selected-accent) 18%, transparent), transparent 70%)",
-                    }}
-                    animate={{ scale: [0.9, 1.12, 0.9], opacity: [0.55, 0.9, 0.55] }}
+                    animate={{ scale: [0.92, 1.08, 0.92], opacity: [0.48, 0.82, 0.48] }}
                     transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
                   />
-                  <div
-                    className="relative z-10 flex h-[112px] w-[112px] items-center justify-center rounded-[36px] tcy-gradient-accent tcy-shadow-accent"
-                    style={{ color: "var(--tcy-on-accent)" }}
-                  >
-                    <MessageCircle size={54} strokeWidth={1.8} />
-                  </div>
-                  <motion.span
-                    className="absolute right-1 top-3 flex h-12 w-12 items-center justify-center rounded-[17px] border tcy-line tcy-card-strong"
-                    style={{ color: "var(--tcy-selected-accent)" }}
-                    animate={{ y: [0, -5, 0], rotate: [0, 5, 0] }}
-                    transition={{ duration: 3.3, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <UsersRound size={24} />
-                  </motion.span>
-                  <motion.span
-                    className="absolute bottom-2 left-1 flex h-10 w-10 items-center justify-center rounded-[14px] border tcy-line tcy-card-strong"
-                    style={{ color: "var(--tcy-selected-accent)" }}
-                    animate={{ y: [0, 5, 0], rotate: [0, -7, 0] }}
-                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    <Sparkles size={20} />
-                  </motion.span>
+                  <img
+                    src="/onboarding/telechatyou-logo.webp"
+                    alt="Логотип TeleChat You"
+                    draggable={false}
+                    className="relative z-10 h-full w-full rounded-[30px] object-cover"
+                    style={{
+                      boxShadow: "0 16px 44px -24px color-mix(in srgb, var(--tcy-selected-accent) 65%, transparent)",
+                    }}
+                  />
                 </motion.div>
                 <div className="max-w-[390px] space-y-4">
                   <h1 className="text-[29px] font-black leading-[1.13] tracking-tight tcy-text">
