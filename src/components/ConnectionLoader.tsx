@@ -14,7 +14,8 @@ export function ConnectionLoader() {
       aria-label="Загрузка чатов"
       className="flex min-h-[min(50vh,360px)] w-full items-center justify-center pointer-events-none"
     >
-      <div className="relative h-10 w-10" aria-hidden="true">
+      <div className="tcy-loader-mascot hidden" aria-hidden="true">🐰</div>
+      <div className="tcy-loader-dots relative h-10 w-10" aria-hidden="true">
         {/* Two complete dots start on the same point, separate, then merge into one point. */}
         <motion.span
           className="absolute left-1/2 top-1/2 h-3 w-3 rounded-full"
