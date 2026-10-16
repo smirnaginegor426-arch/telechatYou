@@ -42,7 +42,7 @@ export default function Contacts() {
 
       <div className="flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
         <div className="px-5 py-2 text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
-          {q.trim().length >= 2 ? "Результаты поиска" : "Все пользователи"}
+          {q.trim().length >= 2 ? "Вот кого нашли" : "Найди друзей"}
         </div>
         {directory.isLoading && q.trim().length < 2 ? (
           <div className="space-y-1 px-2">
