@@ -11,6 +11,16 @@ import { TcInput, TcTextarea } from "@/components/TcInput";
 import { Logo } from "@/components/Logo";
 import { fileToBase64 } from "@/lib/format";
 
+type MascotId = "cat" | "rabbit" | "panda" | "dino" | "fox" | "bear";
+const MASCOTS: { id: MascotId; name: string }[] = [
+  { id: "cat", name: "Котёнок" },
+  { id: "rabbit", name: "Кролик" },
+  { id: "panda", name: "Панда" },
+  { id: "dino", name: "Динозаврик" },
+  { id: "fox", name: "Лисёнок" },
+  { id: "bear", name: "Мишка" },
+];
+
 const slide = {
   initial: { x: 60, opacity: 0 },
   animate: { x: 0, opacity: 1 },
@@ -29,6 +39,7 @@ export default function Setup() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
+  const [selectedMascot, setSelectedMascot] = useState<MascotId | null>("cat");
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -57,7 +68,7 @@ export default function Setup() {
   const finish = async () => {
     setError("");
     try {
-      let avatarKey: string | undefined;
+      let avatarKey: string | undefined = selectedMascot ? `mascot:${selectedMascot}` : undefined;
       if (avatarFile) {
         const res = await upload.mutateAsync({
           name: avatarFile.name || "avatar.jpg",
@@ -132,11 +143,11 @@ export default function Setup() {
         Дальше <ArrowRight size={18} />
       </TcButton>
     </div>,
-    // 2 — avatar + bio
-    <div key="avatar" className="space-y-6">
-      <div>
-        <h2 className="text-[24px] font-extrabold tcy-text">Фото профиля</h2>
-        <p className="text-[13.5px] tcy-dim mt-1.5">Можно пропустить и добавить позже.</p>
+    // 2 — mascot or personal photo + bio
+    <div key="avatar" className="space-y-5">
+      <div className="text-center">
+        <h2 className="text-[24px] font-extrabold tcy-text">Выбери себе маленького друга!</h2>
+        <p className="text-[13.5px] tcy-dim mt-1.5">Можно выбрать персонажа или поставить своё фото.</p>
       </div>
       <input
         ref={fileRef}
@@ -149,28 +160,38 @@ export default function Setup() {
           e.currentTarget.value = "";
         }}
       />
-      <div className="flex justify-center">
-        <button onClick={() => fileRef.current?.click()} className="tcy-press relative">
-          {avatarPreview ? (
-            <img
-              src={avatarPreview}
-              alt="Аватар"
-              className="w-28 h-28 object-cover"
-              style={{ borderRadius: "32%" }}
-            />
-          ) : (
-            <div
-              className="w-28 h-28 tcy-card border-2 border-dashed tcy-line flex flex-col items-center justify-center gap-1.5"
-              style={{ borderRadius: "32%" }}
-            >
-              <UserRound size={30} className="tcy-faint" />
-            </div>
-          )}
-          <span className="absolute -bottom-1.5 -right-1.5 w-9 h-9 rounded-full tcy-gradient-accent flex items-center justify-center tcy-shadow-accent" style={{ color: "var(--tcy-on-accent)" }}>
-            <Camera size={16} />
-          </span>
-        </button>
+      <div className="tcy-mascot-picker">
+        {MASCOTS.map((mascot) => (
+          <button
+            key={mascot.id}
+            type="button"
+            aria-pressed={selectedMascot === mascot.id}
+            className="tcy-mascot-choice"
+            onClick={() => {
+              setSelectedMascot(mascot.id);
+              setAvatarFile(null);
+              setAvatarPreview(null);
+            }}
+          >
+            <img src={`/mascots/${mascot.id}.svg`} alt="" draggable={false} />
+            <span>{mascot.name}</span>
+          </button>
+        ))}
       </div>
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        className="tcy-mascot-custom-photo inline-flex w-full items-center justify-center gap-2 px-4 py-3 text-[13px] font-extrabold tcy-text"
+      >
+        <Camera size={18} /> Выбрать своё фото
+      </button>
+      {avatarPreview && (
+        <div className="flex items-center gap-3 rounded-[20px] p-3 tcy-avatar-custom-preview">
+          <img src={avatarPreview} alt="Твоё фото" className="h-12 w-12 rounded-[16px] object-cover" />
+          <span className="flex-1 text-[12.5px] font-bold tcy-text">Фото выбрано</span>
+          <button type="button" onClick={() => { setAvatarFile(null); setAvatarPreview(null); setSelectedMascot("cat"); }} className="text-[11px] font-extrabold tcy-accent">Персонаж</button>
+        </div>
+      )}
       <TcTextarea
         value={bio}
         onChange={(e) => setBio(e.target.value)}
@@ -227,6 +248,7 @@ export default function Setup() {
         file={avatarToEdit}
         onCancel={() => setAvatarToEdit(null)}
         onSave={(edited) => {
+          setSelectedMascot(null);
           setAvatarFile(edited);
           setAvatarPreview(URL.createObjectURL(edited));
         }}
