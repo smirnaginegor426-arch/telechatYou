@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 /** Bottom sheet with spring entrance, drag-to-close and blurred backdrop. */
 export function BottomSheet({
@@ -20,7 +21,7 @@ export function BottomSheet({
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -31,7 +32,7 @@ export function BottomSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="absolute inset-0 z-40"
+            className="fixed inset-0 z-40"
             style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(6px)" }}
           />
           <motion.div
@@ -46,7 +47,7 @@ export function BottomSheet({
             onDragEnd={(_, info) => {
               if (info.offset.y > 90 || info.velocity.y > 500) onClose();
             }}
-            className="absolute bottom-0 left-0 right-0 z-50 rounded-t-[30px] tcy-solid border-t tcy-line max-h-[86%] flex flex-col"
+            className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[30px] tcy-solid border-t tcy-line max-h-[86%] flex flex-col"
           >
             <div className="pt-3 pb-1 flex justify-center shrink-0">
               <div className="w-10 h-1.5 rounded-full" style={{ background: "var(--tcy-line-strong)" }} />
@@ -60,6 +61,7 @@ export function BottomSheet({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

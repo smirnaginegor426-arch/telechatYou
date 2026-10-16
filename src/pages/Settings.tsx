@@ -7,6 +7,8 @@ import {
   Copy,
   Database,
   Eye,
+  ExternalLink,
+  FileText,
   Globe,
   Ghost,
   Image as ImageIcon,
@@ -50,6 +52,7 @@ export default function Settings() {
   const [currentPasswordForRotation, setCurrentPasswordForRotation] = useState("");
   const [aboutOpen, setAboutOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
+  const [storageView, setStorageView] = useState(false);
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
 
   useEffect(() => {
@@ -61,6 +64,12 @@ export default function Settings() {
   });
   const removeMany = trpc.storage.removeMany.useMutation({
     onSuccess: () => utils.storage.mine.invalidate(),
+  });
+  const removeFile = trpc.storage.remove.useMutation({
+    onSuccess: async () => {
+      await utils.storage.mine.invalidate();
+      await utils.storage.urls.invalidate();
+    },
   });
 
   const handleRecoverySecretReady = async (secret: string) => {
@@ -103,6 +112,11 @@ export default function Settings() {
 
   const files = myFiles.data ?? [];
   const totalSize = files.reduce((sum, f) => sum + Number(f.size), 0);
+  const storageKeys = files.map((file) => file.key);
+  const storageUrls = trpc.storage.urls.useQuery(
+    { keys: storageKeys },
+    { enabled: storageOpen && storageView && storageKeys.length > 0, staleTime: 60_000 },
+  );
 
   return (
     <div className="tcy-settings-page relative h-full overflow-y-auto no-scrollbar pb-32">
@@ -364,7 +378,7 @@ export default function Settings() {
           icon={<Database size={17} />}
           title="Хранилище"
           subtitle={`${files.length} файлов · ${formatFileSize(totalSize)}`}
-          onClick={() => setStorageOpen(true)}
+          onClick={() => { setStorageView(false); setStorageOpen(true); }}
         />
         <SettingsRow icon={<Globe size={17} />} title="Мой язык" subtitle="Создать, изменить и сохранить свой язык" onClick={() => navigate("/language")} />
       </SettingsGroup>
@@ -414,7 +428,7 @@ export default function Settings() {
       </BottomSheet>
 
       {/* storage */}
-      <BottomSheet open={storageOpen} onClose={() => setStorageOpen(false)} title="Хранилище">
+      <BottomSheet open={storageOpen} onClose={() => { setStorageOpen(false); setStorageView(false); }} title="Хранилище">
         <div className="px-5 space-y-4">
           <div className="rounded-[20px] tcy-card border tcy-line p-4 flex items-center justify-between">
             <div>
@@ -423,6 +437,76 @@ export default function Settings() {
             </div>
             <Database size={22} className="tcy-accent" />
           </div>
+          <TcButton
+            variant="soft"
+            size="lg"
+            className="w-full"
+            onClick={() => setStorageView((open) => !open)}
+          >
+            <Eye size={16} /> {storageView ? "Скрыть файлы" : "Просмотреть"}
+          </TcButton>
+          {storageView && (
+            <div className="space-y-2">
+              {myFiles.isLoading && (
+                <p className="py-4 text-center text-[12.5px] tcy-dim">Загружаем список файлов…</p>
+              )}
+              {!myFiles.isLoading && files.length === 0 && (
+                <p className="py-5 text-center text-[12.5px] tcy-dim">Хранилище пустое</p>
+              )}
+              {files.map((file) => {
+                const url = storageUrls.data?.urls?.[file.key];
+                const isImage = !!file.contentType?.startsWith("image/");
+                return (
+                  <div key={file.key} className="flex min-w-0 items-center gap-3 rounded-[17px] border tcy-line tcy-card p-2.5">
+                    {isImage && url ? (
+                      <a href={url} target="_blank" rel="noreferrer" className="block h-12 w-12 shrink-0 overflow-hidden rounded-[12px] tcy-card-strong">
+                        <img src={url} alt={file.name} className="h-full w-full object-cover" loading="lazy" />
+                      </a>
+                    ) : (
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] tcy-card-strong tcy-accent">
+                        <FileText size={19} />
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <a
+                        href={url ?? undefined}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(event) => { if (!url) event.preventDefault(); }}
+                        className="block truncate text-[12.5px] font-bold tcy-text"
+                        title={file.name}
+                      >
+                        {file.name}
+                      </a>
+                      <p className="mt-1 truncate text-[10.5px] tcy-faint">
+                        {formatFileSize(Number(file.size))}{file.contentType ? " · " + file.contentType : ""}
+                      </p>
+                      {!url && <p className="mt-0.5 text-[10px] tcy-faint">Ссылка готовится…</p>}
+                    </div>
+                    {url && (
+                      <a href={url} target="_blank" rel="noreferrer" aria-label={"Открыть " + file.name} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card-strong tcy-dim">
+                        <ExternalLink size={16} />
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      aria-label={"Удалить " + file.name}
+                      title="Удалить файл"
+                      disabled={removeFile.isPending}
+                      onClick={() => {
+                        if (window.confirm("Удалить файл «" + file.name + "»? Сообщения с ним перестанут открываться.")) {
+                          removeFile.mutate({ key: file.key });
+                        }
+                      }}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card-strong tcy-danger disabled:opacity-40"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {files.length > 0 && (
             <TcButton
               variant="danger"

@@ -128,6 +128,8 @@ export default function ChatView() {
   const [editing, setEditing] = useState<MessageItem | null>(null);
   const [actionMsg, setActionMsg] = useState<MessageItem | null>(null);
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
+  const [selectedMessageIds, setSelectedMessageIds] = useState<number[]>([]);
+  const [forwardMessageIds, setForwardMessageIds] = useState<number[]>([]);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
   const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null } | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(DEFAULT_CHAT_WALLPAPER);
@@ -302,6 +304,7 @@ export default function ChatView() {
   const forward = trpc.messages.forward.useMutation({
     onSuccess: () => {
       setForwardMsg(null);
+      setForwardMessageIds([]);
       invalidateLists();
     },
   });
@@ -674,6 +677,79 @@ export default function ChatView() {
         )}
       </header>
 
+      <AnimatePresence>
+        {selectedMessageIds.length > 0 && (
+          <motion.div
+            key="message-selection-toolbar"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="relative z-20 flex items-center gap-1.5 border-b tcy-line tcy-solid-2 px-3 py-2"
+          >
+            <button type="button" onClick={() => setSelectedMessageIds([])} aria-label="Снять выделение" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-dim">
+              <X size={18} />
+            </button>
+            <span className="min-w-0 flex-1 text-[13px] font-bold tcy-text">
+              Выбрано: {selectedMessageIds.length}
+            </span>
+            <button
+              type="button"
+              aria-label="Копировать сообщения"
+              title="Копировать"
+              onClick={() => {
+                const text = visibleMessages
+                  .filter((message) => selectedMessageIds.includes(message.id))
+                  .map((message) => message.body?.trim() || (message.kind === "image" ? "Фото" : message.kind === "voice" ? "Голосовое сообщение" : message.attachmentName ?? "Сообщение"))
+                  .join("\n");
+                void navigator.clipboard?.writeText(text);
+                setSelectedMessageIds([]);
+              }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-text"
+            >
+              <Copy size={17} />
+            </button>
+            <button
+              type="button"
+              aria-label="Переслать выбранные сообщения"
+              title="Переслать"
+              onClick={() => {
+                const selected = visibleMessages.filter((message) => selectedMessageIds.includes(message.id));
+                if (!selected.length) return;
+                setForwardMessageIds(selected.map((message) => message.id));
+                setForwardMsg(selected[selected.length - 1]);
+                setSelectedMessageIds([]);
+              }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-text"
+            >
+              <Forward size={17} />
+            </button>
+            <button
+              type="button"
+              aria-label="Удалить выбранные сообщения"
+              title="Удалить"
+              onClick={() => {
+                const selected = visibleMessages.filter((message) => selectedMessageIds.includes(message.id));
+                const canDeleteAny = info.data?.me.role === "owner" || info.data?.me.role === "admin";
+                const deletable = selected.filter((message) => message.senderId === myId || canDeleteAny);
+                if (!deletable.length) {
+                  alert("Можно удалить только свои сообщения.");
+                  return;
+                }
+                if (!window.confirm("Удалить выбранные сообщения (" + deletable.length + ")?")) return;
+                for (const message of deletable) {
+                  applyLocal(message.id, { deletedAt: new Date() });
+                  remove.mutate({ messageId: message.id });
+                }
+                setSelectedMessageIds([]);
+              }}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-danger"
+            >
+              <Trash2 size={17} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {activePinnedMessage && activePinnedId !== null && (
         <div className="relative z-10 mx-3 mb-1 flex items-center gap-2 rounded-[16px] border tcy-line tcy-card px-3 py-2">
           <button type="button" onClick={() => void jumpToMessage(activePinnedId)} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
@@ -779,7 +855,14 @@ export default function ChatView() {
                     isChannel={isChannel}
                     showSender={!!showSender}
                     peerLastReadId={peerLastReadId}
-                    onLongPress={setActionMsg}
+                    onLongPress={(message) => {
+                      setActionMsg(null);
+                      setSelectedMessageIds((current) => current.includes(message.id) ? current : [...current, message.id]);
+                    }}
+                    onContextAction={(message) => setActionMsg(message)}
+                    selectionMode={selectedMessageIds.length > 0}
+                    selected={selectedMessageIds.includes(m.id)}
+                    onSelectToggle={(message) => setSelectedMessageIds((current) => current.includes(message.id) ? current.filter((id) => id !== message.id) : [...current, message.id])}
                     onImageOpen={(key) =>
                       setLightbox({ key, name: m.attachmentName, size: m.attachmentSize })
                     }
@@ -980,6 +1063,7 @@ export default function ChatView() {
                     label: "Переслать",
                     fn: () => {
                       setForwardMsg(actionMsg);
+                      setForwardMessageIds([actionMsg.id]);
                       setActionMsg(null);
                     },
                   },
@@ -1163,7 +1247,7 @@ export default function ChatView() {
             return (
               <button
                 key={c.chat.id}
-                onClick={() => forward.mutate({ messageIds: [forwardMsg!.id], targetChatId: c.chat.id })}
+                onClick={() => forward.mutate({ messageIds: forwardMessageIds.length ? forwardMessageIds : [forwardMsg!.id], targetChatId: c.chat.id })}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-[18px] active:bg-[color:var(--tcy-card)] tcy-press"
               >
                 <Avatar
