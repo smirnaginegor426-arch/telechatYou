@@ -325,6 +325,8 @@ export function MessageBubble({
         borderRadius: "22px",
       } : undefined}
       onClickCapture={selectionMode ? (event) => {
+        // Explicit links must remain clickable even while message-selection mode is active.
+        if (event.target instanceof Element && event.target.closest("a")) return;
         if (longPressTriggeredRef.current) {
           longPressTriggeredRef.current = false;
           event.preventDefault();
