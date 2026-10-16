@@ -545,7 +545,7 @@ export function Composer({
                   ) : (
                     <motion.button
                       key="mic"
-                      initial={{ scale: 1, opacity: 1 }}
+                      initial={{ scale: 0.3, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.12, opacity: 0, transition: { duration: 0.12, ease: "easeIn" } }}
                       transition={{ type: "spring", stiffness: 720, damping: 30, mass: 0.62 }}
