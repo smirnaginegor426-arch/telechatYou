@@ -130,7 +130,7 @@ export default function ChatView() {
   const [actionMsg, setActionMsg] = useState<MessageItem | null>(null);
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<number[]>([]);
-  const [selectionToolbarPosition, setSelectionToolbarPosition] = useState<{ left: number; top: number; placement: "above" | "below" } | null>(null);
+  const [selectionToolbarPosition, setSelectionToolbarPosition] = useState<{ left: number; top: number } | null>(null);
   const [forwardMessageIds, setForwardMessageIds] = useState<number[]>([]);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
   const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null } | null>(null);
@@ -161,30 +161,21 @@ export default function ChatView() {
       }
 
       const rect = anchor.getBoundingClientRect();
-      const toolbarHeight = 54;
       const toolbarWidth = Math.min(248, window.innerWidth - 16);
       const left = Math.max(
         toolbarWidth / 2 + 8,
         Math.min(window.innerWidth - toolbarWidth / 2 - 8, rect.left + rect.width / 2),
       );
-      let top: number;
-      let placement: "above" | "below";
 
-      if (rect.top >= toolbarHeight + 16) {
-        top = rect.top - 8;
-        placement = "above";
-      } else {
-        placement = "below";
-        top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - toolbarHeight - 8));
-      }
+      // Always anchor the toolbar above the selected message. Never flip it below.
+      const top = rect.top - 8;
 
       setSelectionToolbarPosition((current) =>
         current &&
         Math.abs(current.left - left) < 0.5 &&
-        Math.abs(current.top - top) < 0.5 &&
-        current.placement === placement
+        Math.abs(current.top - top) < 0.5
           ? current
-          : { left, top, placement },
+          : { left, top },
       );
     };
 
@@ -739,15 +730,15 @@ export default function ChatView() {
           style={{
             left: selectionToolbarPosition.left,
             top: selectionToolbarPosition.top,
-            transform: selectionToolbarPosition.placement === "above" ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+            transform: "translate(-50%, -100%)",
           }}
         >
           <AnimatePresence>
             <motion.div
               key="message-selection-toolbar"
-              initial={{ opacity: 0, scale: 0.94, y: selectionToolbarPosition.placement === "above" ? 7 : -7 }}
+              initial={{ opacity: 0, scale: 0.94, y: 7 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: selectionToolbarPosition.placement === "above" ? 7 : -7 }}
+              exit={{ opacity: 0, scale: 0.94, y: 7 }}
               transition={{ type: "spring", stiffness: 420, damping: 30 }}
               className="flex w-[min(248px,calc(100vw-16px))] items-center gap-1.5 rounded-[18px] border tcy-line tcy-solid-2 px-3 py-2 shadow-xl"
               style={{ boxShadow: "0 12px 36px rgba(0,0,0,0.28)" }}
