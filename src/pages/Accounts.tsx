@@ -223,7 +223,7 @@ export default function AccountsPage() {
         <TcButton
           size="lg"
           disabled={accounts.length >= MAX_SAVED_ACCOUNTS || busy}
-          onClick={() => navigate("/login?addAccount=1")}
+          onClick={() => navigate("/register?addAccount=1")}
         >
           <Plus size={18} /> Добавить аккаунт
         </TcButton>
