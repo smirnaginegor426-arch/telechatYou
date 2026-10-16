@@ -12,7 +12,7 @@ export function useTesterMode(options: { enabled?: boolean } = {}) {
     staleTime: 30_000,
     refetchOnWindowFocus: true,
   });
-  const enabled = access.data?.enabled === true;
+  const enabled = shouldQuery && access.data?.enabled === true;
 
   return { isTester: enabled, enabled, isLoading: shouldQuery && access.isLoading };
 }
