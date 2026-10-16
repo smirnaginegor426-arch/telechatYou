@@ -3,6 +3,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
 import type { PublicUser } from "./lib/session";
+import { isPrivateExperimentalTester } from "./lib/experimental-access";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -43,5 +44,19 @@ function requireRole(role: string) {
   });
 }
 
+const requirePrivateTester = t.middleware(async (opts) => {
+  const { ctx, next } = opts;
+  const user = ctx.user;
+  if (!user || !isPrivateExperimentalTester(user)) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Эта экспериментальная функция доступна только в закрытом тестовом режиме.",
+    });
+  }
+  return next({ ctx: { ...ctx, user: user as PublicUser } });
+});
+
 export const authedQuery = t.procedure.use(requireAuth);
+/** Use this for backend procedures reserved for private experimental features. */
+export const testerProcedure = authedQuery.use(requirePrivateTester);
 export const adminQuery = authedQuery.use(requireRole("admin"));
