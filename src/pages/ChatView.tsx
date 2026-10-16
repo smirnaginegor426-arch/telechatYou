@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -129,6 +130,7 @@ export default function ChatView() {
   const [actionMsg, setActionMsg] = useState<MessageItem | null>(null);
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<number[]>([]);
+  const [selectionToolbarPosition, setSelectionToolbarPosition] = useState<{ left: number; top: number; placement: "above" | "below" } | null>(null);
   const [forwardMessageIds, setForwardMessageIds] = useState<number[]>([]);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
   const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null } | null>(null);
@@ -142,6 +144,60 @@ export default function ChatView() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const myIdRef = useRef<number>(0);
+
+  useLayoutEffect(() => {
+    if (selectedMessageIds.length === 0) {
+      setSelectionToolbarPosition(null);
+      return;
+    }
+
+    const updatePosition = () => {
+      const anchorId = selectedMessageIds[selectedMessageIds.length - 1];
+      const row = scrollRef.current?.querySelector<HTMLElement>(`[data-message-id="${anchorId}"]`);
+      const anchor = row?.querySelector<HTMLElement>(".tcy-no-select") ?? row;
+      if (!anchor) {
+        setSelectionToolbarPosition(null);
+        return;
+      }
+
+      const rect = anchor.getBoundingClientRect();
+      const toolbarHeight = 54;
+      const toolbarWidth = Math.min(248, window.innerWidth - 16);
+      const left = Math.max(
+        toolbarWidth / 2 + 8,
+        Math.min(window.innerWidth - toolbarWidth / 2 - 8, rect.left + rect.width / 2),
+      );
+      let top: number;
+      let placement: "above" | "below";
+
+      if (rect.top >= toolbarHeight + 16) {
+        top = rect.top - 8;
+        placement = "above";
+      } else {
+        placement = "below";
+        top = Math.max(8, Math.min(rect.bottom + 8, window.innerHeight - toolbarHeight - 8));
+      }
+
+      setSelectionToolbarPosition((current) =>
+        current &&
+        Math.abs(current.left - left) < 0.5 &&
+        Math.abs(current.top - top) < 0.5 &&
+        current.placement === placement
+          ? current
+          : { left, top, placement },
+      );
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    // Capture scroll from the message pane as well as any parent scrolling container.
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [selectedMessageIds]);
+
 
   useEffect(() => {
     const loadSavedWallpaper = () => {
@@ -677,78 +733,91 @@ export default function ChatView() {
         )}
       </header>
 
-      <AnimatePresence>
-        {selectedMessageIds.length > 0 && (
-          <motion.div
-            key="message-selection-toolbar"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="relative z-20 flex items-center gap-1.5 border-b tcy-line tcy-solid-2 px-3 py-2"
-          >
-            <button type="button" onClick={() => setSelectedMessageIds([])} aria-label="Снять выделение" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-dim">
-              <X size={18} />
-            </button>
-            <span className="min-w-0 flex-1 text-[13px] font-bold tcy-text">
-              Выбрано: {selectedMessageIds.length}
-            </span>
-            <button
-              type="button"
-              aria-label="Копировать сообщения"
-              title="Копировать"
-              onClick={() => {
-                const text = visibleMessages
-                  .filter((message) => selectedMessageIds.includes(message.id))
-                  .map((message) => message.body?.trim() || (message.kind === "image" ? "Фото" : message.kind === "voice" ? "Голосовое сообщение" : message.attachmentName ?? "Сообщение"))
-                  .join("\n");
-                void navigator.clipboard?.writeText(text);
-                setSelectedMessageIds([]);
-              }}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-text"
+      {selectedMessageIds.length > 0 && selectionToolbarPosition && typeof document !== "undefined" && createPortal(
+        <div
+          className="fixed z-[10000]"
+          style={{
+            left: selectionToolbarPosition.left,
+            top: selectionToolbarPosition.top,
+            transform: selectionToolbarPosition.placement === "above" ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+          }}
+        >
+          <AnimatePresence>
+            <motion.div
+              key="message-selection-toolbar"
+              initial={{ opacity: 0, scale: 0.94, y: selectionToolbarPosition.placement === "above" ? 7 : -7 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: selectionToolbarPosition.placement === "above" ? 7 : -7 }}
+              transition={{ type: "spring", stiffness: 420, damping: 30 }}
+              className="flex w-[min(248px,calc(100vw-16px))] items-center gap-1.5 rounded-[18px] border tcy-line tcy-solid-2 px-3 py-2 shadow-xl"
+              style={{ boxShadow: "0 12px 36px rgba(0,0,0,0.28)" }}
             >
-              <Copy size={17} />
-            </button>
-            <button
-              type="button"
-              aria-label="Переслать выбранные сообщения"
-              title="Переслать"
-              onClick={() => {
-                const selected = visibleMessages.filter((message) => selectedMessageIds.includes(message.id));
-                if (!selected.length) return;
-                setForwardMessageIds(selected.map((message) => message.id));
-                setForwardMsg(selected[selected.length - 1]);
-                setSelectedMessageIds([]);
-              }}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-text"
-            >
-              <Forward size={17} />
-            </button>
-            <button
-              type="button"
-              aria-label="Удалить выбранные сообщения"
-              title="Удалить"
-              onClick={() => {
-                const selected = visibleMessages.filter((message) => selectedMessageIds.includes(message.id));
-                const canDeleteAny = info.data?.me.role === "owner" || info.data?.me.role === "admin";
-                const deletable = selected.filter((message) => message.senderId === myId || canDeleteAny);
-                if (!deletable.length) {
-                  alert("Можно удалить только свои сообщения.");
-                  return;
-                }
-                if (!window.confirm("Удалить выбранные сообщения (" + deletable.length + ")?")) return;
-                for (const message of deletable) {
-                  applyLocal(message.id, { deletedAt: new Date() });
-                  remove.mutate({ messageId: message.id });
-                }
-                setSelectedMessageIds([]);
-              }}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-danger"
-            >
-              <Trash2 size={17} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <button type="button" onClick={() => setSelectedMessageIds([])} aria-label="Снять выделение" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-dim">
+                <X size={18} />
+              </button>
+              <span className="min-w-0 flex-1 text-[13px] font-bold tcy-text">
+                Выбрано: {selectedMessageIds.length}
+              </span>
+              <button
+                type="button"
+                aria-label="Копировать сообщения"
+                title="Копировать"
+                onClick={() => {
+                  const text = visibleMessages
+                    .filter((message) => selectedMessageIds.includes(message.id))
+                    .map((message) => message.body?.trim() || (message.kind === "image" ? "Фото" : message.kind === "voice" ? "Голосовое сообщение" : message.attachmentName ?? "Сообщение"))
+                    .join("\n");
+                  void navigator.clipboard?.writeText(text);
+                  setSelectedMessageIds([]);
+                }}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-text"
+              >
+                <Copy size={17} />
+              </button>
+              <button
+                type="button"
+                aria-label="Переслать выбранные сообщения"
+                title="Переслать"
+                onClick={() => {
+                  const selected = visibleMessages.filter((message) => selectedMessageIds.includes(message.id));
+                  if (!selected.length) return;
+                  setForwardMessageIds(selected.map((message) => message.id));
+                  setForwardMsg(selected[selected.length - 1]);
+                  setSelectedMessageIds([]);
+                }}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-text"
+              >
+                <Forward size={17} />
+              </button>
+              <button
+                type="button"
+                aria-label="Удалить выбранные сообщения"
+                title="Удалить"
+                onClick={() => {
+                  const selected = visibleMessages.filter((message) => selectedMessageIds.includes(message.id));
+                  const canDeleteAny = info.data?.me.role === "owner" || info.data?.me.role === "admin";
+                  const deletable = selected.filter((message) => message.senderId === myId || canDeleteAny);
+                  if (!deletable.length) {
+                    alert("Можно удалить только свои сообщения.");
+                    return;
+                  }
+                  if (!window.confirm("Удалить выбранные сообщения (" + deletable.length + ")?")) return;
+                  for (const message of deletable) {
+                    applyLocal(message.id, { deletedAt: new Date() });
+                    remove.mutate({ messageId: message.id });
+                  }
+                  setSelectedMessageIds([]);
+                }}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-danger"
+              >
+                <Trash2 size={17} />
+              </button>
+  
+            </motion.div>
+          </AnimatePresence>
+        </div>,
+        document.body,
+      )}
 
       {activePinnedMessage && activePinnedId !== null && (
         <div className="relative z-10 mx-3 mb-1 flex items-center gap-2 rounded-[16px] border tcy-line tcy-card px-3 py-2">
