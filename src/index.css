@@ -921,3 +921,42 @@ html[data-theme="light"] .tcy-wallpaper-bg--wine {
     box-shadow: 0 28px 100px -32px rgba(30, 30, 45, .22);
   }
 }
+
+
+/* Smoothly blend registration and app surfaces when the user switches theme. */
+html,
+body,
+#root,
+.tcy-app-shell,
+.tcy-card,
+.tcy-card-strong,
+.tcy-solid,
+.tcy-solid-2,
+.tcy-header-blur,
+.tcy-route-animated {
+  transition:
+    background-color 650ms ease,
+    color 650ms ease,
+    border-color 650ms ease,
+    box-shadow 650ms ease;
+}
+
+.tcy-theme-toggle {
+  transition: background-color 650ms ease, border-color 650ms ease, color 650ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  #root,
+  .tcy-app-shell,
+  .tcy-card,
+  .tcy-card-strong,
+  .tcy-solid,
+  .tcy-solid-2,
+  .tcy-header-blur,
+  .tcy-route-animated,
+  .tcy-theme-toggle {
+    transition-duration: 0.01ms !important;
+  }
+}
