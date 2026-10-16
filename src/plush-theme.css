@@ -607,3 +607,10 @@ html[data-tcy-plush="true"] #root .tcy-online-pulse {
   70% { box-shadow: 0 0 0 7px transparent; }
   100% { box-shadow: 0 0 0 0 transparent; }
 }
+
+html[data-tcy-plush="true"] #root .tcy-avatar-placeholder {
+  background: linear-gradient(145deg, var(--plush-lilac), var(--plush-pink)) !important;
+  color: var(--plush-text) !important;
+  border: 2px solid color-mix(in srgb, white 70%, var(--plush-lilac));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 75%, transparent), var(--plush-shadow);
+}
