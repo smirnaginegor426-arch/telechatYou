@@ -73,8 +73,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback((nextTheme: Theme) => {
     setThemeState(nextTheme);
-    update.mutate({ theme: nextTheme });
-  }, [update.mutate]);
+    // The welcome/registration screens are available before authentication.
+    // Keep their theme choice locally and only sync settings for an existing profile.
+    if (me.data?.profile) update.mutate({ theme: nextTheme });
+  }, [me.data?.profile, update.mutate]);
 
   const setAccent = useCallback((nextAccent: AccentId) => {
     setAccentState(nextAccent);

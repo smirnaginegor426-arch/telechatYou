@@ -13,6 +13,7 @@ import { useDeviceMode } from "@/hooks/useDeviceMode";
 
 import Welcome from "@/pages/Welcome";
 import Setup from "@/pages/Setup";
+import RegisterWizard from "@/pages/RegisterWizard";
 import Chats from "@/pages/Chats";
 import ChatView from "@/pages/ChatView";
 import TeleChatYouBot from "@/pages/TeleChatYouBot";
@@ -256,7 +257,9 @@ export default function App() {
       <CustomLanguageBridge />
 
       <div className="relative z-10 h-full">
-        {location.pathname === "/recover" ? (
+        {location.pathname === "/register" ? (
+          <RegisterWizard />
+        ) : location.pathname === "/recover" ? (
           <Recover />
         ) : location.pathname === "/accounts" ? (
           <AccountsPage />
