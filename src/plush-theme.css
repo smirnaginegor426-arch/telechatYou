@@ -255,3 +255,312 @@ html[data-tcy-plush="true"] .tcy-aurora::after {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* ============================================================
+   FULL PRIVATE PLUSH UI — redesign every messenger surface.
+   This is intentionally scoped to the server-authorized tester
+   attribute; regular accounts keep the existing design system.
+   ============================================================ */
+html[data-tcy-plush="true"] #root {
+  --plush-ink: #604968;
+  --plush-muted: #9b83a4;
+  --plush-pink: #f5cde2;
+  --plush-pink-strong: #eab2d2;
+  --plush-lilac: #d9c6fa;
+  --plush-mint: #c7f0df;
+  --plush-line: rgba(196, 154, 199, .34);
+  --plush-gloss: rgba(255, 255, 255, .95);
+  --plush-shadow: 0 9px 22px -15px rgba(143, 98, 158, .48);
+  color: var(--plush-ink);
+}
+
+/* Make every screen use the same soft, toy-like geometry. */
+html[data-tcy-plush="true"] #root [class*="rounded-"]:not([class*="rounded-full"]) {
+  border-radius: 23px !important;
+}
+html[data-tcy-plush="true"] #root [class*="border"] {
+  border-color: var(--plush-line) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-bg,
+html[data-tcy-plush="true"] #root .tcy-bg-2,
+html[data-tcy-plush="true"] #root .tcy-solid,
+html[data-tcy-plush="true"] #root .tcy-solid-2,
+html[data-tcy-plush="true"] #root .tcy-card,
+html[data-tcy-plush="true"] #root .tcy-card-strong,
+html[data-tcy-plush="true"] #root .tcy-glass,
+html[data-tcy-plush="true"] #root .tcy-glass-surface {
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(255,239,248,.88)) !important;
+  border-color: rgba(255,255,255,.94) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.96), var(--plush-shadow) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+  backdrop-filter: blur(18px) saturate(1.18);
+}
+html[data-tcy-plush="true"] #root .tcy-bg,
+html[data-tcy-plush="true"] #root .tcy-bg-2 {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Replace common hard-coded dark Tailwind panels from popovers and dialogs. */
+html[data-tcy-plush="true"] #root [class~="bg-black"],
+html[data-tcy-plush="true"] #root [class*="bg-zinc-9"],
+html[data-tcy-plush="true"] #root [class*="bg-neutral-9"],
+html[data-tcy-plush="true"] #root [class*="bg-stone-9"],
+html[data-tcy-plush="true"] #root [class*="bg-gray-9"],
+html[data-tcy-plush="true"] [role="dialog"],
+html[data-tcy-plush="true"] [role="alertdialog"],
+html[data-tcy-plush="true"] [role="menu"],
+html[data-tcy-plush="true"] [role="listbox"] {
+  color: var(--plush-ink) !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(255,239,248,.97)) !important;
+  border-color: var(--plush-line) !important;
+  border-radius: 25px !important;
+  box-shadow: 0 18px 44px -24px rgba(135, 88, 151, .48), inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+
+/* Re-skin headers and screen titles, not only their background. */
+html[data-tcy-plush="true"] #root header {
+  color: var(--plush-ink);
+}
+html[data-tcy-plush="true"] #root header h1,
+html[data-tcy-plush="true"] #root header h2,
+html[data-tcy-plush="true"] #root h1,
+html[data-tcy-plush="true"] #root h2,
+html[data-tcy-plush="true"] #root h3 {
+  color: #775985 !important;
+  letter-spacing: -.035em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.78);
+}
+html[data-tcy-plush="true"] #root header.tcy-header-blur,
+html[data-tcy-plush="true"] #root header[class*="border-b"],
+html[data-tcy-plush="true"] #root .tcy-header-blur {
+  background: linear-gradient(145deg, rgba(255,251,254,.96), rgba(255,235,247,.92)) !important;
+  border-color: rgba(255,255,255,.96) !important;
+  box-shadow: 0 5px 18px -15px rgba(157, 103, 164, .52), inset 0 1px 0 #fff !important;
+}
+
+/* Every actionable control should feel cushioned. */
+html[data-tcy-plush="true"] #root button,
+html[data-tcy-plush="true"] #root [role="button"],
+html[data-tcy-plush="true"] #root input[type="submit"] {
+  border-color: rgba(204, 165, 209, .36);
+  transition: transform 200ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease, background 220ms ease, border-color 220ms ease !important;
+}
+html[data-tcy-plush="true"] #root button:not([class*="rounded-full"]):not([class*="tcy-tab-icon-wrap"]),
+html[data-tcy-plush="true"] #root [role="button"]:not([class*="rounded-full"]) {
+  border-radius: 20px !important;
+}
+html[data-tcy-plush="true"] #root button:active,
+html[data-tcy-plush="true"] #root [role="button"]:active {
+  transform: scale(.975);
+  box-shadow: inset 0 2px 4px rgba(147, 102, 164, .1) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-gradient-accent,
+html[data-tcy-plush="true"] #root button[class*="tcy-gradient-accent"] {
+  background: linear-gradient(145deg, #e7d2ff 0%, #f8cde3 100%) !important;
+  color: #684d78 !important;
+  border: 1px solid rgba(255,255,255,.96) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.98), 0 7px 15px -11px rgba(152, 105, 176, .58) !important;
+}
+html[data-tcy-plush="true"] #root button[class*="bg-red"],
+html[data-tcy-plush="true"] #root button[class*="text-red"],
+html[data-tcy-plush="true"] #root button[class*="tcy-danger"] {
+  background-color: #fff0f4 !important;
+  color: #c76c8d !important;
+  border-color: rgba(220, 147, 174, .38) !important;
+}
+html[data-tcy-plush="true"] #root button:disabled {
+  opacity: .56;
+  filter: saturate(.7);
+}
+
+/* Chat list is a collection of little padded toy cards. */
+html[data-tcy-plush="true"] #root .tcy-chat-list-item {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  border-radius: 26px !important;
+  background: linear-gradient(145deg, #fffefe, #fff0f8) !important;
+  border: 1px solid rgba(221, 184, 221, .6) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 6px 15px -12px rgba(151, 102, 164, .5) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-chat-list-item-selected {
+  background: linear-gradient(145deg, #f0e2ff, #ffe3f1) !important;
+  border-color: #c8a5ed !important;
+  box-shadow: 0 0 0 2px rgba(200,165,237,.18), inset 0 1px 0 #fff !important;
+}
+html[data-tcy-plush="true"] #root .tcy-chat-list-item .tcy-dim,
+html[data-tcy-plush="true"] #root .tcy-chat-list-item .tcy-faint {
+  color: #9e86a9 !important;
+}
+html[data-tcy-plush="true"] #root .tcy-chat-list-item [class*="rounded-full"][class*="h-5"] {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 2px 6px -3px rgba(153, 101, 166, .36);
+}
+
+/* Conversation header, history, bubbles, reply bars and composer all get the new identity. */
+html[data-tcy-plush="true"] #root .tcy-glass-own {
+  border-radius: 23px 23px 9px 23px !important;
+  background: linear-gradient(145deg, #e7d4ff, #f7cfe5) !important;
+  border: 1px solid rgba(255,255,255,.94) !important;
+  color: #624a76 !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 6px 14px -11px rgba(152, 105, 176, .55) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-glass-peer {
+  border-radius: 23px 23px 23px 9px !important;
+  background: linear-gradient(145deg, #fff, #fff1f8) !important;
+  border: 1px solid rgba(220, 190, 222, .62) !important;
+  color: #624f6c !important;
+  box-shadow: inset 0 1px 0 #fff, 0 6px 14px -11px rgba(152, 105, 176, .38) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-message-highlight {
+  border-radius: 24px !important;
+  outline: 2px solid rgba(194, 159, 232, .38);
+  outline-offset: 2px;
+}
+html[data-tcy-plush="true"] #root .tcy-sticker-panel {
+  background: linear-gradient(145deg, rgba(255,252,254,.99), rgba(255,238,248,.98)) !important;
+  border: 1px solid rgba(255,255,255,.98) !important;
+  border-top-left-radius: 30px !important;
+  border-top-right-radius: 30px !important;
+}
+html[data-tcy-plush="true"] #root textarea.tcy-composer-input {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+html[data-tcy-plush="true"] #root .tcy-glass-own,
+html[data-tcy-plush="true"] #root .tcy-glass-peer {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-tcy-plush="true"] #root .tcy-glass-own *,
+html[data-tcy-plush="true"] #root .tcy-glass-peer * {
+  text-shadow: none;
+}
+
+/* Inputs, search, filters, and toggles share one soft style on every route. */
+html[data-tcy-plush="true"] #root input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+html[data-tcy-plush="true"] #root textarea,
+html[data-tcy-plush="true"] #root select {
+  min-height: 42px;
+  background: linear-gradient(145deg, #fff, #fff7fb) !important;
+  border: 1px solid rgba(210, 173, 213, .62) !important;
+  border-radius: 18px !important;
+  color: #604d69 !important;
+  box-shadow: inset 0 1px 0 #fff, 0 4px 12px -10px rgba(160, 116, 172, .5) !important;
+}
+html[data-tcy-plush="true"] #root input[type="checkbox"],
+html[data-tcy-plush="true"] #root input[type="radio"],
+html[data-tcy-plush="true"] #root input[type="range"] {
+  accent-color: #c6a1eb !important;
+}
+html[data-tcy-plush="true"] #root input::placeholder,
+html[data-tcy-plush="true"] #root textarea::placeholder {
+  color: #b29abd !important;
+}
+html[data-tcy-plush="true"] #root .tcy-search-control {
+  border-radius: 22px !important;
+  background: linear-gradient(145deg, #fff, #fff0f8) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 4px 14px -12px rgba(160, 116, 172, .45) !important;
+}
+html[data-tcy-plush="true"] #root [role="switch"] {
+  border-color: rgba(193, 154, 219, .46) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+/* Settings and every other form/list screen become rounded, padded panels. */
+html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-card,
+html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-card-strong,
+html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-solid,
+html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-solid-2 {
+  background: linear-gradient(145deg, #fffefe, #fff0f8) !important;
+  border: 1px solid rgba(222, 187, 221, .56) !important;
+  border-radius: 24px !important;
+  box-shadow: inset 0 1px 0 #fff, 0 5px 15px -12px rgba(157, 112, 170, .44) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-settings-item {
+  border-radius: 25px !important;
+  min-height: 86px;
+  background: linear-gradient(145deg, #fff, #fff0f7) !important;
+  border: 1px solid rgba(220, 181, 221, .6) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 6px 16px -13px rgba(157, 112, 170, .48) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-settings-item-icon {
+  border-radius: 19px !important;
+  background: linear-gradient(145deg, #eadbff, #ffe0ee) !important;
+  color: #9971b8 !important;
+}
+html[data-tcy-plush="true"] #root section[class*="rounded-"],
+html[data-tcy-plush="true"] #root article[class*="rounded-"] {
+  border-color: rgba(218, 180, 218, .5) !important;
+}
+
+/* Bottom navigation gets a clearly new toy-control look. */
+html[data-tcy-plush="true"] #root .tcy-island {
+  border-radius: 27px !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(255,239,248,.96)) !important;
+  border: 1px solid rgba(255,255,255,.98) !important;
+  box-shadow: inset 0 2px 0 #fff, 0 10px 22px -15px rgba(143, 98, 158, .54) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-tab-orb {
+  border-radius: 22px !important;
+  background: linear-gradient(145deg, #ebdcff, #ffdfef) !important;
+  border: 1px solid rgba(255,255,255,.98) !important;
+  box-shadow: inset 0 1px 0 #fff, 0 5px 13px -10px rgba(162, 117, 190, .55) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-main-nav button {
+  color: #ae96b5;
+}
+html[data-tcy-plush="true"] #root .tcy-main-nav button[aria-current="page"] {
+  color: #87639e !important;
+}
+
+/* Rounded media previews, sheets, menus, and confirmations. */
+html[data-tcy-plush="true"] #root [class*="shadow-"],
+html[data-tcy-plush="true"] #root [class*="tcy-shadow-"] {
+  box-shadow: var(--plush-shadow) !important;
+}
+html[data-tcy-plush="true"] #root [class*="shadow-2xl"],
+html[data-tcy-plush="true"] #root [class*="shadow-xl"] {
+  box-shadow: 0 18px 38px -24px rgba(135, 88, 151, .42) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-app-shell,
+html[data-tcy-plush="true"] #root .tcy-desktop-chat-sidebar,
+html[data-tcy-plush="true"] #root .tcy-desktop-chat-list {
+  background-color: #fff5fa !important;
+}
+html[data-tcy-plush="true"] #root .tcy-desktop-welcome-pane {
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(248, 206, 231, .56), transparent 40%),
+    radial-gradient(ellipse at 68% 70%, rgba(213, 199, 255, .42), transparent 38%),
+    #fff5fa !important;
+}
+html[data-tcy-plush="true"] #root .tcy-wallpaper {
+  opacity: .72;
+}
+
+/* Keep reading contrast soft but clear, including labels/icons that used dark neutrals. */
+html[data-tcy-plush="true"] #root .tcy-text { color: #624d6d !important; }
+html[data-tcy-plush="true"] #root .tcy-dim { color: #927b9e !important; }
+html[data-tcy-plush="true"] #root .tcy-faint { color: #b29bb8 !important; }
+html[data-tcy-plush="true"] #root .tcy-danger { color: #cc6f8f !important; }
+html[data-tcy-plush="true"] #root svg {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+html[data-tcy-plush="true"] #root * {
+  scrollbar-color: #e3c9e5 transparent;
+}
+html[data-tcy-plush="true"] #root *:focus-visible {
+  outline-color: #c6a1eb;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-tcy-plush="true"] #root .tcy-chat-list-item,
+  html[data-tcy-plush="true"] #root .tcy-settings-item {
+    animation: tcy-plush-settle 380ms cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes tcy-plush-settle {
+    from { opacity: .72; transform: translateY(3px) scale(.992); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+}
