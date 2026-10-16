@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Check, ChevronDown, Delete, Mail, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Delete, Mail } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
