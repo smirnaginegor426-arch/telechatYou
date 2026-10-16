@@ -9,10 +9,11 @@ export function useTesterMode(options: { enabled?: boolean } = {}) {
   const access = trpc.experimentalAccess.useQuery(undefined, {
     enabled: shouldQuery,
     retry: false,
-    staleTime: 30_000,
+    staleTime: 0,
+    refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
-  const enabled = shouldQuery && access.data?.enabled === true;
+  const enabled = shouldQuery && access.isFetchedAfterMount && access.data?.enabled === true;
 
   return { isTester: enabled, enabled, isLoading: shouldQuery && access.isLoading };
 }
