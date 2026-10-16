@@ -35,6 +35,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const hiddenOnMobile =
     /^\/chat\/(?:\d+|telechatyou)(?:\/info)?\/?$/.test(location.pathname) ||
     location.pathname.startsWith("/setup") ||
+    location.pathname.startsWith("/email-binding") ||
     location.pathname.startsWith("/folders") ||
     location.pathname.startsWith("/stickers");
   const hidden = location.pathname.startsWith("/create") || (deviceMode !== "desktop" && hiddenOnMobile);
