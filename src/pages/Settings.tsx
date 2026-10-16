@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import {
   Bell,
   Check,
-  CheckCircle2,
+  ChevronDown,
   Mail,
   Palette,
   Copy,
@@ -57,59 +57,14 @@ export default function Settings() {
   const [storageOpen, setStorageOpen] = useState(false);
   const [storageView, setStorageView] = useState(false);
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
-  const [emailInput, setEmailInput] = useState("");
-  const [emailCode, setEmailCode] = useState("");
-  const [emailCurrentPassword, setEmailCurrentPassword] = useState("");
-  const [pendingEmail, setPendingEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [emailNotice, setEmailNotice] = useState("");
 
   useEffect(() => {
     setMediaPreferences(getMediaSendPreferences());
   }, []);
 
-  useEffect(() => {
-    if (!emailInput && emailStatus.data?.email) setEmailInput(emailStatus.data.email);
-  }, [emailStatus.data?.email, emailInput]);
-
-
   const update = trpc.settings.update.useMutation({
     onSuccess: (s) => utils.settings.get.setData(undefined, s),
   });
-  const requestEmailVerification = trpc.auth.requestEmailVerification.useMutation({
-    onSuccess: (result, variables) => {
-      setEmailError("");
-      if (result.alreadyVerified) {
-        setEmailNotice("Эта почта уже подтверждена.");
-        setPendingEmail("");
-        return;
-      }
-      setPendingEmail(variables.email.trim().toLowerCase());
-      setEmailCode("");
-      setEmailNotice("Код отправлен. Проверь входящие и папку «Спам» — код действует 10 минут.");
-      setEmailCurrentPassword("");
-    },
-    onError: (error) => {
-      setEmailError(error.message);
-      setEmailNotice("");
-    },
-  });
-  const verifyLinkedEmail = trpc.auth.verifyLinkedEmail.useMutation({
-    onSuccess: async (result) => {
-      setEmailError("");
-      setEmailNotice(`Почта ${result.email} подтверждена — теперь её можно использовать для восстановления аккаунта.`);
-      setEmailInput(result.email);
-      setPendingEmail("");
-      setEmailCode("");
-      setEmailCurrentPassword("");
-      await utils.auth.emailStatus.invalidate();
-    },
-    onError: (error) => {
-      setEmailError(error.message);
-      setEmailNotice("");
-    },
-  });
-
   const removeMany = trpc.storage.removeMany.useMutation({
     onSuccess: () => utils.storage.mine.invalidate(),
   });
@@ -282,111 +237,35 @@ export default function Settings() {
             emailStatus.isLoading
               ? "Проверяем привязку…"
               : emailStatus.data?.verified
-                ? `Подтверждена: ${emailStatus.data.email}`
-                : emailStatus.data?.email
-                  ? "Адрес сохранён, но ещё не подтверждён"
-                  : "Не привязана — добавь её, чтобы восстановить доступ"
+                ? "Почта подтверждена и защищает аккаунт"
+                : "Привяжи почту, чтобы не потерять доступ"
           }
           right={
             <span className="flex items-center gap-1.5 text-[11px] font-bold" style={{ color: emailStatus.data?.verified ? "#369b78" : "var(--tcy-dim)" }}>
-              {emailStatus.data?.verified ? <CheckCircle2 size={17} /> : <Mail size={16} />}
-              {emailStatus.data?.verified ? "Защищена" : "Не подтверждена"}
+              {emailStatus.data?.verified ? <ShieldCheck size={17} /> : <Mail size={16} />}
+              {emailStatus.data?.verified ? "Защищена" : "Не привязана"}
             </span>
           }
         />
-        <div className="mx-4 mb-3 space-y-3 rounded-[18px] tcy-card border tcy-line p-4">
-          {!emailStatus.data?.deliveryConfigured && (
-            <p className="text-[12px] leading-relaxed tcy-danger">
-              Отправка писем ещё не настроена на сервере. Сначала администратор должен подключить Resend в переменных окружения Render.
-            </p>
-          )}
-          <label className="block space-y-1.5">
-            <span className="text-[12.5px] font-semibold tcy-text">Твой адрес электронной почты</span>
-            <TcInput
-              type="email"
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              value={emailInput}
-              onChange={(event) => {
-                setEmailInput(event.target.value);
-                setEmailError("");
-                setEmailNotice("");
-              }}
-              maxLength={320}
-              placeholder="name@example.com"
-            />
-          </label>
-          {emailStatus.data?.verified && emailInput.trim().toLowerCase() !== emailStatus.data.email?.toLowerCase() && (
-            <label className="block space-y-1.5">
-              <span className="text-[12.5px] font-semibold tcy-text">Текущий пароль для смены почты</span>
-              <TcInput
-                type="password"
-                autoComplete="current-password"
-                value={emailCurrentPassword}
-                onChange={(event) => setEmailCurrentPassword(event.target.value)}
-                maxLength={128}
-                placeholder="Введи пароль от аккаунта"
-              />
-            </label>
-          )}
-          <TcButton
-            size="lg"
-            loading={requestEmailVerification.isPending}
-            disabled={
-              !emailStatus.data?.deliveryConfigured ||
-              !emailInput.trim() ||
-              emailStatus.isLoading ||
-              requestEmailVerification.isPending ||
-              (emailStatus.data?.verified &&
-                emailInput.trim().toLowerCase() !== emailStatus.data.email?.toLowerCase() &&
-                !emailCurrentPassword)
-            }
-            onClick={() => {
-              setEmailError("");
-              setEmailNotice("");
-              requestEmailVerification.mutate({
-                email: emailInput.trim(),
-                currentPassword:
-                  emailStatus.data?.verified &&
-                  emailInput.trim().toLowerCase() !== emailStatus.data.email?.toLowerCase()
-                    ? emailCurrentPassword
-                    : undefined,
-              });
-            }}
-          >
-            <Mail size={17} />
-            {emailStatus.data?.verified ? "Подтвердить новую почту" : "Отправить код"}
-          </TcButton>
-          {pendingEmail && (
-            <div className="space-y-3 border-t tcy-line pt-3">
-              <p className="text-[12.5px] leading-relaxed tcy-dim">
-                Введи 6 цифр из письма, отправленного на <span className="font-bold tcy-text">{pendingEmail}</span>.
+        <div className="mx-4 mb-3 rounded-[18px] border tcy-line tcy-card p-3">
+          <div className="mb-1 flex justify-center" aria-hidden="true">
+            <ChevronDown size={16} style={{ color: "var(--tcy-selected-accent)" }} />
+          </div>
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-bold tcy-text">
+                {emailStatus.isLoading ? "Проверяем…" : emailStatus.data?.verified && emailStatus.data.email
+                  ? emailStatus.data.email
+                  : "Пу-Пу-Пусто"}
               </p>
-              <TcInput
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                value={emailCode}
-                onChange={(event) => setEmailCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
-                maxLength={6}
-                placeholder="123456"
-              />
-              <TcButton
-                size="lg"
-                loading={verifyLinkedEmail.isPending}
-                disabled={!/^\d{6}$/.test(emailCode) || verifyLinkedEmail.isPending}
-                onClick={() => verifyLinkedEmail.mutate({ code: emailCode })}
-              >
-                <CheckCircle2 size={17} /> Подтвердить почту
-              </TcButton>
+              <p className="mt-0.5 text-[10.5px] tcy-faint">
+                {emailStatus.data?.verified ? "Привязанный адрес" : "Почта ещё не привязана"}
+              </p>
             </div>
-          )}
-          {emailError && <p role="alert" className="text-[12px] tcy-danger">{emailError}</p>}
-          {emailNotice && <p role="status" className="text-[12px] tcy-accent">{emailNotice}</p>}
-          <p className="text-[11.5px] leading-relaxed tcy-faint">
-            Почта сохраняется в аккаунте только после ввода кода. Код истекает через 10 минут, а неверные попытки ограничены.
-          </p>
+            <TcButton size="sm" onClick={() => navigate("/email-binding")}>
+              <Mail size={15} /> Привязать почту
+            </TcButton>
+          </div>
         </div>
       </SettingsGroup>
 
