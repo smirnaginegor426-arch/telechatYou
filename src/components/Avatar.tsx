@@ -82,7 +82,7 @@ export function Avatar({
           }}
         >
           <span className="tcy-avatar-initials">{initials(name || "?")}</span>
-          <span className="tcy-avatar-mascot-fallback" aria-hidden="true">🐱</span>
+          <span className="tcy-avatar-mascot-fallback hidden" aria-hidden="true">🐱</span>
         </div>
       )}
 
