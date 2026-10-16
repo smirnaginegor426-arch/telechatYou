@@ -88,14 +88,14 @@ export default function Setup() {
     // 0 — name
     <div key="name" className="space-y-6">
       <div>
-        <h2 className="text-[24px] font-extrabold tcy-text">Как вас зовут?</h2>
-        <p className="text-[13.5px] tcy-dim mt-1.5">Это имя увидят ваши собеседники.</p>
+        <h2 className="text-[24px] font-extrabold tcy-text">Как тебя зовут, дружок?</h2>
+        <p className="text-[13.5px] tcy-dim mt-1.5">Давай придумаем тебе крутое имя — так тебя будут узнавать друзья.</p>
       </div>
       <TcInput
         autoFocus
         value={displayName}
         onChange={(e) => setDisplayName(e.target.value)}
-        placeholder="Имя и фамилия"
+        placeholder="Твоё имя"
         maxLength={64}
       />
       <TcButton size="lg" disabled={!displayName.trim()} onClick={() => setStep(1)}>
@@ -105,8 +105,8 @@ export default function Setup() {
     // 1 — username
     <div key="username" className="space-y-6">
       <div>
-        <h2 className="text-[24px] font-extrabold tcy-text">Придумайте username</h2>
-        <p className="text-[13.5px] tcy-dim mt-1.5">По нему вас смогут найти другие люди.</p>
+        <h2 className="text-[24px] font-extrabold tcy-text">Придумаем тебе классный ник!</h2>
+        <p className="text-[13.5px] tcy-dim mt-1.5">По нему друзья смогут найти тебя.</p>
       </div>
       <div className="relative">
         <AtSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
