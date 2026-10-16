@@ -10,7 +10,9 @@ import {
   Eye,
   EyeOff,
   LockKeyhole,
+  MessageCircle,
   Sparkles,
+  UsersRound,
   UserRound,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
@@ -105,13 +107,17 @@ export default function RegisterWizard() {
 
   const goTo = (nextStep: number) => {
     setEntrance(ENTRANCES[Math.floor(Math.random() * ENTRANCES.length)]);
-    setStep(Math.max(0, Math.min(7, nextStep)));
+    setStep(Math.max(-1, Math.min(7, nextStep)));
     setError("");
   };
 
   const back = () => {
-    if (step === 0) {
+    if (step === -1) {
       navigate("/", { replace: true });
+      return;
+    }
+    if (step === 0) {
+      goTo(-1);
       return;
     }
     goTo(step - 1);
@@ -273,6 +279,66 @@ export default function RegisterWizard() {
             transition={{ type: "spring", stiffness: 250, damping: 28, mass: 0.8 }}
             className="mx-auto flex w-full max-w-[460px] flex-col justify-center"
           >
+            {step === -1 && (
+              <div className="flex flex-col items-center text-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.72, rotate: -10 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 18 }}
+                  className="relative mb-8 flex h-[min(42vw,190px)] w-[min(42vw,190px)] items-center justify-center"
+                >
+                  <motion.div
+                    aria-hidden="true"
+                    className="absolute inset-2 rounded-[42px] border"
+                    style={{
+                      borderColor: "color-mix(in srgb, var(--tcy-selected-accent) 24%, var(--tcy-line))",
+                      background: "color-mix(in srgb, var(--tcy-selected-accent) 7%, var(--tcy-card))",
+                    }}
+                    animate={{ rotate: [0, 7, 0], scale: [1, 1.04, 1] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <motion.div
+                    aria-hidden="true"
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: "radial-gradient(circle, color-mix(in srgb, var(--tcy-selected-accent) 18%, transparent), transparent 70%)",
+                    }}
+                    animate={{ scale: [0.9, 1.12, 0.9], opacity: [0.55, 0.9, 0.55] }}
+                    transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <div
+                    className="relative z-10 flex h-[112px] w-[112px] items-center justify-center rounded-[36px] tcy-gradient-accent tcy-shadow-accent"
+                    style={{ color: "var(--tcy-on-accent)" }}
+                  >
+                    <MessageCircle size={54} strokeWidth={1.8} />
+                  </div>
+                  <motion.span
+                    className="absolute right-1 top-3 flex h-12 w-12 items-center justify-center rounded-[17px] border tcy-line tcy-card-strong"
+                    style={{ color: "var(--tcy-selected-accent)" }}
+                    animate={{ y: [0, -5, 0], rotate: [0, 5, 0] }}
+                    transition={{ duration: 3.3, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <UsersRound size={24} />
+                  </motion.span>
+                  <motion.span
+                    className="absolute bottom-2 left-1 flex h-10 w-10 items-center justify-center rounded-[14px] border tcy-line tcy-card-strong"
+                    style={{ color: "var(--tcy-selected-accent)" }}
+                    animate={{ y: [0, 5, 0], rotate: [0, -7, 0] }}
+                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Sparkles size={20} />
+                  </motion.span>
+                </motion.div>
+                <div className="max-w-[390px] space-y-4">
+                  <h1 className="text-[29px] font-black leading-[1.13] tracking-tight tcy-text">
+                    Зарегистрируйся в TeleChatYou, и общайся с друзьями без VPN
+                  </h1>
+                  <p className="text-[14.5px] leading-relaxed tcy-dim">
+                    Создай аккаунт за пару простых шагов и начинай общаться.
+                  </p>
+                </div>
+              </div>
+            )}
             {step === 0 && (
               <div className="space-y-7">
                 <div className="space-y-2 text-center">
@@ -474,7 +540,8 @@ export default function RegisterWizard() {
             (step === 7 && isSaving)
           }
           onClick={() => {
-            if (step === 0) goTo(1);
+            if (step === -1) goTo(0);
+            else if (step === 0) goTo(1);
             else if (step === 1) goTo(2);
             else if (step === 2) goTo(3);
             else if (step === 3) goTo(4);
@@ -483,8 +550,10 @@ export default function RegisterWizard() {
             else void finishRegistration();
           }}
         >
-          {step === 0
-            ? "Дальше"
+          {step === -1
+            ? "Начать"
+            : step === 0
+              ? "Дальше"
             : step === 1
               ? "Готово!"
               : step === 2
@@ -506,7 +575,7 @@ export default function RegisterWizard() {
         {error && step === 7 && !registered && (
           <p role="alert" className="mx-auto mt-3 max-w-[420px] text-center text-[12.5px] font-semibold tcy-danger">{error}</p>
         )}
-        {step === 0 && (
+        {step === -1 && (
           <p className="mt-4 text-center text-[11.5px] tcy-faint">
             Уже есть аккаунт?{" "}
             <button type="button" onClick={() => navigate("/login")} className="font-bold tcy-accent">Войти</button>
