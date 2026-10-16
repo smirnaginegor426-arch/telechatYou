@@ -3,20 +3,21 @@ import { useEffect, useState } from "react";
 export type DeviceMode = "mobile" | "desktop";
 
 /**
- * Prefer a spacious desktop layout only when both viewport width and pointer
- * capabilities indicate a laptop/desktop. It reacts to resizes, dock/undock,
- * and changes between touch and mouse environments without a reload.
+ * Use the desktop workspace only when the primary input is a mouse/trackpad
+ * and the viewport is wide enough. Checking the primary pointer (rather than
+ * any-pointer) keeps touch phones in the mobile layout even if a fine pointer
+ * is also reported by a browser or connected accessory.
  */
 export function useDeviceMode(): DeviceMode {
   const [mode, setMode] = useState<DeviceMode>(() => {
     if (typeof window === "undefined") return "mobile";
-    return window.matchMedia("(min-width: 900px) and (any-pointer: fine)").matches
+    return window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)").matches
       ? "desktop"
       : "mobile";
   });
 
   useEffect(() => {
-    const query = window.matchMedia("(min-width: 900px) and (any-pointer: fine)");
+    const query = window.matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)");
     const update = () => setMode(query.matches ? "desktop" : "mobile");
     update();
     query.addEventListener("change", update);

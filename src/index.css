@@ -338,7 +338,7 @@
   overflow: hidden;
   background: var(--tcy-bg);
 }
-@media (min-width: 768px) {
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
   body {
     background: #020203;
   }
@@ -786,7 +786,7 @@ html[data-theme="light"] .tcy-wallpaper-bg--wine {
 
 
 /* ---- adaptive desktop workspace ---- */
-@media (min-width: 900px) and (any-pointer: fine) {
+@media (min-width: 900px) and (hover: hover) and (pointer: fine) {
   body {
     overflow: hidden;
     background:
