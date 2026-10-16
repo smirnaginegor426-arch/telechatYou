@@ -1,6 +1,7 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, useRef, useState, type ReactNode, type MouseEvent } from "react";
 import { useNavigate } from "react-router";
 import { EmojiText } from "@/components/AppleEmoji";
+import { trpc } from "@/providers/trpc";
 
 function trimLinkPunctuation(value: string) {
   let end = value.length;
@@ -40,25 +41,105 @@ function internalAppPath(href: string): string | null {
   }
 }
 
-/** Renders URLs as blue links and keeps TeleChat You links inside the current app instance. */
+/**
+ * An @username mention opens a direct chat with a user or opens a public
+ * channel/group. It falls back to the public @username page if needed.
+ */
+function UsernameMentionLink({ username, label }: { username: string; label: string }) {
+  const navigate = useNavigate();
+  const utils = trpc.useUtils();
+  const createDirect = trpc.chats.createDirect.useMutation();
+  const joinPublic = trpc.channels.joinPublic.useMutation();
+  const openingRef = useRef(false);
+  const [opening, setOpening] = useState(false);
+
+  const openMention = async (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (openingRef.current) return;
+
+    openingRef.current = true;
+    setOpening(true);
+    let destination = `/@${username}`;
+    let profileFound = false;
+
+    try {
+      try {
+        const profile = await utils.profile.byUsername.fetch({ username });
+        profileFound = true;
+        const result = await createDirect.mutateAsync({ userId: profile.userId });
+        void utils.chats.list.invalidate();
+        destination = `/chat/${result.chatId}`;
+      } catch {
+        // Only try a channel lookup when there is no profile for this username.
+        if (!profileFound) {
+          try {
+            await utils.channels.byUsername.fetch({ username });
+            const result = await joinPublic.mutateAsync({ username });
+            void utils.chats.list.invalidate();
+            destination = `/chat/${result.chatId}`;
+          } catch {
+            // Keep the public @username page as a safe fallback.
+          }
+        }
+      }
+    } finally {
+      openingRef.current = false;
+      setOpening(false);
+      navigate(destination);
+    }
+  };
+
+  return (
+    <a
+      href={`/@${username}`}
+      onClick={openMention}
+      aria-busy={opening}
+      title={`Открыть ${label}`}
+      className="font-semibold underline-offset-2 hover:underline"
+      style={{ color: "#2787f5", cursor: "pointer", opacity: opening ? 0.72 : 1 }}
+    >
+      {label}
+    </a>
+  );
+}
+
+/** Renders URLs and @username mentions as blue links inside the messenger. */
 export function MessageText({ text }: { text: string }) {
   const navigate = useNavigate();
   const nodes: ReactNode[] = [];
-  const urlPattern = /https?:\/\/[^\s<>"'`]+/gi;
+  const tokenPattern = /https?:\/\/[^\s<>"'`]+|@[a-zA-Z0-9_]{3,32}(?![a-zA-Z0-9_])/gi;
   let cursor = 0;
   let match: RegExpExecArray | null;
   let index = 0;
 
-  while ((match = urlPattern.exec(text)) !== null) {
+  while ((match = tokenPattern.exec(text)) !== null) {
     const raw = match[0];
     const start = match.index;
-    const { url, punctuation } = trimLinkPunctuation(raw);
 
-    if (!url) continue;
+    // Do not turn the domain part of an email address into an app username.
+    if (raw.startsWith("@") && start > 0 && /[a-zA-Z0-9._%+-]/.test(text[start - 1])) {
+      continue;
+    }
+
     if (start > cursor) {
       nodes.push(<EmojiText key={`text-${index++}`} text={text.slice(cursor, start)} />);
     }
 
+    if (raw.startsWith("@")) {
+      const username = raw.slice(1).toLowerCase();
+      nodes.push(
+        <UsernameMentionLink
+          key={`mention-${index++}`}
+          username={username}
+          label={raw}
+        />,
+      );
+      cursor = start + raw.length;
+      continue;
+    }
+
+    const { url, punctuation } = trimLinkPunctuation(raw);
+    if (!url) continue;
     const path = internalAppPath(url);
     nodes.push(
       <Fragment key={`link-${index++}`}>
