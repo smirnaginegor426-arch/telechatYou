@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, SendHorizonal, Sticker, Trash2, X } from "lucide-react";
+import { ClipboardPaste, Copy, FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, Scissors, SendHorizonal, Sticker, Trash2, X } from "lucide-react";
 import { StickerPicker } from "./StickerPicker";
 import type { StickerAsset, StickerPack } from "@/lib/stickers";
 import { formatDuration } from "@/lib/format";
@@ -53,6 +54,7 @@ export function Composer({
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
+  const [textMenu, setTextMenu] = useState<{ x: number; y: number; start: number; end: number } | null>(null);
 
   useEffect(() => {
     const refreshStickerPreference = () => {
@@ -172,6 +174,93 @@ export function Composer({
     el.style.height = "auto";
     el.style.height = Math.min(el.scrollHeight, 120) + "px";
   }, [text]);
+
+  useEffect(() => {
+    if (!textMenu) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Element && event.target.closest("[data-tcy-text-menu]")) return;
+      setTextMenu(null);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setTextMenu(null);
+    };
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [textMenu]);
+
+  const openTextMenu = (event: React.MouseEvent<HTMLTextAreaElement>) => {
+    event.preventDefault();
+    const textarea = event.currentTarget;
+    const value = textarea.value;
+    let start = textarea.selectionStart;
+    let end = textarea.selectionEnd;
+    if (start === end && value.length > 0) {
+      let left = start;
+      let right = end;
+      while (left > 0 && /[A-Za-zА-Яа-яЁё0-9_]/.test(value[left - 1])) left--;
+      while (right < value.length && /[A-Za-zА-Яа-яЁё0-9_]/.test(value[right])) right++;
+      if (left < right) {
+        start = left;
+        end = right;
+        textarea.setSelectionRange(start, end);
+      }
+    }
+    setTextMenu({
+      x: Math.max(8, Math.min(event.clientX, window.innerWidth - 196)),
+      y: Math.max(8, Math.min(event.clientY + 8, window.innerHeight - 154)),
+      start,
+      end,
+    });
+  };
+
+  const copyTextSelection = async () => {
+    if (!textMenu || textMenu.end <= textMenu.start) return;
+    try {
+      await navigator.clipboard.writeText(text.slice(textMenu.start, textMenu.end));
+    } catch {
+      alert("Не удалось скопировать текст. Проверь доступ к буферу обмена браузера.");
+    }
+    setTextMenu(null);
+  };
+
+  const cutTextSelection = async () => {
+    if (!textMenu || textMenu.end <= textMenu.start) return;
+    try {
+      await navigator.clipboard.writeText(text.slice(textMenu.start, textMenu.end));
+      const next = text.slice(0, textMenu.start) + text.slice(textMenu.end);
+      setText(next);
+      const caret = textMenu.start;
+      setTextMenu(null);
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.setSelectionRange(caret, caret);
+      });
+    } catch {
+      alert("Не удалось вырезать текст. Проверь доступ к буферу обмена браузера.");
+    }
+  };
+
+  const pasteTextSelection = async () => {
+    if (!textMenu) return;
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      const next = text.slice(0, textMenu.start) + clipboardText + text.slice(textMenu.end);
+      const caret = textMenu.start + clipboardText.length;
+      setText(next);
+      setTextMenu(null);
+      requestAnimationFrame(() => {
+        inputRef.current?.focus();
+        inputRef.current?.setSelectionRange(caret, caret);
+      });
+    } catch {
+      setTextMenu(null);
+      alert("Браузер не разрешил вставить текст автоматически. Используй стандартную команду вставки.");
+    }
+  };
 
   const submit = () => {
     const t = text.trim();
@@ -414,6 +503,7 @@ export function Composer({
                 value={text}
                 rows={1}
                 onChange={(e) => setText(e.target.value)}
+                onContextMenu={openTextMenu}
                 onFocus={() => setStickerOpen(false)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey && enterToSend) {
@@ -475,6 +565,44 @@ export function Composer({
         </div>
       </div>
 
+      {textMenu && createPortal(
+        <div
+          data-tcy-text-menu
+          onPointerDown={(event) => event.preventDefault()}
+          className="fixed z-[10000] flex min-w-[176px] flex-col overflow-hidden rounded-[15px] border tcy-line tcy-solid shadow-xl"
+          style={{ left: textMenu.x, top: textMenu.y, boxShadow: "0 12px 36px rgba(0,0,0,0.25)" }}
+          role="menu"
+          aria-label="Действия с выделенным текстом"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={textMenu.end <= textMenu.start}
+            onClick={() => void copyTextSelection()}
+            className="flex items-center gap-3 px-3.5 py-3 text-left text-[13px] font-semibold tcy-text disabled:opacity-40"
+          >
+            <Copy size={16} className="tcy-dim" /> Копировать
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={textMenu.end <= textMenu.start}
+            onClick={() => void cutTextSelection()}
+            className="flex items-center gap-3 border-t tcy-line px-3.5 py-3 text-left text-[13px] font-semibold tcy-text disabled:opacity-40"
+          >
+            <Scissors size={16} className="tcy-dim" /> Вырезать
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => void pasteTextSelection()}
+            className="flex items-center gap-3 border-t tcy-line px-3.5 py-3 text-left text-[13px] font-semibold tcy-text"
+          >
+            <ClipboardPaste size={16} className="tcy-dim" /> Вставить
+          </button>
+        </div>,
+        document.body,
+      )}
 
     </div>
   );
