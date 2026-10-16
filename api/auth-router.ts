@@ -321,7 +321,8 @@ export const authRouter = createRouter({
         .where(and(eq(users.email, email), isNotNull(users.emailVerifiedAt)))
         .limit(1);
       const account = rows[0];
-      if (!account || !isEmailDeliveryConfigured()) return { success: true };
+      const deliveryConfigured = isEmailDeliveryConfigured();
+      if (!account || !deliveryConfigured) return { success: true, deliveryConfigured };
 
       await db.update(emailVerificationCodes)
         .set({ usedAt: new Date() })
@@ -353,7 +354,7 @@ export const authRouter = createRouter({
           ));
         // Deliberately keep the same response as for an unknown email.
       }
-      return { success: true };
+      return { success: true, deliveryConfigured: true };
     }),
 
   resetPasswordWithEmailCode: publicQuery
