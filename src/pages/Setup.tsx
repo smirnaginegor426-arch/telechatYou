@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router";
-import { ArrowLeft, ArrowRight, AtSign, Camera, Check, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, AtSign, Camera, Check } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { TcButton } from "@/components/TcButton";
