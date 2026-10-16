@@ -1,4 +1,5 @@
-import { Fragment, useRef, useState, type ReactNode, type MouseEvent } from "react";
+import { Fragment, useRef, useState, type ReactNode } from "react";
+import type { MouseEvent } from "react";
 import { useNavigate } from "react-router";
 import { EmojiText } from "@/components/AppleEmoji";
 import { trpc } from "@/providers/trpc";
