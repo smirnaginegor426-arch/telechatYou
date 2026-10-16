@@ -283,7 +283,7 @@ export default function RegisterWizard() {
             animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
             exit={{ opacity: 0, x: -entrance.x, y: -entrance.y, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 250, damping: 28, mass: 0.8 }}
-            className="mx-auto flex w-full max-w-[460px] flex-col justify-center"
+            className="tcy-onboarding-card mx-auto flex w-full max-w-[460px] flex-col justify-center rounded-[30px] px-5 py-6 sm:px-7"
           >
             {step === -1 && (
               <div className="flex flex-col items-center text-center">
