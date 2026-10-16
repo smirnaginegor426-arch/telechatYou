@@ -65,7 +65,13 @@ export default function Recover() {
   });
 
   const requestEmailReset = trpc.auth.requestPasswordResetByEmail.useMutation({
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (!result.deliveryConfigured) {
+        setEmailResetSent(false);
+        setError("Восстановление по почте пока не включено: почтовый сервис не настроен на сервере.");
+        setNotice("");
+        return;
+      }
       setEmailResetSent(true);
       setError("");
       setNotice("Если для этой почты есть подтверждённый аккаунт, письмо с кодом отправлено. Проверь входящие и папку «Спам».");
