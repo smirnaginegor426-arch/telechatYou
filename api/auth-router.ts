@@ -137,6 +137,13 @@ export const authRouter = createRouter({
       const username = input.username.toLowerCase();
       const existing = await findUserByUsername(username);
       if (existing) throw new TRPCError({ code: "CONFLICT", message: "Это имя пользователя уже занято" });
+      const [existingProfile, existingChannel] = await Promise.all([
+        getDb().query.profiles.findFirst({ where: eq(profiles.username, username) }),
+        getDb().query.channels.findFirst({ where: eq(channels.username, username) }),
+      ]);
+      if (existingProfile || existingChannel) {
+        throw new TRPCError({ code: "CONFLICT", message: "Этот юзернейм уже занят профилем или каналом" });
+      }
       let user: Awaited<ReturnType<typeof createUser>>;
       try {
         user = await createUser({ username, passwordHash: await hashPassword(input.password), name: username });
