@@ -88,6 +88,9 @@ export default function RegisterWizard() {
   const register = trpc.auth.register.useMutation();
   const upload = trpc.storage.upload.useMutation();
   const createProfile = trpc.profile.setup.useMutation();
+  const saveTheme = trpc.settings.update.useMutation({
+    onSuccess: (settings) => utils.settings.get.setData(undefined, settings),
+  });
 
   useEffect(() => {
     if (!avatarPreview) return;
@@ -160,6 +163,8 @@ export default function RegisterWizard() {
         username: normalized,
         avatarKey,
       });
+      // Keep the appearance chosen during the welcome flow after the first profile is created.
+      await saveTheme.mutateAsync({ theme });
 
       upsertSavedAccount({
         slotId: existing?.slotId ?? slotId,
@@ -175,7 +180,7 @@ export default function RegisterWizard() {
     }
   };
 
-  const isSaving = register.isPending || upload.isPending || createProfile.isPending;
+  const isSaving = register.isPending || upload.isPending || createProfile.isPending || saveTheme.isPending;
 
   const floatingShapes = Array.from({ length: 9 }, (_, index) => ({
     id: index,
