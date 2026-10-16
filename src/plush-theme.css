@@ -1,566 +1,625 @@
-/* Private plush-game theme. Enabled only when the server confirms tester access. */
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap");
+
+.tcy-avatar-mascot-fallback, .tcy-empty-mascot, .tcy-loader-mascot { display: none; }
+
+/* TeleChatYou — private “Plush Friends” design system.
+   Applied only when the authenticated server confirms tester access. */
 html[data-tcy-plush="true"] {
   color-scheme: light;
-  --background: 326 100% 98%;
-  --foreground: 283 22% 31%;
-  --card: 327 100% 99%;
-  --card-foreground: 283 22% 31%;
-  --popover: 327 100% 99%;
-  --popover-foreground: 283 22% 31%;
-  --primary: 270 65% 79%;
-  --primary-foreground: 278 34% 29%;
-  --secondary: 325 84% 94%;
-  --secondary-foreground: 283 22% 36%;
-  --muted: 320 52% 95%;
-  --muted-foreground: 284 16% 52%;
-  --accent: 160 50% 88%;
-  --accent-foreground: 166 34% 31%;
-  --border: 315 35% 88%;
-  --input: 315 35% 88%;
-  --ring: 270 65% 79%;
-  --radius: 1.15rem;
+  --background: 39 100% 97%;
+  --foreground: 286 23% 31%;
+  --card: 40 100% 99%;
+  --card-foreground: 286 23% 31%;
+  --popover: 40 100% 99%;
+  --popover-foreground: 286 23% 31%;
+  --primary: 343 72% 82%;
+  --primary-foreground: 286 23% 31%;
+  --secondary: 151 55% 90%;
+  --secondary-foreground: 165 35% 30%;
+  --muted: 275 36% 94%;
+  --muted-foreground: 282 16% 49%;
+  --accent: 194 75% 87%;
+  --accent-foreground: 207 40% 31%;
+  --border: 302 25% 87%;
+  --input: 302 25% 87%;
+  --ring: 275 67% 78%;
+  --radius: 1.35rem;
 
-  --tcy-bg: #fff5fa;
-  --tcy-bg-2: #ffedf6;
-  --tcy-accent: #d9b8f5;
-  --tcy-accent-deep: #c4a2ed;
-  --tcy-on-accent: #604a78;
-  --tcy-selected-accent: #c3a0ec;
-  --tcy-selected-accent-deep: #ad88de;
-  --tcy-selected-on-accent: #fffaff;
-  --tcy-selected-header: rgba(255, 249, 253, 0.9);
-  --tcy-selected-glass-line: rgba(255, 255, 255, 0.94);
-  --tcy-selected-input: rgba(255, 255, 255, 0.78);
-  --tcy-card: rgba(255, 255, 255, 0.58);
-  --tcy-card-strong: rgba(255, 255, 255, 0.82);
-  --tcy-solid: #fffafd;
-  --tcy-solid-2: #fff0f7;
-  --tcy-line: rgba(184, 142, 177, 0.2);
-  --tcy-line-strong: rgba(184, 142, 177, 0.34);
-  --tcy-text: #604d69;
-  --tcy-dim: #917b9c;
-  --tcy-faint: #b29db8;
-  --tcy-danger: #e77b9a;
-  --tcy-bubble-in: rgba(255, 255, 255, 0.82);
-  --tcy-header: rgba(255, 248, 252, 0.82);
-  --tcy-glass-line: rgba(255, 255, 255, 0.86);
-  --tcy-input: rgba(255, 255, 255, 0.82);
-  --tcy-glow-1: rgba(255, 190, 219, 0.36);
-  --tcy-glow-2: rgba(195, 181, 255, 0.34);
+  --plush-bg: #fff8ee;
+  --plush-bg-soft: #fff1e7;
+  --plush-card: rgba(255, 255, 255, .88);
+  --plush-card-alt: #fff0f7;
+  --plush-card-mint: #e6f8ee;
+  --plush-card-blue: #e8f5ff;
+  --plush-card-yellow: #fff7d5;
+  --plush-text: #66506d;
+  --plush-muted: #967f9b;
+  --plush-faint: #b5a0bb;
+  --plush-line: rgba(194, 151, 190, .36);
+  --plush-line-strong: rgba(184, 132, 184, .52);
+  --plush-pink: #f5c8de;
+  --plush-coral: #f6b9a9;
+  --plush-lilac: #d9c5f7;
+  --plush-mint: #bfead7;
+  --plush-blue: #bde2fb;
+  --plush-lemon: #ffe899;
+  --plush-danger: #c96b89;
+  --plush-panel: rgba(255, 251, 246, .96);
+  --plush-input: rgba(255, 255, 255, .92);
+  --plush-bubble-in: linear-gradient(145deg, #ffffff, #fff2f8);
+  --plush-bubble-out: linear-gradient(145deg, #e7d7ff, #f9cde2);
+  --plush-shadow: 0 8px 20px -15px rgba(140, 97, 151, .46);
+  --plush-shadow-raised: 0 16px 35px -23px rgba(140, 97, 151, .38);
+
+  --tcy-bg: var(--plush-bg);
+  --tcy-bg-2: var(--plush-bg-soft);
+  --tcy-accent: var(--plush-lilac);
+  --tcy-accent-deep: var(--plush-pink);
+  --tcy-on-accent: var(--plush-text);
+  --tcy-selected-accent: var(--plush-lilac);
+  --tcy-selected-accent-deep: var(--plush-pink);
+  --tcy-selected-on-accent: var(--plush-text);
+  --tcy-selected-header: var(--plush-panel);
+  --tcy-selected-glass-line: var(--plush-line);
+  --tcy-selected-input: var(--plush-input);
+  --tcy-card: var(--plush-card);
+  --tcy-card-strong: var(--plush-card);
+  --tcy-solid: var(--plush-card);
+  --tcy-solid-2: var(--plush-card-alt);
+  --tcy-line: var(--plush-line);
+  --tcy-line-strong: var(--plush-line-strong);
+  --tcy-text: var(--plush-text);
+  --tcy-dim: var(--plush-muted);
+  --tcy-faint: var(--plush-faint);
+  --tcy-danger: var(--plush-danger);
+  --tcy-bubble-in: var(--plush-bubble-in);
+  --tcy-header: var(--plush-panel);
+  --tcy-glass-line: var(--plush-line);
+  --tcy-input: var(--plush-input);
+  --tcy-glow-1: var(--plush-pink);
+  --tcy-glow-2: var(--plush-blue);
+}
+
+html[data-tcy-plush="true"][data-theme="dark"] {
+  color-scheme: dark;
+  --background: 258 24% 13%;
+  --foreground: 270 35% 94%;
+  --card: 258 24% 17%;
+  --card-foreground: 270 35% 94%;
+  --popover: 258 24% 17%;
+  --popover-foreground: 270 35% 94%;
+  --primary: 278 65% 79%;
+  --primary-foreground: 260 28% 21%;
+  --secondary: 262 24% 23%;
+  --secondary-foreground: 270 35% 92%;
+  --muted: 262 21% 21%;
+  --muted-foreground: 270 17% 75%;
+  --accent: 164 39% 38%;
+  --accent-foreground: 150 44% 94%;
+  --border: 263 20% 31%;
+  --input: 263 20% 31%;
+  --ring: 278 65% 79%;
+
+  --plush-bg: #28233b;
+  --plush-bg-soft: #312941;
+  --plush-card: rgba(58, 47, 76, .96);
+  --plush-card-alt: #49334e;
+  --plush-card-mint: #2f4948;
+  --plush-card-blue: #303f56;
+  --plush-card-yellow: #554a39;
+  --plush-text: #f6edff;
+  --plush-muted: #d0bfdc;
+  --plush-faint: #b4a1c6;
+  --plush-line: rgba(225, 203, 244, .19);
+  --plush-line-strong: rgba(225, 203, 244, .32);
+  --plush-pink: #d7a9d0;
+  --plush-coral: #e3a99c;
+  --plush-lilac: #bda1e6;
+  --plush-mint: #a4dbc5;
+  --plush-blue: #a9d4f1;
+  --plush-lemon: #ecd58c;
+  --plush-danger: #ff9bb6;
+  --plush-panel: rgba(48, 39, 65, .97);
+  --plush-input: rgba(38, 31, 54, .96);
+  --plush-bubble-in: linear-gradient(145deg, #3a304c, #453449);
+  --plush-bubble-out: linear-gradient(145deg, #665083, #764965);
+  --plush-shadow: 0 8px 20px -15px rgba(7, 4, 15, .72);
+  --plush-shadow-raised: 0 16px 35px -23px rgba(7, 4, 15, .72);
 }
 
 html[data-tcy-plush="true"] body {
+  color: var(--plush-text);
   background:
-    radial-gradient(ellipse at 12% 7%, rgba(255, 207, 226, 0.58), transparent 38%),
-    radial-gradient(ellipse at 88% 90%, rgba(204, 195, 255, 0.46), transparent 42%),
-    #fff3f9 !important;
-  color: var(--tcy-text);
-  font-family: "Nunito", "Trebuchet MS", "Manrope", system-ui, sans-serif;
+    radial-gradient(ellipse at 8% 5%, color-mix(in srgb, var(--plush-pink) 34%, transparent), transparent 38%),
+    radial-gradient(ellipse at 90% 92%, color-mix(in srgb, var(--plush-lilac) 34%, transparent), transparent 40%),
+    var(--plush-bg) !important;
+  font-family: "Nunito", "Quicksand", "Trebuchet MS", system-ui, sans-serif;
 }
 
-html[data-tcy-plush="true"] .tcy-app-shell {
-  background:
-    radial-gradient(circle at 7% 17%, rgba(255, 207, 226, 0.35), transparent 22%),
-    radial-gradient(circle at 93% 78%, rgba(204, 195, 255, 0.3), transparent 24%),
-    var(--tcy-bg) !important;
-  border-color: rgba(205, 166, 204, 0.4);
-  box-shadow: 0 24px 80px -34px rgba(163, 117, 167, 0.35);
-}
-
-html[data-tcy-plush="true"] .tcy-chat-list-item {
-  border: 1px solid rgba(214, 179, 214, 0.46);
-  border-radius: 25px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.86), rgba(255,241,249,0.82)) !important;
-  box-shadow: 0 5px 13px -10px rgba(154, 109, 159, 0.45), inset 0 1px 0 rgba(255,255,255,0.95);
-  transition: transform 220ms cubic-bezier(.2,.8,.2,1), background 240ms ease, box-shadow 240ms ease;
-}
-
-html[data-tcy-plush="true"] .tcy-chat-list-item:active {
-  transform: scale(0.988);
-}
-
-html[data-tcy-plush="true"] .tcy-chat-list-item-selected {
-  background: linear-gradient(145deg, #f5e6ff, #ffeaf4) !important;
-  border-color: #c5a0e9 !important;
-  box-shadow: 0 0 0 2px rgba(197, 160, 233, 0.2), 0 8px 18px -12px rgba(155, 108, 179, 0.5);
-}
-
-html[data-tcy-plush="true"] .tcy-header-blur,
-html[data-tcy-plush="true"] .tcy-island {
-  background: rgba(255, 249, 253, 0.88) !important;
-  border-color: rgba(255, 255, 255, 0.92) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(1.35);
-  backdrop-filter: blur(24px) saturate(1.35);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 9px 24px -15px rgba(174, 128, 179, 0.42);
-}
-
-html[data-tcy-plush="true"] .tcy-tab-orb {
-  background: linear-gradient(135deg, rgba(232, 211, 255, 0.9), rgba(255, 215, 233, 0.72)) !important;
-  border-color: rgba(255,255,255,0.92) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.92), 0 5px 14px -9px rgba(162, 117, 190, 0.5);
-}
-
-html[data-tcy-plush="true"] .tcy-tab-spark {
-  color: #d58fb3 !important;
-  filter: none;
-}
-
-html[data-tcy-plush="true"] .tcy-glass-surface {
-  background: rgba(255, 250, 253, 0.72);
-  border-color: rgba(255, 255, 255, 0.92);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 10px 25px -18px rgba(171, 126, 178, 0.42);
-}
-
-html[data-tcy-plush="true"] .tcy-glass-own {
-  background: linear-gradient(140deg, #e5c8fb 0%, #f2c9e2 100%) !important;
-  border: 1px solid rgba(255,255,255,0.88) !important;
-  color: #624b79 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.86), 0 5px 13px -10px rgba(155, 105, 174, 0.55);
-}
-
-html[data-tcy-plush="true"] .tcy-glass-peer {
-  background: linear-gradient(140deg, rgba(255,255,255,0.93), rgba(255,246,251,0.9)) !important;
-  border: 1px solid rgba(221, 192, 222, 0.56) !important;
-  color: #604d69 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.98), 0 5px 14px -11px rgba(160, 116, 172, 0.42);
-}
-
-html[data-tcy-plush="true"] #root input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-html[data-tcy-plush="true"] #root textarea,
-html[data-tcy-plush="true"] #root select {
-  border-radius: 17px !important;
-  border-color: rgba(216, 183, 215, 0.62) !important;
-  background: rgba(255,255,255,0.8) !important;
-  color: #604d69;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.95), 0 4px 12px -10px rgba(160, 116, 172, 0.5);
-}
-
-html[data-tcy-plush="true"] #root input:focus,
-html[data-tcy-plush="true"] #root textarea:focus,
-html[data-tcy-plush="true"] #root select:focus {
-  box-shadow: 0 0 0 3px rgba(201, 164, 238, 0.26), inset 0 1px 0 rgba(255,255,255,0.95);
-}
-
-html[data-tcy-plush="true"] #root input::placeholder,
-html[data-tcy-plush="true"] #root textarea::placeholder {
-  color: #b099bc !important;
-  opacity: 1;
-}
-
-html[data-tcy-plush="true"] .tcy-search-control {
-  background: linear-gradient(145deg, rgba(255,255,255,0.93), rgba(255,238,248,0.9)) !important;
-  border-color: rgba(216, 183, 215, 0.52) !important;
-}
-
-html[data-tcy-plush="true"] .tcy-search-control-icon,
-html[data-tcy-plush="true"] .tcy-favorite-chat-avatar {
-  color: #b184d7 !important;
-}
-
-html[data-tcy-plush="true"] .tcy-favorite-chat-avatar {
-  background: linear-gradient(145deg, #e4d2ff, #ffe0ee) !important;
-  border-color: rgba(255,255,255,0.9) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 5px 12px -8px rgba(163, 117, 188, 0.5);
-}
-
-html[data-tcy-plush="true"] .tcy-settings-item {
-  min-height: 94px;
-  border-radius: 24px !important;
-  background: linear-gradient(145deg, #fffafd, #fff0f7) !important;
-  border-color: rgba(216, 183, 215, 0.44) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.96), 0 5px 15px -12px rgba(157, 112, 170, 0.44);
-}
-
-html[data-tcy-plush="true"] .tcy-settings-item-icon {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 4px 12px -8px rgba(151, 111, 181, 0.5);
-}
-
-html[data-tcy-plush="true"] .tcy-gradient-accent {
-  background: linear-gradient(135deg, #d9b9f5, #efbfdc) !important;
-  border-color: rgba(255,255,255,0.9);
-  color: #684f7c;
-}
-
-html[data-tcy-plush="true"] .tcy-shadow-soft {
-  box-shadow: 0 7px 22px -15px rgba(153, 106, 168, 0.48) !important;
-}
-
-html[data-tcy-plush="true"] .tcy-shadow-accent {
-  box-shadow: 0 7px 20px -14px rgba(178, 133, 211, 0.58) !important;
-}
-
-html[data-tcy-plush="true"] .tcy-sticker-panel {
-  background: rgba(255, 247, 252, 0.94);
-  border-color: rgba(255,255,255,0.92);
-  box-shadow: 0 -12px 35px -20px rgba(165, 115, 175, 0.42);
-}
-
-html[data-tcy-plush="true"] .tcy-wallpaper,
-html[data-tcy-plush="true"] .tcy-wallpaper-preview {
-  background-color: #fff4fa;
-}
-
-html[data-tcy-plush="true"] .tcy-wallpaper-bg--black,
-html[data-tcy-plush="true"] .tcy-wallpaper-bg--graphite,
-html[data-tcy-plush="true"] .tcy-wallpaper-bg--stars,
-html[data-tcy-plush="true"] .tcy-wallpaper-bg--space,
-html[data-tcy-plush="true"] .tcy-wallpaper-bg--violet,
-html[data-tcy-plush="true"] .tcy-wallpaper-bg--wine {
-  background-color: #fff5fb !important;
-  background-image:
-    radial-gradient(circle at 18px 22px, rgba(219, 168, 217, 0.18) 0 2px, transparent 3px),
-    radial-gradient(circle at 78px 62px, rgba(255, 179, 212, 0.2) 0 3px, transparent 4px),
-    radial-gradient(ellipse at 82% 8%, rgba(218, 201, 255, 0.48), transparent 42%),
-    linear-gradient(145deg, #fffafd, #ffedf6 80%) !important;
-  background-size: 112px 100px, 142px 125px, auto, auto;
-}
-
-html[data-tcy-plush="true"] #root button {
-  transition: background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease, filter 180ms ease;
-}
-
-html[data-tcy-plush="true"] #root button:active {
-  filter: saturate(0.94);
-}
-
-html[data-tcy-plush="true"] #root button:focus-visible,
-html[data-tcy-plush="true"] #root [role="button"]:focus-visible {
-  outline-color: #c39ae8;
-}
-
-html[data-tcy-plush="true"] .tcy-aurora::before {
-  background: radial-gradient(circle, rgba(255, 190, 219, 0.42), transparent 66%);
-}
-
-html[data-tcy-plush="true"] .tcy-aurora::after {
-  background: radial-gradient(circle, rgba(194, 183, 255, 0.4), transparent 66%);
-}
-
-@media (min-width: 768px) {
-  html[data-tcy-plush="true"] body {
-    background:
-      radial-gradient(ellipse at 10% 0%, rgba(255, 202, 226, 0.56), transparent 34%),
-      radial-gradient(ellipse at 90% 100%, rgba(203, 194, 255, 0.45), transparent 38%),
-      #fff4fa !important;
-  }
-
-  html[data-tcy-plush="true"] .tcy-app-shell {
-    border-radius: 32px;
-    border-color: rgba(255,255,255,0.9);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html[data-tcy-plush="true"] #root button {
-    transition-duration: 0.01ms !important;
-  }
-}
-
-
-/* ============================================================
-   FULL PRIVATE PLUSH UI — redesign every messenger surface.
-   This is intentionally scoped to the server-authorized tester
-   attribute; regular accounts keep the existing design system.
-   ============================================================ */
-html[data-tcy-plush="true"] #root {
-  --plush-ink: #604968;
-  --plush-muted: #9b83a4;
-  --plush-pink: #f5cde2;
-  --plush-pink-strong: #eab2d2;
-  --plush-lilac: #d9c6fa;
-  --plush-mint: #c7f0df;
-  --plush-line: rgba(196, 154, 199, .34);
-  --plush-gloss: rgba(255, 255, 255, .95);
-  --plush-shadow: 0 9px 22px -15px rgba(143, 98, 158, .48);
-  color: var(--plush-ink);
-}
-
-/* Make every screen use the same soft, toy-like geometry. */
-html[data-tcy-plush="true"] #root [class*="rounded-"]:not([class*="rounded-full"]) {
-  border-radius: 23px !important;
-}
-html[data-tcy-plush="true"] #root [class*="border"] {
-  border-color: var(--plush-line) !important;
-}
-html[data-tcy-plush="true"] #root .tcy-bg,
-html[data-tcy-plush="true"] #root .tcy-bg-2,
-html[data-tcy-plush="true"] #root .tcy-solid,
-html[data-tcy-plush="true"] #root .tcy-solid-2,
-html[data-tcy-plush="true"] #root .tcy-card,
-html[data-tcy-plush="true"] #root .tcy-card-strong,
-html[data-tcy-plush="true"] #root .tcy-glass,
-html[data-tcy-plush="true"] #root .tcy-glass-surface {
-  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(255,239,248,.88)) !important;
-  border-color: rgba(255,255,255,.94) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.96), var(--plush-shadow) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.18);
-  backdrop-filter: blur(18px) saturate(1.18);
-}
-html[data-tcy-plush="true"] #root .tcy-bg,
-html[data-tcy-plush="true"] #root .tcy-bg-2 {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-/* Replace common hard-coded dark Tailwind panels from popovers and dialogs. */
-html[data-tcy-plush="true"] #root [class~="bg-black"],
-html[data-tcy-plush="true"] #root [class*="bg-zinc-9"],
-html[data-tcy-plush="true"] #root [class*="bg-neutral-9"],
-html[data-tcy-plush="true"] #root [class*="bg-stone-9"],
-html[data-tcy-plush="true"] #root [class*="bg-gray-9"],
-html[data-tcy-plush="true"] [role="dialog"],
-html[data-tcy-plush="true"] [role="alertdialog"],
-html[data-tcy-plush="true"] [role="menu"],
-html[data-tcy-plush="true"] [role="listbox"] {
-  color: var(--plush-ink) !important;
-  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(255,239,248,.97)) !important;
-  border-color: var(--plush-line) !important;
-  border-radius: 25px !important;
-  box-shadow: 0 18px 44px -24px rgba(135, 88, 151, .48), inset 0 1px 0 rgba(255,255,255,.98) !important;
-}
-
-/* Re-skin headers and screen titles, not only their background. */
-html[data-tcy-plush="true"] #root header {
-  color: var(--plush-ink);
-}
-html[data-tcy-plush="true"] #root header h1,
-html[data-tcy-plush="true"] #root header h2,
+html[data-tcy-plush="true"] #root,
+html[data-tcy-plush="true"] #root .tcy-text { color: var(--plush-text) !important; }
+html[data-tcy-plush="true"] #root .tcy-dim { color: var(--plush-muted) !important; }
+html[data-tcy-plush="true"] #root .tcy-faint { color: var(--plush-faint) !important; }
+html[data-tcy-plush="true"] #root .tcy-accent { color: var(--plush-lilac) !important; }
+html[data-tcy-plush="true"] #root .tcy-danger { color: var(--plush-danger) !important; }
 html[data-tcy-plush="true"] #root h1,
 html[data-tcy-plush="true"] #root h2,
-html[data-tcy-plush="true"] #root h3 {
-  color: #775985 !important;
-  letter-spacing: -.035em !important;
-  text-shadow: 0 1px 0 rgba(255,255,255,.78);
+html[data-tcy-plush="true"] #root h3,
+html[data-tcy-plush="true"] #root [role="heading"] {
+  color: var(--plush-text) !important;
+  letter-spacing: -.025em;
 }
-html[data-tcy-plush="true"] #root header.tcy-header-blur,
-html[data-tcy-plush="true"] #root header[class*="border-b"],
-html[data-tcy-plush="true"] #root .tcy-header-blur {
-  background: linear-gradient(145deg, rgba(255,251,254,.96), rgba(255,235,247,.92)) !important;
-  border-color: rgba(255,255,255,.96) !important;
-  box-shadow: 0 5px 18px -15px rgba(157, 103, 164, .52), inset 0 1px 0 #fff !important;
+html[data-tcy-plush="true"] #root p { line-height: 1.55; }
+
+html[data-tcy-plush="true"] .tcy-app-shell {
+  background: var(--plush-bg) !important;
+  border-color: var(--plush-line);
+  box-shadow: var(--plush-shadow-raised);
+}
+html[data-tcy-plush="true"] .tcy-aurora::before {
+  background: radial-gradient(circle, color-mix(in srgb, var(--plush-pink) 44%, transparent), transparent 68%);
+}
+html[data-tcy-plush="true"] .tcy-aurora::after {
+  background: radial-gradient(circle, color-mix(in srgb, var(--plush-blue) 42%, transparent), transparent 68%);
+}
+html[data-tcy-plush="true"] .tcy-bg,
+html[data-tcy-plush="true"] .tcy-bg-2 {
+  background: transparent !important;
 }
 
-/* Every actionable control should feel cushioned. */
-html[data-tcy-plush="true"] #root button,
-html[data-tcy-plush="true"] #root [role="button"],
-html[data-tcy-plush="true"] #root input[type="submit"] {
-  border-color: rgba(204, 165, 209, .36);
-  transition: transform 200ms cubic-bezier(.2,.8,.2,1), box-shadow 220ms ease, background 220ms ease, border-color 220ms ease !important;
+/* Rounded, tactile cards and translucent surfaces */
+html[data-tcy-plush="true"] #root .tcy-card,
+html[data-tcy-plush="true"] #root .tcy-card-strong,
+html[data-tcy-plush="true"] #root .tcy-solid,
+html[data-tcy-plush="true"] #root .tcy-solid-2,
+html[data-tcy-plush="true"] #root .tcy-glass-surface {
+  background: linear-gradient(145deg, var(--plush-card), color-mix(in srgb, var(--plush-card-alt) 48%, var(--plush-card))) !important;
+  border-color: var(--plush-line) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 72%, transparent), var(--plush-shadow) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.1);
 }
-html[data-tcy-plush="true"] #root button:not([class*="rounded-full"]):not([class*="tcy-tab-icon-wrap"]),
-html[data-tcy-plush="true"] #root [role="button"]:not([class*="rounded-full"]) {
-  border-radius: 20px !important;
+html[data-tcy-plush="true"] #root .tcy-settings-panel {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+html[data-tcy-plush="true"] #root .tcy-header-blur {
+  background: color-mix(in srgb, var(--plush-panel) 94%, transparent) !important;
+  border-color: var(--plush-line) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 60%, transparent), 0 4px 14px -12px rgba(120, 77, 135, .5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.12);
+  backdrop-filter: blur(20px) saturate(1.12);
+}
+html[data-tcy-plush="true"] #root header {
+  color: var(--plush-text);
+}
+html[data-tcy-plush="true"] #root header[class*="border-b"] {
+  background: var(--plush-panel) !important;
+  border-color: var(--plush-line) !important;
+}
+
+/* Chat cards */
+html[data-tcy-plush="true"] #root .tcy-chat-list-item {
+  border-radius: 25px !important;
+  background: linear-gradient(145deg, var(--plush-card), color-mix(in srgb, var(--plush-card-alt) 62%, var(--plush-card))) !important;
+  border: 1px solid var(--plush-line) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 70%, transparent), var(--plush-shadow) !important;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), background 220ms ease, box-shadow 220ms ease;
+}
+html[data-tcy-plush="true"] #root .tcy-chat-list-item:active {
+  transform: scale(.988);
+}
+html[data-tcy-plush="true"] #root .tcy-chat-list-item-selected {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--plush-lilac) 38%, var(--plush-card)), color-mix(in srgb, var(--plush-pink) 40%, var(--plush-card))) !important;
+  border-color: var(--plush-lilac) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--plush-lilac) 22%, transparent), var(--plush-shadow) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-favorite-chat-avatar {
+  background: linear-gradient(145deg, var(--plush-lilac), var(--plush-pink)) !important;
+  color: var(--plush-text) !important;
+  border: 2px solid var(--plush-panel);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), var(--plush-shadow);
+}
+html[data-tcy-plush="true"] #root .tcy-chat-list-item [class*="rounded-full"][class*="h-5"] {
+  border: 1px solid color-mix(in srgb, white 60%, transparent);
+}
+
+/* Own and incoming messages */
+html[data-tcy-plush="true"] #root .tcy-glass-own {
+  border-radius: 23px 23px 8px 23px !important;
+  background: var(--plush-bubble-out) !important;
+  border: 1px solid color-mix(in srgb, var(--plush-lilac) 58%, var(--plush-line)) !important;
+  color: var(--plush-text) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 75%, transparent), var(--plush-shadow) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-glass-peer {
+  border-radius: 23px 23px 23px 8px !important;
+  background: var(--plush-bubble-in) !important;
+  border: 1px solid var(--plush-line) !important;
+  color: var(--plush-text) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 65%, transparent), var(--plush-shadow) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-message-highlight {
+  border-radius: 22px;
+  outline: 2px solid color-mix(in srgb, var(--plush-lemon) 72%, transparent);
+  outline-offset: 2px;
+}
+html[data-tcy-plush="true"] #root .tcy-sticker-panel {
+  background: var(--plush-panel) !important;
+  border: 1px solid var(--plush-line) !important;
+  border-top-left-radius: 30px !important;
+  border-top-right-radius: 30px !important;
+  box-shadow: 0 -12px 32px -20px var(--plush-shadow) !important;
+}
+
+/* Buttons become plush and springy, without changing their actions. */
+html[data-tcy-plush="true"] #root button,
+html[data-tcy-plush="true"] #root [role="button"] {
+  transition: transform 200ms cubic-bezier(.2,.8,.2,1), background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease !important;
 }
 html[data-tcy-plush="true"] #root button:active,
 html[data-tcy-plush="true"] #root [role="button"]:active {
   transform: scale(.975);
-  box-shadow: inset 0 2px 4px rgba(147, 102, 164, .1) !important;
 }
 html[data-tcy-plush="true"] #root .tcy-gradient-accent,
 html[data-tcy-plush="true"] #root button[class*="tcy-gradient-accent"] {
-  background: linear-gradient(145deg, #e7d2ff 0%, #f8cde3 100%) !important;
-  color: #684d78 !important;
-  border: 1px solid rgba(255,255,255,.96) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.98), 0 7px 15px -11px rgba(152, 105, 176, .58) !important;
+  background: linear-gradient(145deg, var(--plush-coral), var(--plush-pink)) !important;
+  color: #674d67 !important;
+  border: 1px solid color-mix(in srgb, white 76%, transparent) !important;
+  box-shadow: inset 0 2px 0 color-mix(in srgb, white 68%, transparent), 0 7px 13px -9px color-mix(in srgb, var(--plush-coral) 72%, transparent) !important;
 }
-html[data-tcy-plush="true"] #root button[class*="bg-red"],
 html[data-tcy-plush="true"] #root button[class*="text-red"],
+html[data-tcy-plush="true"] #root button[class*="bg-red"],
 html[data-tcy-plush="true"] #root button[class*="tcy-danger"] {
-  background-color: #fff0f4 !important;
-  color: #c76c8d !important;
-  border-color: rgba(220, 147, 174, .38) !important;
-}
-html[data-tcy-plush="true"] #root button:disabled {
-  opacity: .56;
-  filter: saturate(.7);
+  color: var(--plush-danger) !important;
 }
 
-/* Chat list is a collection of little padded toy cards. */
-html[data-tcy-plush="true"] #root .tcy-chat-list-item {
-  margin-top: 5px;
-  margin-bottom: 5px;
-  border-radius: 26px !important;
-  background: linear-gradient(145deg, #fffefe, #fff0f8) !important;
-  border: 1px solid rgba(221, 184, 221, .6) !important;
-  box-shadow: inset 0 1px 0 #fff, 0 6px 15px -12px rgba(151, 102, 164, .5) !important;
-}
-html[data-tcy-plush="true"] #root .tcy-chat-list-item-selected {
-  background: linear-gradient(145deg, #f0e2ff, #ffe3f1) !important;
-  border-color: #c8a5ed !important;
-  box-shadow: 0 0 0 2px rgba(200,165,237,.18), inset 0 1px 0 #fff !important;
-}
-html[data-tcy-plush="true"] #root .tcy-chat-list-item .tcy-dim,
-html[data-tcy-plush="true"] #root .tcy-chat-list-item .tcy-faint {
-  color: #9e86a9 !important;
-}
-html[data-tcy-plush="true"] #root .tcy-chat-list-item [class*="rounded-full"][class*="h-5"] {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 2px 6px -3px rgba(153, 101, 166, .36);
-}
-
-/* Conversation header, history, bubbles, reply bars and composer all get the new identity. */
-html[data-tcy-plush="true"] #root .tcy-glass-own {
-  border-radius: 23px 23px 9px 23px !important;
-  background: linear-gradient(145deg, #e7d4ff, #f7cfe5) !important;
-  border: 1px solid rgba(255,255,255,.94) !important;
-  color: #624a76 !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 6px 14px -11px rgba(152, 105, 176, .55) !important;
-}
-html[data-tcy-plush="true"] #root .tcy-glass-peer {
-  border-radius: 23px 23px 23px 9px !important;
-  background: linear-gradient(145deg, #fff, #fff1f8) !important;
-  border: 1px solid rgba(220, 190, 222, .62) !important;
-  color: #624f6c !important;
-  box-shadow: inset 0 1px 0 #fff, 0 6px 14px -11px rgba(152, 105, 176, .38) !important;
-}
-html[data-tcy-plush="true"] #root .tcy-message-highlight {
-  border-radius: 24px !important;
-  outline: 2px solid rgba(194, 159, 232, .38);
-  outline-offset: 2px;
-}
-html[data-tcy-plush="true"] #root .tcy-sticker-panel {
-  background: linear-gradient(145deg, rgba(255,252,254,.99), rgba(255,238,248,.98)) !important;
-  border: 1px solid rgba(255,255,255,.98) !important;
-  border-top-left-radius: 30px !important;
-  border-top-right-radius: 30px !important;
-}
-html[data-tcy-plush="true"] #root textarea.tcy-composer-input {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-}
-html[data-tcy-plush="true"] #root .tcy-glass-own,
-html[data-tcy-plush="true"] #root .tcy-glass-peer {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-}
-html[data-tcy-plush="true"] #root .tcy-glass-own *,
-html[data-tcy-plush="true"] #root .tcy-glass-peer * {
-  text-shadow: none;
-}
-
-/* Inputs, search, filters, and toggles share one soft style on every route. */
+/* Inputs, search boxes, textareas and toggles */
 html[data-tcy-plush="true"] #root input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html[data-tcy-plush="true"] #root textarea,
 html[data-tcy-plush="true"] #root select {
-  min-height: 42px;
-  background: linear-gradient(145deg, #fff, #fff7fb) !important;
-  border: 1px solid rgba(210, 173, 213, .62) !important;
+  background: var(--plush-input) !important;
+  border: 1px solid var(--plush-line-strong) !important;
   border-radius: 18px !important;
-  color: #604d69 !important;
-  box-shadow: inset 0 1px 0 #fff, 0 4px 12px -10px rgba(160, 116, 172, .5) !important;
+  color: var(--plush-text) !important;
+  box-shadow: inset 0 2px 0 color-mix(in srgb, white 65%, transparent), 0 4px 12px -10px rgba(133, 88, 150, .35) !important;
+}
+html[data-tcy-plush="true"] #root input:focus,
+html[data-tcy-plush="true"] #root textarea:focus,
+html[data-tcy-plush="true"] #root select:focus {
+  outline: none;
+  border-color: var(--plush-lilac) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--plush-lilac) 38%, transparent), inset 0 1px 0 color-mix(in srgb, white 70%, transparent) !important;
+}
+html[data-tcy-plush="true"] #root input::placeholder,
+html[data-tcy-plush="true"] #root textarea::placeholder {
+  color: var(--plush-faint) !important;
+  opacity: 1;
 }
 html[data-tcy-plush="true"] #root input[type="checkbox"],
 html[data-tcy-plush="true"] #root input[type="radio"],
 html[data-tcy-plush="true"] #root input[type="range"] {
-  accent-color: #c6a1eb !important;
-}
-html[data-tcy-plush="true"] #root input::placeholder,
-html[data-tcy-plush="true"] #root textarea::placeholder {
-  color: #b29abd !important;
+  accent-color: var(--plush-lilac) !important;
 }
 html[data-tcy-plush="true"] #root .tcy-search-control {
   border-radius: 22px !important;
-  background: linear-gradient(145deg, #fff, #fff0f8) !important;
-  box-shadow: inset 0 1px 0 #fff, 0 4px 14px -12px rgba(160, 116, 172, .45) !important;
+  background: linear-gradient(145deg, var(--plush-card), color-mix(in srgb, var(--plush-card-blue) 56%, var(--plush-card))) !important;
+  border: 1px solid var(--plush-line) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 64%, transparent), var(--plush-shadow) !important;
 }
-html[data-tcy-plush="true"] #root [role="switch"] {
-  border-color: rgba(193, 154, 219, .46) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
-}
+html[data-tcy-plush="true"] #root .tcy-search-control-icon { color: var(--plush-lilac) !important; }
 
-/* Settings and every other form/list screen become rounded, padded panels. */
+/* Settings rows, profile panels, community cards and form sections */
 html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-card,
 html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-card-strong,
 html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-solid,
-html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-solid-2 {
-  background: linear-gradient(145deg, #fffefe, #fff0f8) !important;
-  border: 1px solid rgba(222, 187, 221, .56) !important;
-  border-radius: 24px !important;
-  box-shadow: inset 0 1px 0 #fff, 0 5px 15px -12px rgba(157, 112, 170, .44) !important;
+html[data-tcy-plush="true"] #root .tcy-settings-page .tcy-solid-2,
+html[data-tcy-plush="true"] #root .tcy-glass-surface {
+  background: linear-gradient(145deg, var(--plush-card), color-mix(in srgb, var(--plush-card-alt) 46%, var(--plush-card))) !important;
+  border: 1px solid var(--plush-line) !important;
+  border-radius: 25px !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 66%, transparent), var(--plush-shadow) !important;
 }
 html[data-tcy-plush="true"] #root .tcy-settings-item {
-  border-radius: 25px !important;
   min-height: 86px;
-  background: linear-gradient(145deg, #fff, #fff0f7) !important;
-  border: 1px solid rgba(220, 181, 221, .6) !important;
-  box-shadow: inset 0 1px 0 #fff, 0 6px 16px -13px rgba(157, 112, 170, .48) !important;
+  border-radius: 25px !important;
+  background: linear-gradient(145deg, var(--plush-card), color-mix(in srgb, var(--plush-card-alt) 58%, var(--plush-card))) !important;
+  border: 1px solid var(--plush-line) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 66%, transparent), var(--plush-shadow) !important;
 }
 html[data-tcy-plush="true"] #root .tcy-settings-item-icon {
+  width: 48px !important;
+  height: 48px !important;
   border-radius: 19px !important;
-  background: linear-gradient(145deg, #eadbff, #ffe0ee) !important;
-  color: #9971b8 !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--plush-lilac) 60%, var(--plush-card)), color-mix(in srgb, var(--plush-pink) 56%, var(--plush-card))) !important;
+  color: var(--plush-text) !important;
 }
-html[data-tcy-plush="true"] #root section[class*="rounded-"],
-html[data-tcy-plush="true"] #root article[class*="rounded-"] {
-  border-color: rgba(218, 180, 218, .5) !important;
+html[data-tcy-plush="true"] #root [role="dialog"],
+html[data-tcy-plush="true"] #root [role="alertdialog"],
+html[data-tcy-plush="true"] #root [role="menu"],
+html[data-tcy-plush="true"] #root [role="listbox"] {
+  color: var(--plush-text) !important;
+  background: var(--plush-panel) !important;
+  border-color: var(--plush-line) !important;
+  border-radius: 25px !important;
+  box-shadow: var(--plush-shadow-raised) !important;
 }
 
-/* Bottom navigation gets a clearly new toy-control look. */
+/* Floating tab bar */
 html[data-tcy-plush="true"] #root .tcy-island {
   border-radius: 27px !important;
-  background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(255,239,248,.96)) !important;
-  border: 1px solid rgba(255,255,255,.98) !important;
-  box-shadow: inset 0 2px 0 #fff, 0 10px 22px -15px rgba(143, 98, 158, .54) !important;
+  background: linear-gradient(145deg, var(--plush-panel), color-mix(in srgb, var(--plush-card-alt) 50%, var(--plush-panel))) !important;
+  border: 1px solid var(--plush-line-strong) !important;
+  box-shadow: inset 0 2px 0 color-mix(in srgb, white 70%, transparent), var(--plush-shadow-raised) !important;
 }
 html[data-tcy-plush="true"] #root .tcy-tab-orb {
   border-radius: 22px !important;
-  background: linear-gradient(145deg, #ebdcff, #ffdfef) !important;
-  border: 1px solid rgba(255,255,255,.98) !important;
-  box-shadow: inset 0 1px 0 #fff, 0 5px 13px -10px rgba(162, 117, 190, .55) !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--plush-lilac) 66%, var(--plush-card)), color-mix(in srgb, var(--plush-pink) 57%, var(--plush-card))) !important;
+  border: 1px solid color-mix(in srgb, white 68%, transparent) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 72%, transparent), var(--plush-shadow) !important;
 }
-html[data-tcy-plush="true"] #root .tcy-main-nav button {
-  color: #ae96b5;
+html[data-tcy-plush="true"] #root .tcy-main-nav button[aria-current="page"] { color: var(--plush-text) !important; }
+html[data-tcy-plush="true"] #root .tcy-tab-spark { color: var(--plush-coral) !important; filter: none !important; }
+
+/* Dedicated onboarding components */
+html[data-tcy-plush="true"] #root .tcy-onboarding-card {
+  background: color-mix(in srgb, var(--plush-panel) 88%, transparent);
+  border: 1px solid var(--plush-line);
+  border-radius: 30px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 70%, transparent), var(--plush-shadow-raised);
 }
-html[data-tcy-plush="true"] #root .tcy-main-nav button[aria-current="page"] {
-  color: #87639e !important;
+html[data-tcy-plush="true"] #root .tcy-onboarding-mascot {
+  filter: drop-shadow(0 11px 10px color-mix(in srgb, var(--plush-lilac) 23%, transparent));
+}
+html[data-tcy-plush="true"] #root .tcy-onboarding-doodle {
+  position: absolute;
+  color: var(--plush-coral);
+  font-size: var(--doodle-size, 22px);
+  user-select: none;
+  pointer-events: none;
+  animation: tcy-doodle-float 4.8s ease-in-out infinite;
+}
+@keyframes tcy-doodle-float {
+  0%, 100% { transform: translateY(0) rotate(-8deg); }
+  50% { transform: translateY(-9px) rotate(8deg); }
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-picker {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-choice {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 5px;
+  border: 2px solid var(--plush-line);
+  border-radius: 22px !important;
+  background: var(--plush-card);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 72%, transparent), var(--plush-shadow);
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-choice img { width: 58px; height: 58px; object-fit: contain; }
+html[data-tcy-plush="true"] #root .tcy-mascot-choice span { font-size: 11px; font-weight: 800; color: var(--plush-muted); }
+html[data-tcy-plush="true"] #root .tcy-mascot-choice[aria-pressed="true"] {
+  border-color: var(--plush-lilac) !important;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--plush-lilac) 26%, var(--plush-card)), color-mix(in srgb, var(--plush-pink) 25%, var(--plush-card))) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--plush-lilac) 23%, transparent), var(--plush-shadow);
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-custom-photo {
+  border: 2px dashed var(--plush-line-strong);
+  background: var(--plush-card-blue);
+  border-radius: 22px !important;
 }
 
-/* Rounded media previews, sheets, menus, and confirmations. */
-html[data-tcy-plush="true"] #root [class*="shadow-"],
-html[data-tcy-plush="true"] #root [class*="tcy-shadow-"] {
-  box-shadow: var(--plush-shadow) !important;
+/* Decorative empty states and character loader */
+html[data-tcy-plush="true"] #root .tcy-empty-mascot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 126px;
+  margin: 0 auto 9px;
+  border-radius: 42px;
+  font-size: 78px;
+  background:
+    radial-gradient(circle at 22% 24%, color-mix(in srgb, var(--plush-lemon) 78%, transparent), transparent 30%),
+    linear-gradient(145deg, color-mix(in srgb, var(--plush-blue) 53%, var(--plush-card)), color-mix(in srgb, var(--plush-pink) 48%, var(--plush-card)));
+  box-shadow: inset 0 2px 0 color-mix(in srgb, white 68%, transparent), var(--plush-shadow);
 }
-html[data-tcy-plush="true"] #root [class*="shadow-2xl"],
-html[data-tcy-plush="true"] #root [class*="shadow-xl"] {
-  box-shadow: 0 18px 38px -24px rgba(135, 88, 151, .42) !important;
+html[data-tcy-plush="true"] #root .tcy-empty-state-icon { display: none; }
+html[data-tcy-plush="true"] #root .tcy-loader-dots { display: none; }
+html[data-tcy-plush="true"] #root .tcy-loader-mascot {
+  display: block;
+  font-size: 48px;
+  animation: tcy-loader-hop 900ms ease-in-out infinite;
+  filter: drop-shadow(0 5px 7px color-mix(in srgb, var(--plush-lilac) 38%, transparent));
 }
-html[data-tcy-plush="true"] #root .tcy-app-shell,
-html[data-tcy-plush="true"] #root .tcy-desktop-chat-sidebar,
-html[data-tcy-plush="true"] #root .tcy-desktop-chat-list {
-  background-color: #fff5fa !important;
+@keyframes tcy-loader-hop {
+  0%, 100% { transform: translateY(2px) rotate(-5deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
 }
+html[data-tcy-plush="true"] #root .tcy-skeleton {
+  background: linear-gradient(100deg, var(--plush-card-alt) 40%, var(--plush-card) 50%, var(--plush-card-alt) 60%);
+  background-size: 200% 100%;
+}
+
+/* Wallpaper picker defaults also feel like a soft picture-book page. */
+html[data-tcy-plush="true"] #root .tcy-wallpaper,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-preview {
+  background-color: var(--plush-bg) !important;
+}
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--black,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--graphite,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--stars,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--space,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--violet,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--wine {
+  background:
+    radial-gradient(circle at 18px 22px, color-mix(in srgb, var(--plush-pink) 50%, transparent) 0 2px, transparent 3px),
+    radial-gradient(circle at 78px 62px, color-mix(in srgb, var(--plush-blue) 60%, transparent) 0 3px, transparent 4px),
+    radial-gradient(ellipse at 82% 8%, color-mix(in srgb, var(--plush-lilac) 36%, transparent), transparent 42%),
+    var(--plush-bg) !important;
+  background-size: 112px 100px, 142px 125px, auto, auto;
+}
+
 html[data-tcy-plush="true"] #root .tcy-desktop-welcome-pane {
   background:
-    radial-gradient(ellipse at 50% 38%, rgba(248, 206, 231, .56), transparent 40%),
-    radial-gradient(ellipse at 68% 70%, rgba(213, 199, 255, .42), transparent 38%),
-    #fff5fa !important;
+    radial-gradient(ellipse at 50% 38%, color-mix(in srgb, var(--plush-pink) 40%, transparent), transparent 40%),
+    radial-gradient(ellipse at 68% 70%, color-mix(in srgb, var(--plush-lilac) 33%, transparent), transparent 38%),
+    var(--plush-bg) !important;
 }
-html[data-tcy-plush="true"] #root .tcy-wallpaper {
-  opacity: .72;
+html[data-tcy-plush="true"] #root .tcy-desktop-chat-sidebar,
+html[data-tcy-plush="true"] #root .tcy-desktop-chat-list {
+  background: var(--plush-bg) !important;
+}
+html[data-tcy-plush="true"] #root svg { stroke-linecap: round; stroke-linejoin: round; }
+
+@media (max-width: 350px) {
+  html[data-tcy-plush="true"] #root .tcy-mascot-picker { gap: 6px; }
+  html[data-tcy-plush="true"] #root .tcy-mascot-choice img { width: 48px; height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-tcy-plush="true"] #root *,
+  html[data-tcy-plush="true"] #root *::before,
+  html[data-tcy-plush="true"] #root *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
 }
 
-/* Keep reading contrast soft but clear, including labels/icons that used dark neutrals. */
-html[data-tcy-plush="true"] #root .tcy-text { color: #624d6d !important; }
-html[data-tcy-plush="true"] #root .tcy-dim { color: #927b9e !important; }
-html[data-tcy-plush="true"] #root .tcy-faint { color: #b29bb8 !important; }
-html[data-tcy-plush="true"] #root .tcy-danger { color: #cc6f8f !important; }
-html[data-tcy-plush="true"] #root svg {
-  stroke-linecap: round;
-  stroke-linejoin: round;
+
+/* Welcome and account creation: illustrated picture-book style. */
+html[data-tcy-plush="true"] #root .tcy-welcome-page {
+  background:
+    radial-gradient(ellipse at 5% 12%, color-mix(in srgb, var(--plush-pink) 29%, transparent), transparent 38%),
+    radial-gradient(ellipse at 95% 82%, color-mix(in srgb, var(--plush-blue) 35%, transparent), transparent 40%),
+    var(--plush-bg) !important;
 }
-html[data-tcy-plush="true"] #root * {
-  scrollbar-color: #e3c9e5 transparent;
+html[data-tcy-plush="true"] #root .tcy-brand-badge {
+  background: linear-gradient(145deg, var(--plush-card), var(--plush-card-alt));
+  border: 1px solid var(--plush-line);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 75%, transparent), var(--plush-shadow);
 }
-html[data-tcy-plush="true"] #root *:focus-visible {
-  outline-color: #c6a1eb;
+html[data-tcy-plush="true"] #root .tcy-onboarding-card {
+  border-radius: 31px !important;
+  background: color-mix(in srgb, var(--plush-panel) 91%, transparent) !important;
+  border: 1px solid var(--plush-line) !important;
+  box-shadow: inset 0 2px 0 color-mix(in srgb, white 75%, transparent), var(--plush-shadow-raised) !important;
 }
-@media (prefers-reduced-motion: no-preference) {
-  html[data-tcy-plush="true"] #root .tcy-chat-list-item,
-  html[data-tcy-plush="true"] #root .tcy-settings-item {
-    animation: tcy-plush-settle 380ms cubic-bezier(.2,.8,.2,1) both;
-  }
-  @keyframes tcy-plush-settle {
-    from { opacity: .72; transform: translateY(3px) scale(.992); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
+html[data-tcy-plush="true"] #root .tcy-onboarding-pill {
+  color: var(--plush-text);
+  background: color-mix(in srgb, var(--plush-lemon) 50%, var(--plush-card));
+  border: 1px solid var(--plush-line);
+}
+html[data-tcy-plush="true"] #root .tcy-step-dot {
+  background: var(--plush-lilac);
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-orbit {
+  position: absolute;
+  top: -2px;
+  right: 3px;
+  z-index: 1;
+  color: var(--plush-lemon);
+  font-size: 36px;
+  animation: tcy-doodle-float 3.6s ease-in-out infinite;
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-wave {
+  position: absolute;
+  right: -3px;
+  top: 36%;
+  z-index: 2;
+  font-size: 35px;
+  transform-origin: 65% 80%;
+  animation: tcy-paw-wave 1.7s ease-in-out infinite;
+}
+@keyframes tcy-paw-wave {
+  0%, 100% { transform: rotate(14deg); }
+  50% { transform: rotate(-18deg); }
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-corner-spark {
+  position: absolute;
+  right: 0;
+  bottom: 14%;
+  color: var(--plush-coral);
+  animation: tcy-doodle-float 3.2s ease-in-out infinite;
+}
+html[data-tcy-plush="true"] #root .tcy-onboarding-icon {
+  color: var(--plush-text);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--plush-pink) 58%, var(--plush-card)), color-mix(in srgb, var(--plush-lilac) 54%, var(--plush-card)));
+  border: 1px solid var(--plush-line);
+  box-shadow: inset 0 2px 0 color-mix(in srgb, white 72%, transparent), var(--plush-shadow);
+}
+html[data-tcy-plush="true"] #root .tcy-avatar-custom-preview {
+  border: 1px solid var(--plush-line);
+  background: var(--plush-card);
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-custom-photo {
+  color: var(--plush-text);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--plush-card-blue) 65%, var(--plush-card)), var(--plush-card));
+  border-color: var(--plush-line-strong) !important;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 72%, transparent), var(--plush-shadow);
+}
+html[data-tcy-plush="true"] #root .tcy-mascot-custom-photo:active { transform: scale(.985); }
+
+/* Cute default avatars are only shown for accounts without a photo in plush mode. */
+html[data-tcy-plush="true"] #root .tcy-avatar-initials { display: none; }
+html[data-tcy-plush="true"] #root .tcy-avatar-mascot-fallback {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: .9em;
+}
+
+
+/* Little star-speckled unread counters and friendly controls. */
+html[data-tcy-plush="true"] #root .tcy-unread-count {
+  position: relative;
+  border-radius: 999px !important;
+  background: linear-gradient(145deg, var(--plush-coral), var(--plush-pink)) !important;
+  color: #674d67 !important;
+  border: 1px solid color-mix(in srgb, white 70%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 70%, transparent), 0 3px 8px -5px var(--plush-coral);
+}
+html[data-tcy-plush="true"] #root .tcy-unread-count::after {
+  content: "✦";
+  margin-left: 3px;
+  font-size: 8px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--plush-text) 65%, var(--plush-coral));
+}
+html[data-tcy-plush="true"] #root .tcy-avatar-mascot {
+  border: 2px solid color-mix(in srgb, white 70%, var(--plush-lilac));
+  box-shadow: var(--plush-shadow);
+}
+html[data-tcy-plush="true"] #root .tcy-online-pulse {
+  animation: tcy-plush-online 2.3s ease-out infinite;
+}
+@keyframes tcy-plush-online {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--plush-mint) 75%, transparent); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+html[data-tcy-plush="true"] #root .tcy-avatar-placeholder {
+  background: linear-gradient(145deg, var(--plush-lilac), var(--plush-pink)) !important;
+  color: var(--plush-text) !important;
+  border: 2px solid color-mix(in srgb, white 70%, var(--plush-lilac));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 75%, transparent), var(--plush-shadow);
+}
+
+html[data-tcy-plush="true"] #root .tcy-tab-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 3px color-mix(in srgb, var(--plush-lilac) 30%, transparent));
 }

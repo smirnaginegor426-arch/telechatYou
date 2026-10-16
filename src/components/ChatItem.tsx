@@ -219,7 +219,7 @@ export function ChatItem({
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center"
+                className="tcy-unread-count min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold flex items-center justify-center"
                 style={
                   item.membership.muted
                     ? { background: "var(--tcy-card-strong)", color: "var(--tcy-dim)" }

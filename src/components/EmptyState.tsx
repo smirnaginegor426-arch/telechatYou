@@ -12,6 +12,17 @@ export function EmptyState({
   hint?: string;
   action?: ReactNode;
 }) {
+  const normalizedTitle = title.toLowerCase();
+  const mascot = normalizedTitle.includes("друг") || normalizedTitle.includes("люд")
+    ? "🐰"
+    : normalizedTitle.includes("архив")
+      ? "🐼"
+      : normalizedTitle.includes("поиск") || normalizedTitle.includes("нашли")
+        ? "🦊"
+        : normalizedTitle.includes("загруз") || normalizedTitle.includes("подключ")
+          ? "🐢"
+          : "🐱";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -19,8 +30,9 @@ export function EmptyState({
       transition={{ type: "spring", stiffness: 260, damping: 26 }}
       className="flex flex-col items-center justify-center text-center px-8 py-14"
     >
+      <div className="tcy-empty-mascot hidden" aria-hidden="true">{mascot}</div>
       <div
-        className="w-20 h-20 rounded-[28px] tcy-card flex items-center justify-center mb-5"
+        className="tcy-empty-state-icon w-20 h-20 rounded-[28px] tcy-card flex items-center justify-center mb-5"
         style={{ color: "var(--tcy-accent)" }}
       >
         {icon}

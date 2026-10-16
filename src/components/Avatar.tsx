@@ -20,7 +20,11 @@ export function Avatar({
   showOnline = false,
   className,
 }: Props) {
-  const url = useFileUrl(avatarKey);
+  const mascotId = avatarKey?.startsWith("mascot:") ? avatarKey.slice(7) : "";
+  const mascotUrl = ["cat", "rabbit", "panda", "dino", "fox", "bear"].includes(mascotId)
+    ? `/mascots/${mascotId}.svg`
+    : null;
+  const url = useFileUrl(mascotUrl ? null : avatarKey);
   const online = showOnline && isOnline(lastSeenAt);
   const [imageUnavailable, setImageUnavailable] = useState(false);
   const imageRetryKeyRef = useRef<string | null>(null);
@@ -35,7 +39,15 @@ export function Avatar({
       className={cn("relative shrink-0", className)}
       style={{ width: size, height: size }}
     >
-      {url && !imageUnavailable ? (
+      {mascotUrl ? (
+        <img
+          src={mascotUrl}
+          alt=""
+          draggable={false}
+          className="tcy-avatar-mascot w-full h-full object-cover rounded-full"
+          style={{ borderRadius: size >= 56 ? "30%" : "50%" }}
+        />
+      ) : url && !imageUnavailable ? (
         <img
           src={url}
           alt=""
@@ -61,7 +73,7 @@ export function Avatar({
         />
       ) : (
         <div
-          className="w-full h-full flex items-center justify-center font-bold select-none"
+          className="tcy-avatar-placeholder w-full h-full flex items-center justify-center font-bold select-none"
           style={{
             borderRadius: size >= 56 ? "30%" : "50%",
             background: avatarGradient(name || "?"),
@@ -69,7 +81,8 @@ export function Avatar({
             color: "rgba(255,255,255,0.92)",
           }}
         >
-          {initials(name || "?")}
+          <span className="tcy-avatar-initials">{initials(name || "?")}</span>
+          <span className="tcy-avatar-mascot-fallback hidden" aria-hidden="true">🐱</span>
         </div>
       )}
 

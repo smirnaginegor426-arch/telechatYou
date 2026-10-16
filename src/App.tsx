@@ -13,8 +13,11 @@ import { useDeviceMode } from "@/hooks/useDeviceMode";
 import { useTesterMode } from "@/hooks/useTesterMode";
 
 import Welcome from "@/pages/Welcome";
+import WelcomeLegacy from "@/pages/WelcomeLegacy";
 import Setup from "@/pages/Setup";
+import SetupLegacy from "@/pages/SetupLegacy";
 import RegisterWizard from "@/pages/RegisterWizard";
+import RegisterWizardLegacy from "@/pages/RegisterWizardLegacy";
 import Chats from "@/pages/Chats";
 import ChatView from "@/pages/ChatView";
 import TeleChatYouBot from "@/pages/TeleChatYouBot";
@@ -61,21 +64,9 @@ function AuthedApp() {
   const location = useLocation();
   const navigate = useNavigate();
   const deviceMode = useDeviceMode();
-  const { enabled: isPrivateTester } = useTesterMode();
   const isDesktop = deviceMode === "desktop";
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isPrivateTester) {
-      root.dataset.tcyPlush = "true";
-    } else {
-      delete root.dataset.tcyPlush;
-    }
 
-    return () => {
-      delete root.dataset.tcyPlush;
-    };
-  }, [isPrivateTester]);
   const desktopHome = isDesktop && location.pathname === "/";
   const desktopChat = isDesktop && /^\/chat\/\d+\/?$/.test(location.pathname);
   const desktopInbox = desktopHome || desktopChat;
@@ -217,7 +208,7 @@ useEffect(() => {
   );
 }
 
-function Gate() {
+function Gate({ plush }: { plush: boolean }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   const me = trpc.profile.me.useQuery(undefined, {
@@ -233,11 +224,11 @@ function Gate() {
   }
 
   if (!isAuthenticated) {
-    return <Welcome />;
+    return plush ? <Welcome /> : <WelcomeLegacy />;
   }
 
   if (me.data && !me.data.profile) {
-    return <Setup />;
+    return plush ? <Setup /> : <SetupLegacy />;
   }
 
   return <AuthedApp />;
@@ -246,6 +237,17 @@ function Gate() {
 export default function App() {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
+  const { enabled: isPrivateTester } = useTesterMode({ enabled: isAuthenticated });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isPrivateTester) {
+      root.dataset.tcyPlush = "true";
+    } else {
+      delete root.dataset.tcyPlush;
+    }
+  }, [isPrivateTester]);
+
 
   const maintenanceUser = trpc.profile.me.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -273,7 +275,7 @@ export default function App() {
 
       <div className="relative z-10 h-full">
         {location.pathname === "/register" ? (
-          <RegisterWizard />
+          isPrivateTester ? <RegisterWizard /> : <RegisterWizardLegacy />
         ) : location.pathname === "/recover" ? (
           <Recover />
         ) : location.pathname === "/accounts" ? (
@@ -285,7 +287,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
           </Routes>
         ) : (
-          <Gate />
+          <Gate plush={isPrivateTester} />
         )}
       </div>
     </div>

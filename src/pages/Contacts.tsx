@@ -8,9 +8,11 @@ import { TesterBadge } from "@/components/TesterBadge";
 import { isTesterUsername } from "@/lib/testers";
 import { EmptyState } from "@/components/EmptyState";
 import { formatLastSeen, isOnline } from "@/lib/format";
+import { useTesterMode } from "@/hooks/useTesterMode";
 
 export default function Contacts() {
   const navigate = useNavigate();
+  const { enabled: isPrivateTester } = useTesterMode();
   const [q, setQ] = useState("");
   const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
   const contactNames = contactNamesQuery.data?.names ?? {};
@@ -28,7 +30,7 @@ export default function Contacts() {
   return (
     <div className="relative h-full flex flex-col">
       <header className="relative z-10 px-5 pt-5 safe-top pb-3">
-        <h1 className="text-[24px] font-extrabold tcy-text">Люди</h1>
+        <h1 className="text-[24px] font-extrabold tcy-text">{isPrivateTester ? "Друзья" : "Люди"}</h1>
         <div className="mt-3.5 relative">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
           <input
@@ -42,7 +44,7 @@ export default function Contacts() {
 
       <div className="flex-1 overflow-y-auto no-scrollbar pb-28 relative z-10">
         <div className="px-5 py-2 text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
-          {q.trim().length >= 2 ? "Результаты поиска" : "Все пользователи"}
+          {q.trim().length >= 2 ? (isPrivateTester ? "Вот кого нашли" : "Результаты поиска") : (isPrivateTester ? "Найди друзей" : "Все пользователи")}
         </div>
         {directory.isLoading && q.trim().length < 2 ? (
           <div className="space-y-1 px-2">
@@ -59,11 +61,15 @@ export default function Contacts() {
         ) : list.length === 0 ? (
           <EmptyState
             icon={<Users size={32} />}
-            title={q ? "Никого не нашли" : "Пока никого нет"}
+            title={q ? "Никого не нашли" : isPrivateTester ? "Здесь пока тихо" : "Пока никого нет"}
             hint={
               q
-                ? "Проверьте написание username — регистр не важен."
-                : "Пригласите друзей в TeleChatYou — и они появятся здесь."
+                ? isPrivateTester
+                  ? "Проверь написание ника — большие и маленькие буквы не важны."
+                  : "Проверьте написание username — регистр не важен."
+                : isPrivateTester
+                  ? "Найди знакомых по нику и поздоровайся — первый привет уже близко!"
+                  : "Пригласите друзей в TeleChatYou — и они появятся здесь."
             }
           />
         ) : (

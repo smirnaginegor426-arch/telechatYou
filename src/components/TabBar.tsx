@@ -3,14 +3,15 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router";
 import { MessageCircle, Users, UserRound, Settings2, Sparkles } from "lucide-react";
+import { useTesterMode } from "@/hooks/useTesterMode";
 import { cn } from "@/lib/utils";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
 
 const tabs = [
-  { to: "/", label: "Чаты", icon: MessageCircle },
-  { to: "/contacts", label: "Люди", icon: Users },
-  { to: "/profile", label: "Профиль", icon: UserRound },
-  { to: "/settings", label: "Настройки", icon: Settings2 },
+  { to: "/", label: "Чаты", icon: MessageCircle, plushEmoji: "💌" },
+  { to: "/contacts", label: "Люди", plushLabel: "Друзья", icon: Users, plushEmoji: "🐰" },
+  { to: "/profile", label: "Профиль", icon: UserRound, plushEmoji: "🐱" },
+  { to: "/settings", label: "Настройки", icon: Settings2, plushEmoji: "🌈" },
 ];
 
 type Gesture = {
@@ -26,6 +27,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const location = useLocation();
   const navigate = useNavigate();
   const deviceMode = useDeviceMode();
+  const { enabled: isPrivateTester } = useTesterMode();
   const [dragTarget, setDragTarget] = useState<string | null>(null);
   const gestureRef = useRef<Gesture | null>(null);
   const longPressTimer = useRef<number | null>(null);
@@ -161,15 +163,16 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
     >
       <div className="tcy-island mx-5 mb-2 rounded-[22px] border tcy-line tcy-header-blur">
         <div className="grid grid-cols-4 h-[56px]">
-          {tabs.map(({ to, label, icon: Icon }) => {
+          {tabs.map(({ to, label, plushLabel, icon: Icon, plushEmoji }) => {
             const active = activeTo === to;
             const highlighted = dragTarget ? dragTarget === to : active;
+            const displayLabel = isPrivateTester ? (plushLabel ?? label) : label;
             return (
               <button
                 key={to}
                 type="button"
                 data-tab-to={to}
-                aria-label={label}
+                aria-label={displayLabel}
                 aria-current={active ? "page" : undefined}
                 onPointerDown={(event) => onPointerDown(event, to)}
                 onClick={() => {
@@ -195,10 +198,12 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                 )}
                 <span className="tcy-tab-icon-wrap relative z-[1] flex h-10 items-center justify-center pointer-events-none">
                   <motion.span
-                    animate={{ scale: highlighted ? 1.04 : 1, y: highlighted ? -1 : 0 }}
+                    animate={{ scale: highlighted ? (isPrivateTester ? 1.12 : 1.04) : 1, y: highlighted ? -1 : 0, rotate: isPrivateTester && highlighted ? [0, -3, 3, 0] : 0 }}
                     transition={{ type: "spring", stiffness: 320, damping: 30, mass: 0.8 }}
+                    className={isPrivateTester ? "tcy-tab-emoji" : "inline-flex items-center justify-center"}
+                    aria-hidden="true"
                   >
-                    <Icon size={23} strokeWidth={highlighted ? 2.35 : 1.8} />
+                    {isPrivateTester ? plushEmoji : <Icon size={23} strokeWidth={highlighted ? 2.35 : 1.8} />}
                   </motion.span>
                   {to === "/" && unreadTotal > 0 && (
                     <motion.span
@@ -231,7 +236,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                       transition={{ duration: 0.24, ease: "easeOut" }}
                       className="relative z-[1] overflow-hidden whitespace-nowrap text-[9px] font-bold leading-[12px] pointer-events-none"
                     >
-                      {label}
+                      {displayLabel}
                     </motion.span>
                   )}
                 </AnimatePresence>
