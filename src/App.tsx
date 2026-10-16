@@ -185,7 +185,7 @@ useEffect(() => {
             <Route path="/rename-chat/:chatId" element={<RenameChat />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/@:username" element={<UserView />} />
+            <Route path="/:username" element={<UserView />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/email-binding" element={<EmailBinding />} />

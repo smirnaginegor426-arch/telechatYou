@@ -14,7 +14,10 @@ import { toast } from "sonner";
 
 /** Public profile of another user */
 export default function UserView() {
-  const { id, username } = useParams<{ id: string; username: string }>();
+  const { id, username: routeUsername } = useParams<{ id: string; username: string }>();
+  // React Router parameters must occupy the full path segment. The public profile URL
+  // keeps its familiar /@username form, so remove the @ after matching /:username.
+  const username = routeUsername?.startsWith("@") ? routeUsername.slice(1) : undefined;
   const parsedUserId = Number(id);
   const navigate = useNavigate();
   const location = useLocation();
