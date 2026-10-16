@@ -1,8 +1,7 @@
-import { Fragment, useRef, useState, type ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { MouseEvent } from "react";
 import { useNavigate } from "react-router";
 import { EmojiText } from "@/components/AppleEmoji";
-import { trpc } from "@/providers/trpc";
 
 function trimLinkPunctuation(value: string) {
   let end = value.length;
@@ -48,56 +47,23 @@ function internalAppPath(href: string): string | null {
  */
 function UsernameMentionLink({ username, label }: { username: string; label: string }) {
   const navigate = useNavigate();
-  const utils = trpc.useUtils();
-  const createDirect = trpc.chats.createDirect.useMutation();
-  const joinPublic = trpc.channels.joinPublic.useMutation();
-  const openingRef = useRef(false);
-  const [opening, setOpening] = useState(false);
 
-  const openMention = async (event: MouseEvent<HTMLAnchorElement>) => {
+  const openMention = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-    if (openingRef.current) return;
-
-    openingRef.current = true;
-    setOpening(true);
-    let destination = `/@${username}`;
-    let profileFound = false;
-
-    try {
-      try {
-        const profile = await utils.profile.byUsername.fetch({ username });
-        profileFound = true;
-        const result = await createDirect.mutateAsync({ userId: profile.userId });
-        void utils.chats.list.invalidate();
-        destination = `/chat/${result.chatId}`;
-      } catch {
-        // Only try a channel lookup when there is no profile for this username.
-        if (!profileFound) {
-          try {
-            await utils.channels.byUsername.fetch({ username });
-            const result = await joinPublic.mutateAsync({ username });
-            void utils.chats.list.invalidate();
-            destination = `/chat/${result.chatId}`;
-          } catch {
-            // Keep the public @username page as a safe fallback.
-          }
-        }
-      }
-    } finally {
-      openingRef.current = false;
-      setOpening(false);
-      navigate(destination);
-    }
+    event.stopPropagation();
+    // Navigate synchronously so the tap always opens a screen immediately.
+    // UserView then resolves the username and opens its direct chat/public channel.
+    navigate(`/@${username}?open=1`);
   };
 
   return (
     <a
-      href={`/@${username}`}
+      href={`/@${username}?open=1`}
+      onPointerDown={(event) => event.stopPropagation()}
       onClick={openMention}
-      aria-busy={opening}
       title={`Открыть ${label}`}
-      className="font-semibold underline-offset-2 hover:underline"
-      style={{ color: "#2787f5", cursor: "pointer", opacity: opening ? 0.72 : 1 }}
+      className="relative z-10 font-semibold underline-offset-2 hover:underline"
+      style={{ color: "#2787f5", cursor: "pointer", pointerEvents: "auto" }}
     >
       {label}
     </a>
