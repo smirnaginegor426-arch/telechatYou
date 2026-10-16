@@ -322,7 +322,7 @@ export default function EmailBinding() {
                 aria-label="Цифровая клавиатура"
               >
                 <div className="grid grid-cols-3 gap-2">
-                  {["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "delete"].map((key, index) => (
+                  {["1", "2", "3", "4", "5", "6", "7", "8", "9", "clear", "0", "delete"].map((key) => (
                     <motion.button
                       key={key}
                       type="button"
