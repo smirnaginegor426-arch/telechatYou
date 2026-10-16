@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { AtSign, Camera, Check, ChevronRight, Copy, ImagePlus, LogOut, MoreVertical, Pencil, Quote, RefreshCw, Trash2, UsersRound } from "lucide-react";
+import { AtSign, Camera, Check, ChevronRight, Copy, ImagePlus, LogOut, MoreVertical, Pencil, Quote, RefreshCw, Sparkles, Trash2, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,10 +14,22 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
+import { useTesterMode } from "@/hooks/useTesterMode";
 import { copyTextToClipboard, profileShareUrl } from "@/lib/share-links";
+
+type PlushProfilePrefs = { status: string; background: string };
+const PLUSH_STATUSES = ["🌼 На связи", "🎮 Играю", "🎨 Рисую", "🌙 Сплю", "📚 Учусь", "🎧 Слушаю музыку", "☕ Отдыхаю"];
+const PLUSH_BACKGROUNDS = [
+  { id: "cotton", name: "Зефир", style: "linear-gradient(145deg, #fff2e8, #f8ddeb 55%, #eee3ff)" },
+  { id: "mint", name: "Мята", style: "linear-gradient(145deg, #e8f9ed, #d3f2e8 55%, #e6f4ff)" },
+  { id: "sky", name: "Облачко", style: "linear-gradient(145deg, #e8f5ff, #dbe8ff 55%, #f4e7ff)" },
+  { id: "lemon", name: "Лимон", style: "linear-gradient(145deg, #fff8d8, #ffe8dc 58%, #f9dfec)" },
+];
+const DEFAULT_PLUSH_PREFS: PlushProfilePrefs = { status: "🌼 На связи", background: "cotton" };
 
 export default function Profile() {
   const { logout } = useAuth();
+  const { enabled: isPrivateTester } = useTesterMode();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const me = trpc.profile.me.useQuery();
@@ -32,6 +44,8 @@ export default function Profile() {
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [deleteAvatarOpen, setDeleteAvatarOpen] = useState(false);
+  const [plushCustomizeOpen, setPlushCustomizeOpen] = useState(false);
+  const [plushPrefs, setPlushPrefs] = useState<PlushProfilePrefs | null>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -43,6 +57,38 @@ export default function Profile() {
     onError: (e) => setError(e.message),
   });
   const upload = trpc.storage.upload.useMutation();
+
+  useEffect(() => {
+    if (!isPrivateTester || !profile?.userId) {
+      setPlushPrefs(null);
+      return;
+    }
+    try {
+      const stored = localStorage.getItem(`tcy-plush-profile-prefs-${profile.userId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored) as Partial<PlushProfilePrefs>;
+        setPlushPrefs({
+          status: PLUSH_STATUSES.includes(parsed.status ?? "") ? parsed.status! : DEFAULT_PLUSH_PREFS.status,
+          background: PLUSH_BACKGROUNDS.some((option) => option.id === parsed.background)
+            ? parsed.background!
+            : DEFAULT_PLUSH_PREFS.background,
+        });
+      } else {
+        setPlushPrefs(DEFAULT_PLUSH_PREFS);
+      }
+    } catch {
+      setPlushPrefs(DEFAULT_PLUSH_PREFS);
+    }
+  }, [isPrivateTester, profile?.userId]);
+
+  useEffect(() => {
+    if (!isPrivateTester || !profile?.userId || !plushPrefs) return;
+    try {
+      localStorage.setItem(`tcy-plush-profile-prefs-${profile.userId}`, JSON.stringify(plushPrefs));
+    } catch {
+      // Keep the current preview in memory if local storage is unavailable.
+    }
+  }, [isPrivateTester, profile?.userId, plushPrefs]);
 
   useEffect(() => {
     if (!actionsOpen) return;
@@ -213,7 +259,12 @@ export default function Profile() {
         }}
       />
       {/* hero */}
-      <div className="relative pt-16 safe-top pb-8 flex flex-col items-center">
+      <div
+        className={`tcy-profile-hero relative pt-16 safe-top pb-8 flex flex-col items-center ${isPrivateTester ? "tcy-plush-profile-hero" : ""}`}
+        style={isPrivateTester && plushPrefs
+          ? { background: PLUSH_BACKGROUNDS.find((option) => option.id === plushPrefs.background)?.style }
+          : undefined}
+      >
         <div
           className="absolute inset-x-0 top-0 h-56 pointer-events-none"
           style={{
@@ -239,7 +290,7 @@ export default function Profile() {
               avatarKey={profile.avatarKey}
               size={128}
               lastSeenAt={profile.lastSeenAt}
-              showOnline
+              showOnline={!isPrivateTester}
             />
           </button>
           <button
@@ -268,6 +319,18 @@ export default function Profile() {
         <TcButton size="sm" variant="soft" className="mt-5" onClick={openEdit}>
           <Pencil size={14} /> Редактировать
         </TcButton>
+        {isPrivateTester && plushPrefs && (
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <span className="tcy-profile-status-chip">{plushPrefs.status}</span>
+            <button
+              type="button"
+              onClick={() => setPlushCustomizeOpen(true)}
+              className="tcy-profile-customize-button"
+            >
+              <Sparkles size={15} /> Укрась свой профиль
+            </button>
+          </div>
+        )}
       </div>
 
       {/* info cards */}
@@ -317,6 +380,52 @@ export default function Profile() {
         </p>
       </div>
 
+      <BottomSheet
+        open={plushCustomizeOpen}
+        onClose={() => setPlushCustomizeOpen(false)}
+        title="Укрась свой профиль"
+      >
+        <div className="space-y-5 px-5 pb-5">
+          <section>
+            <h3 className="mb-3 text-[14px] font-extrabold tcy-text">Какое у тебя настроение?</h3>
+            <div className="flex flex-wrap gap-2">
+              {PLUSH_STATUSES.map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  aria-pressed={plushPrefs?.status === status}
+                  onClick={() => setPlushPrefs((current) => ({ ...(current ?? DEFAULT_PLUSH_PREFS), status }))}
+                  className="tcy-plush-profile-choice"
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </section>
+          <section>
+            <h3 className="mb-3 text-[14px] font-extrabold tcy-text">Выбери фон</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {PLUSH_BACKGROUNDS.map((background) => (
+                <button
+                  key={background.id}
+                  type="button"
+                  aria-pressed={plushPrefs?.background === background.id}
+                  onClick={() => setPlushPrefs((current) => ({ ...(current ?? DEFAULT_PLUSH_PREFS), background: background.id }))}
+                  className="tcy-plush-profile-bg-choice"
+                  style={{ background: background.style }}
+                >
+                  <span>{background.name}</span>
+                  {plushPrefs?.background === background.id && <Check size={17} />}
+                </button>
+              ))}
+            </div>
+          </section>
+          <p className="text-[11.5px] leading-relaxed tcy-dim">
+            Это тестовая настройка приватной версии и пока сохраняется только на этом устройстве.
+          </p>
+          <TcButton size="lg" onClick={() => setPlushCustomizeOpen(false)}>Готово ✨</TcButton>
+        </div>
+      </BottomSheet>
       <BottomSheet open={deleteAvatarOpen} onClose={() => setDeleteAvatarOpen(false)} title="Удалить аватарку?">
         <div className="px-5 pb-5 space-y-4">
           <p className="text-[13.5px] leading-relaxed tcy-dim">Текущая фотография профиля будет удалена. Вместо неё будет отображаться стандартная аватарка.</p>
