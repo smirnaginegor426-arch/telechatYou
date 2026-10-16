@@ -196,15 +196,24 @@ export default function RegisterWizard() {
 
   return (
     <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden">
-      <motion.div
+      <div
         aria-hidden="true"
         className="absolute inset-0"
-        animate={{
-          background: theme === "dark"
-            ? "radial-gradient(circle at 14% 10%, rgba(155,139,179,.16), transparent 37%), radial-gradient(circle at 90% 86%, rgba(91,135,184,.12), transparent 38%), var(--tcy-bg)"
-            : "radial-gradient(circle at 14% 10%, rgba(155,139,179,.16), transparent 37%), radial-gradient(circle at 90% 86%, rgba(225,179,104,.15), transparent 38%), var(--tcy-bg)",
-        }}
-        transition={{ duration: 0.75, ease: "easeInOut" }}
+        style={{ background: "var(--tcy-bg)", transition: "background-color 800ms ease" }}
+      />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(circle at 14% 10%, rgba(155,139,179,.18), transparent 37%), radial-gradient(circle at 90% 86%, rgba(91,135,184,.14), transparent 38%)" }}
+        animate={{ opacity: theme === "dark" ? 1 : 0 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(circle at 14% 10%, rgba(155,139,179,.16), transparent 37%), radial-gradient(circle at 90% 86%, rgba(225,179,104,.18), transparent 38%)" }}
+        animate={{ opacity: theme === "light" ? 1 : 0 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
       />
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {floatingShapes.map((shape) => (
