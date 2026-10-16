@@ -70,7 +70,7 @@ export default function RegisterWizard() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const { theme } = useTheme();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(-1);
   const [entrance, setEntrance] = useState<Point>(ENTRANCES[0]);
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -319,10 +319,10 @@ export default function RegisterWizard() {
                 </motion.div>
                 <div className="max-w-[390px] space-y-4">
                   <h1 className="text-[29px] font-black leading-[1.13] tracking-tight tcy-text">
-                    Давай создадим твой аккаунт!
+                    Привет! Добро пожаловать в TeleChatYou!
                   </h1>
                   <p className="text-[14.5px] leading-relaxed tcy-dim">
-                    Это займёт всего пару минут — а дальше начнётся самое интересное.
+                    Котёнок уже машет тебе лапкой. Давай знакомиться, выбирать аватарку и писать друзьям!
                   </p>
                 </div>
               </div>
