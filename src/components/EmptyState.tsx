@@ -30,7 +30,7 @@ export function EmptyState({
       transition={{ type: "spring", stiffness: 260, damping: 26 }}
       className="flex flex-col items-center justify-center text-center px-8 py-14"
     >
-      <div className="tcy-empty-mascot" aria-hidden="true">{mascot}</div>
+      <div className="tcy-empty-mascot hidden" aria-hidden="true">{mascot}</div>
       <div
         className="tcy-empty-state-icon w-20 h-20 rounded-[28px] tcy-card flex items-center justify-center mb-5"
         style={{ color: "var(--tcy-accent)" }}
