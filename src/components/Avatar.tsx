@@ -73,7 +73,7 @@ export function Avatar({
         />
       ) : (
         <div
-          className="w-full h-full flex items-center justify-center font-bold select-none"
+          className="tcy-avatar-placeholder w-full h-full flex items-center justify-center font-bold select-none"
           style={{
             borderRadius: size >= 56 ? "30%" : "50%",
             background: avatarGradient(name || "?"),
