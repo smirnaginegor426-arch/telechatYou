@@ -15,6 +15,13 @@
       "when": 1791919616000,
       "tag": "0001_add_recovery_secrets",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792167000000,
+      "tag": "0002_add_email_verification_and_recovery",
+      "breakpoints": true
     }
   ]
 }
