@@ -246,7 +246,7 @@ function Gate() {
 export default function App() {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
-  const { enabled: isPrivateTester } = useTesterMode();
+  const { enabled: isPrivateTester } = useTesterMode({ enabled: isAuthenticated });
 
   useEffect(() => {
     const root = document.documentElement;
