@@ -28,7 +28,7 @@ export default function Contacts() {
   return (
     <div className="relative h-full flex flex-col">
       <header className="relative z-10 px-5 pt-5 safe-top pb-3">
-        <h1 className="text-[24px] font-extrabold tcy-text">Люди</h1>
+        <h1 className="text-[24px] font-extrabold tcy-text">Друзья</h1>
         <div className="mt-3.5 relative">
           <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 tcy-faint" />
           <input
@@ -59,11 +59,11 @@ export default function Contacts() {
         ) : list.length === 0 ? (
           <EmptyState
             icon={<Users size={32} />}
-            title={q ? "Никого не нашли" : "Пока никого нет"}
+            title={q ? "Никого не нашли" : "Здесь пока тихо"}
             hint={
               q
-                ? "Проверьте написание username — регистр не важен."
-                : "Пригласите друзей в TeleChatYou — и они появятся здесь."
+                ? "Проверь написание ника — большие и маленькие буквы не важны."
+                : "Найди знакомых по нику и поздоровайся — первый привет уже близко!"
             }
           />
         ) : (
