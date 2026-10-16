@@ -20,11 +20,10 @@ export function Avatar({
   showOnline = false,
   className,
 }: Props) {
-  const mascotId = avatarKey?.startsWith("mascot:") ? avatarKey.slice(7) : "";
-  const mascotUrl = ["cat", "rabbit", "panda", "dino", "fox", "bear"].includes(mascotId)
-    ? `/mascots/${mascotId}.svg`
-    : null;
-  const url = useFileUrl(mascotUrl ? null : avatarKey);
+  // Mascot avatar keys were used only by the retired experimental onboarding.
+  // Render the normal initials placeholder for those legacy values.
+  const legacyMascotAvatar = avatarKey?.startsWith("mascot:") ?? false;
+  const url = useFileUrl(legacyMascotAvatar ? null : avatarKey);
   const online = showOnline && isOnline(lastSeenAt);
   const [imageUnavailable, setImageUnavailable] = useState(false);
   const imageRetryKeyRef = useRef<string | null>(null);
@@ -39,15 +38,7 @@ export function Avatar({
       className={cn("relative shrink-0", className)}
       style={{ width: size, height: size }}
     >
-      {mascotUrl ? (
-        <img
-          src={mascotUrl}
-          alt=""
-          draggable={false}
-          className="tcy-avatar-mascot w-full h-full object-cover rounded-full"
-          style={{ borderRadius: size >= 56 ? "30%" : "50%" }}
-        />
-      ) : url && !imageUnavailable ? (
+      {url && !imageUnavailable ? (
         <img
           src={url}
           alt=""
@@ -55,7 +46,7 @@ export function Avatar({
           className="w-full h-full object-cover rounded-full"
           style={{ borderRadius: size >= 56 ? "30%" : "50%" }}
           onError={() => {
-            if (!avatarKey) {
+            if (!avatarKey || legacyMascotAvatar) {
               setImageUnavailable(true);
               return;
             }
@@ -82,7 +73,6 @@ export function Avatar({
           }}
         >
           <span className="tcy-avatar-initials">{initials(name || "?")}</span>
-          <span className="tcy-avatar-mascot-fallback hidden" aria-hidden="true">🐱</span>
         </div>
       )}
 

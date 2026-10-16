@@ -1,19 +1,8 @@
-import { trpc } from "@/providers/trpc";
-
 /**
- * Gate experimental UI using a permission returned by the server from the
- * currently authenticated account. Do not gate experiments using URL params.
+ * The experimental plush/child-oriented interface has been retired.
+ * Keep this compatibility hook returning a disabled state for existing
+ * components until their old conditional branches are cleaned up.
  */
-export function useTesterMode(options: { enabled?: boolean } = {}) {
-  const shouldQuery = options.enabled ?? true;
-  const access = trpc.experimentalAccess.useQuery(undefined, {
-    enabled: shouldQuery,
-    retry: false,
-    staleTime: 0,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-  });
-  const enabled = shouldQuery && access.isFetchedAfterMount && access.data?.enabled === true;
-
-  return { isTester: enabled, enabled, isLoading: shouldQuery && access.isLoading };
+export function useTesterMode(_options: { enabled?: boolean } = {}) {
+  return { isTester: false, enabled: false, isLoading: false };
 }
