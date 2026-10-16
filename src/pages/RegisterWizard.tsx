@@ -27,6 +27,15 @@ import {
 import { useTheme } from "@/hooks/useTheme";
 
 type Point = { x: number; y: number };
+type MascotId = "cat" | "rabbit" | "panda" | "dino" | "fox" | "bear";
+const MASCOTS: { id: MascotId; name: string }[] = [
+  { id: "cat", name: "Котёнок" },
+  { id: "rabbit", name: "Кролик" },
+  { id: "panda", name: "Панда" },
+  { id: "dino", name: "Динозаврик" },
+  { id: "fox", name: "Лисёнок" },
+  { id: "bear", name: "Мишка" },
+];
 const ENTRANCES: Point[] = [
   { x: 64, y: -42 },
   { x: -64, y: -42 },
@@ -37,22 +46,22 @@ const ENTRANCES: Point[] = [
 ];
 const ONBOARDING = [
   {
-    image: "/onboarding/person-headphones.svg",
-    alt: "Человек в наушниках",
-    title: "Поддержка рядом",
-    body: "TeleChat You создан для общения без лишней сложности. Если понадобится помощь, полезные действия и настройки всегда под рукой.",
+    image: "/mascots/rabbit.svg",
+    alt: "Добрый кролик",
+    title: "Друзья всегда рядом",
+    body: "Находи знакомых, отправляй сообщения и делись хорошими новостями. Начни с простого «Привет!»",
   },
   {
-    image: "/onboarding/privacy-shield.svg",
-    alt: "Щит конфиденциальности",
-    title: "Защита и конфиденциальность",
-    body: "Личные данные важны. Настройки приватности помогают контролировать видимость профиля, статуса в сети и отчётов о прочтении.",
+    image: "/mascots/panda.svg",
+    alt: "Улыбающаяся панда",
+    title: "Твой личный уголок",
+    body: "Ты можешь управлять приватностью и выбирать, какую информацию о себе показывать другим.",
   },
   {
-    image: "/onboarding/comfort-smile.svg",
-    alt: "Улыбающийся смайлик в наушниках",
-    title: "Комфорт и удобство",
-    body: "Плавные переходы, темы, чаты и медиа — чтобы общаться так, как удобно именно тебе. Удачи в использовании!",
+    image: "/mascots/dino.svg",
+    alt: "Весёлый динозаврик",
+    title: "Добавь немного волшебства",
+    body: "Выбирай темы, пользуйся стикерами и оформляй профиль так, чтобы он был по-настоящему твоим.",
   },
 ];
 
@@ -70,6 +79,7 @@ export default function RegisterWizard() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
+  const [selectedMascot, setSelectedMascot] = useState<MascotId | null>("cat");
   const [error, setError] = useState("");
   const [registered, setRegistered] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -153,6 +163,10 @@ export default function RegisterWizard() {
         });
       }
 
+      if (!avatarKeyRef.current && selectedMascot) {
+        avatarKeyRef.current = `mascot:${selectedMascot}`;
+      }
+
       if (!avatarKeyRef.current && avatarFile) {
         const result = await upload.mutateAsync({
           name: (avatarFile.name || "avatar.jpg").slice(0, 190),
@@ -192,10 +206,10 @@ export default function RegisterWizard() {
 
   const floatingShapes = Array.from({ length: 9 }, (_, index) => ({
     id: index,
-    size: 34 + (index % 4) * 25,
+    glyph: ["✦", "♡", "☁", "✧", "♥", "✿"][index % 6],
+    size: 18 + (index % 4) * 8,
     left: (index * 17 + 7) % 96,
     top: (index * 23 + 5) % 91,
-    round: index % 3 === 0 ? "38%" : index % 3 === 1 ? "50%" : "17px",
   }));
 
   return (
@@ -219,27 +233,20 @@ export default function RegisterWizard() {
         animate={{ opacity: theme === "light" ? 1 : 0 }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
       />
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="tcy-onboarding-decor pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         {floatingShapes.map((shape) => (
           <motion.span
             key={shape.id}
-            className="absolute block border"
+            className="tcy-onboarding-doodle"
             style={{
-              width: shape.size,
-              height: shape.size,
               left: shape.left + "%",
               top: shape.top + "%",
-              borderRadius: shape.round,
-              borderColor: "color-mix(in srgb, var(--tcy-selected-accent) 25%, transparent)",
-              background: "color-mix(in srgb, var(--tcy-selected-accent) 7%, transparent)",
-            }}
-            animate={{
-              x: [0, shape.id % 2 ? 16 : -14, 0],
-              y: [0, shape.id % 3 ? -22 : 18, 0],
-              rotate: [0, shape.id % 2 ? 25 : -20, 0],
-            }}
-            transition={{ duration: 8 + shape.id, repeat: Infinity, ease: "easeInOut" }}
-          />
+              "--doodle-size": shape.size + "px",
+              animationDelay: (shape.id * 0.17) + "s",
+            } as React.CSSProperties}
+          >
+            {shape.glyph}
+          </motion.span>
         ))}
       </div>
 
@@ -300,10 +307,10 @@ export default function RegisterWizard() {
                     transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
                   />
                   <img
-                    src="/onboarding/telechatyou-logo.webp"
-                    alt="Логотип TeleChat You"
+                    src="/mascots/cat.svg"
+                    alt="Котёнок приветствует тебя"
                     draggable={false}
-                    className="relative z-10 h-full w-full rounded-[30px] object-cover"
+                    className="tcy-onboarding-mascot relative z-10 h-full w-full object-contain"
                     style={{
                       boxShadow: "0 16px 44px -24px color-mix(in srgb, var(--tcy-selected-accent) 65%, transparent)",
                     }}
@@ -311,10 +318,10 @@ export default function RegisterWizard() {
                 </motion.div>
                 <div className="max-w-[390px] space-y-4">
                   <h1 className="text-[29px] font-black leading-[1.13] tracking-tight tcy-text">
-                    Зарегистрируйся в TeleChatYou, и общайся с друзьями без VPN
+                    Давай создадим твой аккаунт!
                   </h1>
                   <p className="text-[14.5px] leading-relaxed tcy-dim">
-                    Создай аккаунт за пару простых шагов и начинай общаться.
+                    Это займёт всего пару минут — а дальше начнётся самое интересное.
                   </p>
                 </div>
               </div>
@@ -325,8 +332,8 @@ export default function RegisterWizard() {
                   <div className="mx-auto mb-7 flex h-[68px] w-[68px] items-center justify-center rounded-[24px] border tcy-line tcy-card-strong">
                     <UserRound size={30} className="tcy-accent" />
                   </div>
-                  <h1 className="text-[28px] font-black leading-tight tracking-tight tcy-text">Как будет твоё имя?</h1>
-                  <p className="text-[14px] leading-relaxed tcy-dim">Так к тебе будут обращаться собеседники.</p>
+                  <h1 className="text-[28px] font-black leading-tight tracking-tight tcy-text">Как тебя зовут, дружок?</h1>
+                  <p className="text-[14px] leading-relaxed tcy-dim">Давай придумаем тебе крутое имя!</p>
                 </div>
                 <input
                   autoFocus
@@ -347,8 +354,8 @@ export default function RegisterWizard() {
                   <div className="mx-auto mb-7 flex h-[68px] w-[68px] items-center justify-center rounded-[24px] border tcy-line tcy-card-strong">
                     <AtSign size={30} className="tcy-accent" />
                   </div>
-                  <h1 className="text-[27px] font-black leading-tight tracking-tight tcy-text">Давай придумаем тебе Юзернейм!</h1>
-                  <p className="text-[14px] leading-relaxed tcy-dim">Он поможет друзьям найти тебя в TeleChatYou.</p>
+                  <h1 className="text-[27px] font-black leading-tight tracking-tight tcy-text">Придумаем тебе классный ник!</h1>
+                  <p className="text-[14px] leading-relaxed tcy-dim">По нему друзья смогут найти тебя. Добавь к нику немного своего характера!</p>
                 </div>
                 <div>
                   <div className="flex h-14 items-center rounded-[19px] border tcy-line px-4 focus-within:border-[color:var(--tcy-selected-accent)]" style={{ background: "var(--tcy-input)" }}>
@@ -376,10 +383,13 @@ export default function RegisterWizard() {
             )}
 
             {step === 2 && (
-              <div className="space-y-6 text-center">
+              <div className="space-y-5 text-center">
                 <div className="space-y-2">
-                  <h1 className="text-[27px] font-black leading-tight tracking-tight tcy-text">Давай поставим тебе аватарку?</h1>
-                  <p className="text-[14px] tcy-dim">Это не обязательно — её можно добавить позже.</p>
+                  <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-[22px] tcy-onboarding-icon">
+                    <Heart size={28} fill="currentColor" />
+                  </div>
+                  <h1 className="text-[27px] font-black leading-tight tracking-tight tcy-text">Выбери себе маленького друга!</h1>
+                  <p className="text-[14px] tcy-dim">Это будет твоя аватарка. Можно взять персонажа или поставить своё фото.</p>
                 </div>
                 <input
                   ref={fileRef}
@@ -392,26 +402,51 @@ export default function RegisterWizard() {
                     event.currentTarget.value = "";
                   }}
                 />
-                <div className="flex justify-center py-2">
-                  <button type="button" onClick={() => fileRef.current?.click()} className="tcy-press relative">
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt="Предпросмотр аватарки" className="h-36 w-36 object-cover" style={{ borderRadius: "34%" }} />
-                    ) : (
-                      <div className="flex h-36 w-36 flex-col items-center justify-center gap-2 rounded-[34%] border-2 border-dashed tcy-line tcy-card">
-                        <UserRound size={42} className="tcy-faint" />
-                        <span className="text-[11px] font-semibold tcy-faint">Выбрать фото</span>
-                      </div>
-                    )}
-                    <span className="absolute -bottom-2 -right-2 flex h-11 w-11 items-center justify-center rounded-full tcy-gradient-accent tcy-shadow-accent" style={{ color: "var(--tcy-on-accent)" }}>
-                      <Camera size={18} />
-                    </span>
-                  </button>
+                <div className="tcy-mascot-picker">
+                  {MASCOTS.map((mascot) => (
+                    <button
+                      key={mascot.id}
+                      type="button"
+                      aria-pressed={selectedMascot === mascot.id}
+                      className="tcy-mascot-choice"
+                      onClick={() => {
+                        setSelectedMascot(mascot.id);
+                        setAvatarFile(null);
+                        setAvatarPreview(null);
+                        avatarKeyRef.current = undefined;
+                      }}
+                    >
+                      <img src={`/mascots/${mascot.id}.svg`} alt="" draggable={false} />
+                      <span>{mascot.name}</span>
+                    </button>
+                  ))}
                 </div>
                 {avatarPreview && (
-                  <button type="button" className="text-[12.5px] font-bold tcy-danger" onClick={() => { setAvatarFile(null); setAvatarPreview(null); avatarKeyRef.current = undefined; }}>
-                    Удалить выбранную аватарку
-                  </button>
+                  <div className="mx-auto flex max-w-[260px] items-center gap-3 rounded-[20px] p-3 tcy-avatar-custom-preview">
+                    <img src={avatarPreview} alt="Твоё фото" className="h-14 w-14 rounded-[18px] object-cover" />
+                    <span className="min-w-0 flex-1 text-left text-[12.5px] font-bold tcy-text">Твоё фото выбрано</span>
+                    <button
+                      type="button"
+                      aria-label="Вернуться к персонажу"
+                      onClick={() => {
+                        setAvatarFile(null);
+                        setAvatarPreview(null);
+                        setSelectedMascot("cat");
+                        avatarKeyRef.current = undefined;
+                      }}
+                      className="rounded-full px-3 py-2 text-[11px] font-extrabold tcy-accent"
+                    >
+                      Персонаж
+                    </button>
+                  </div>
                 )}
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="tcy-mascot-custom-photo inline-flex w-full items-center justify-center gap-2 rounded-[22px] px-4 py-3.5 text-[13px] font-extrabold tcy-text"
+                >
+                  <Camera size={18} /> Выбрать своё фото
+                </button>
               </div>
             )}
 
@@ -421,8 +456,8 @@ export default function RegisterWizard() {
                   <div className="mx-auto mb-7 flex h-[68px] w-[68px] items-center justify-center rounded-[24px] border tcy-line tcy-card-strong">
                     <LockKeyhole size={29} className="tcy-accent" />
                   </div>
-                  <h1 className="text-[27px] font-black leading-tight tracking-tight tcy-text">Защитим твой аккаунт</h1>
-                  <p className="text-[14px] leading-relaxed tcy-dim">Придумай пароль для входа с других устройств.</p>
+                  <h1 className="text-[27px] font-black leading-tight tracking-tight tcy-text">Придумаем секретный пароль</h1>
+                  <p className="text-[14px] leading-relaxed tcy-dim">Выбери пароль, который знаешь только ты. Так аккаунт будет в безопасности.</p>
                 </div>
                 <label className="block space-y-2">
                   <span className="text-[12.5px] font-bold tcy-dim">Пароль</span>
@@ -499,9 +534,9 @@ export default function RegisterWizard() {
                   <Sparkles size={37} />
                 </motion.div>
                 <h1 className="max-w-[380px] break-words text-[30px] font-black leading-tight tracking-tight tcy-text">
-                  Добро пожаловать, {displayName.trim()}!
+                  Ура, {displayName.trim()}! Ты с нами!
                 </h1>
-                <p className="mt-4 max-w-[320px] text-[14.5px] leading-relaxed tcy-dim">Твой профиль готов. Начнём общаться?</p>
+                <p className="mt-4 max-w-[320px] text-[14.5px] leading-relaxed tcy-dim">Твой уютный уголок готов. Пора сказать друзьям «привет»!</p>
                 {registered && error && <p className="mt-3 text-[12px] font-semibold tcy-danger">{error}</p>}
               </div>
             )}
@@ -568,6 +603,7 @@ export default function RegisterWizard() {
         onCancel={() => setAvatarToEdit(null)}
         onSave={(editedFile) => {
           avatarKeyRef.current = undefined;
+          setSelectedMascot(null);
           setAvatarFile(editedFile);
           setAvatarPreview(URL.createObjectURL(editedFile));
         }}
