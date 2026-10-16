@@ -425,12 +425,12 @@ export default function RegisterWizard() {
                   initial={{ opacity: 0, scale: 0.88 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", stiffness: 240, damping: 22 }}
-                  className="mb-7 flex h-[min(55vw,260px)] w-[min(55vw,260px)] items-center justify-center overflow-hidden rounded-[30px] border tcy-line bg-white p-2"
+                  className="mb-7 flex h-[min(55vw,260px)] w-[min(55vw,260px)] items-center justify-center overflow-visible p-0"
                 >
                   <img
                     src={ONBOARDING[step - 4].image}
                     alt={ONBOARDING[step - 4].alt}
-                    className="h-full w-full object-contain"
+                    className="h-full w-full object-contain drop-shadow-sm"
                     draggable={false}
                   />
                 </motion.div>
