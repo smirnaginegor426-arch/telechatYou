@@ -59,6 +59,7 @@ export default function Settings() {
   const [storageView, setStorageView] = useState(false);
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
   const [emailPanelOpen, setEmailPanelOpen] = useState(false);
+  const [unlinkMessage, setUnlinkMessage] = useState("");
 
   useEffect(() => {
     setMediaPreferences(getMediaSendPreferences());
@@ -75,6 +76,14 @@ export default function Settings() {
       await utils.storage.mine.invalidate();
       await utils.storage.urls.invalidate();
     },
+  });
+
+  const unlinkEmail = trpc.auth.unlinkEmail.useMutation({
+    onSuccess: async () => {
+      await utils.auth.emailStatus.invalidate();
+      setUnlinkMessage("Почта отвязана. Теперь этот адрес можно привязать к другому аккаунту.");
+    },
+    onError: (e) => setUnlinkMessage(e.message),
   });
 
   const handleRecoverySecretReady = async (secret: string) => {
@@ -290,6 +299,25 @@ export default function Settings() {
                     <Mail size={15} /> Привязать почту
                   </TcButton>
                 </div>
+                {emailStatus.data?.email && (
+                  <div className="px-3 pb-3">
+                    <TcButton
+                      size="sm"
+                      variant="soft"
+                      className="w-full"
+                      loading={unlinkEmail.isPending}
+                      onClick={() => {
+                        setUnlinkMessage("");
+                        unlinkEmail.mutate();
+                      }}
+                    >
+                      <Trash2 size={15} /> Отвязать почту
+                    </TcButton>
+                  </div>
+                )}
+                {unlinkMessage && (
+                  <p className="px-3 pb-3 text-[11.5px] leading-relaxed tcy-dim">{unlinkMessage}</p>
+                )}
               </motion.div>
             )}
           </AnimatePresence>

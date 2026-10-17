@@ -327,6 +327,29 @@ export const authRouter = createRouter({
       return { success: true, email: record.email, verifiedAt: verifiedAt.toISOString() };
     }),
 
+  /** Detaches the linked email so the address can be bound to another account.
+   * No password is requested: the action only removes recovery info and never
+   * grants access to the current account. */
+  unlinkEmail: authedQuery.mutation(async ({ ctx }) => {
+    const db = getDb();
+
+    // Pending link codes must not be able to re-attach an address that was
+    // just detached.
+    await db.update(emailVerificationCodes)
+      .set({ usedAt: new Date() })
+      .where(and(
+        eq(emailVerificationCodes.userId, ctx.user.id),
+        eq(emailVerificationCodes.purpose, "link"),
+        isNull(emailVerificationCodes.usedAt),
+      ));
+
+    await db.update(users)
+      .set({ email: null, emailVerifiedAt: null })
+      .where(eq(users.id, ctx.user.id));
+
+    return { success: true };
+  }),
+
   /** Always return the same public response so the endpoint does not reveal whether an email is registered. */
   requestPasswordResetByEmail: publicQuery
     .input(z.object({ email: emailSchema }))
