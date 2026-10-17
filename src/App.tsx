@@ -40,6 +40,7 @@ import Admin from "@/pages/Admin";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
 import CreateCommunity from "@/pages/CreateCommunity";
+import JoinInvite from "@/pages/JoinInvite";
 import ChannelsPage from "@/pages/Channels";
 import Login from "@/pages/Login";
 import Recover from "@/pages/Recover";
@@ -202,6 +203,7 @@ useEffect(() => {
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
             <Route path="/create" element={<CreateCommunity />} />
+            <Route path="/invite/:token" element={<JoinInvite />} />
             <Route path="/channels" element={<ChannelsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

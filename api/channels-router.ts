@@ -5,6 +5,7 @@ import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { channels, chatMembers, chats, profiles } from "@db/schema";
 import { getChatMembers, getMembership } from "./queries/telechat";
+import { makeInviteToken, readInviteToken } from "./lib/invite";
 
 const channelUsername = z.string().trim().toLowerCase().min(3).max(32).regex(
   /^[a-z0-9_]+$/,
@@ -150,7 +151,7 @@ export const channelsRouter = createRouter({
         throw error;
       }
 
-      return { chatId, username };
+      return { chatId, username, inviteToken: input.isPublic ? null : makeInviteToken(chatId) };
     }),
 
   /** Public channels can be joined by username. Private channels need an invite from an owner/admin. */
@@ -177,5 +178,69 @@ export const channelsRouter = createRouter({
         role: "member",
       });
       return { chatId: channel.chatId, alreadyJoined: false };
+    }),
+
+  /** Resolve an invite link `${chatId}_${tag}` so a user can preview the chat. */
+  invitePreview: authedQuery
+    .input(z.object({ token: z.string().trim().min(6).max(72) }))
+    .query(async ({ ctx, input }) => {
+      const chatId = readInviteToken(input.token);
+      if (!chatId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Ссылка-приглашение недействительна" });
+      }
+
+      const rows = await getDb()
+        .select({ channel: channels, chat: chats })
+        .from(channels)
+        .innerJoin(chats, eq(channels.chatId, chats.id))
+        .where(eq(channels.chatId, chatId))
+        .limit(1);
+      const found = rows[0];
+      if (!found) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Канал недоступен" });
+      }
+
+      const membership = await getMembership(chatId, ctx.user.id);
+      const joined = Boolean(membership) && membership?.cleared === false;
+
+      return {
+        chatId,
+        kind: found.channel.kind,
+        title: found.chat.title ?? (found.channel.kind === "group" ? "Группа" : "Канал"),
+        avatarKey: found.chat.avatarKey,
+        membersCount: (await getChatMembers(chatId)).length,
+        joined,
+      };
+    }),
+
+  /** Join a private/public chat through a valid invite link. */
+  joinByInvite: authedQuery
+    .input(z.object({ token: z.string().trim().min(6).max(72) }))
+    .mutation(async ({ ctx, input }) => {
+      const chatId = readInviteToken(input.token);
+      if (!chatId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Ссылка-приглашение недействительна" });
+      }
+
+      const channel = await getDb().query.channels.findFirst({ where: eq(channels.chatId, chatId) });
+      if (!channel) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Канал недоступен" });
+      }
+
+      const existing = await getMembership(chatId, ctx.user.id);
+      if (existing) {
+        await getDb()
+          .update(chatMembers)
+          .set({ cleared: false })
+          .where(and(eq(chatMembers.chatId, chatId), eq(chatMembers.userId, ctx.user.id)));
+        return { chatId, alreadyJoined: true };
+      }
+
+      await getDb().insert(chatMembers).values({
+        chatId,
+        userId: ctx.user.id,
+        role: "member",
+      });
+      return { chatId, alreadyJoined: false };
     }),
 });
