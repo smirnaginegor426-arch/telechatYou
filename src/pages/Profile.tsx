@@ -15,6 +15,7 @@ import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
 import { useTesterMode } from "@/hooks/useTesterMode";
+import { usePrivateReleaseAccess } from "@/hooks/usePrivateReleaseAccess";
 import { copyTextToClipboard, profileShareUrl } from "@/lib/share-links";
 
 type PlushProfilePrefs = { status: string; background: string };
@@ -44,6 +45,7 @@ const AVATAR_FRAMES: { id: AvatarFrameId; name: string; src: string }[] = [
 export default function Profile() {
   const { logout } = useAuth();
   const { enabled: isPrivateTester } = useTesterMode();
+  const { enabled: isPrivateRelease } = usePrivateReleaseAccess();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const me = trpc.profile.me.useQuery();
@@ -350,7 +352,7 @@ export default function Profile() {
                 showOnline={!isPrivateTester}
               />
             </button>
-            {appliedFrame && (
+            {isPrivateRelease && appliedFrame && (
               <img
                 src={AVATAR_FRAMES.find((frame) => frame.id === appliedFrame)?.src}
                 alt=""
@@ -385,6 +387,7 @@ export default function Profile() {
             {profile.bio}
           </p>
         )}
+        {isPrivateRelease && (
         <div className="mt-4 flex items-center justify-center gap-2.5 px-4">
           <TcButton size="sm" variant="soft" onClick={openEdit}>
             <Pencil size={15} className="text-black dark:text-white" /> Редактирование
@@ -401,6 +404,7 @@ export default function Profile() {
             Рамки
           </button>
         </div>
+        )}
         {isPrivateTester && plushPrefs && (
           <div className="mt-4 flex flex-col items-center gap-2">
             <span className="tcy-profile-status-chip">{plushPrefs.status}</span>
