@@ -192,7 +192,7 @@ export default function Profile() {
     setFrameFlight({
       frameId: selectedFrame,
       from: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
-      to: { left: targetRect.left - 16, top: targetRect.top - 16, width: targetRect.width + 32, height: targetRect.height + 32 },
+      to: { left: targetRect.left - 20, top: targetRect.top - 20, width: targetRect.width + 40, height: targetRect.height + 40 },
     });
     setFramesOpen(false);
   };
@@ -360,7 +360,7 @@ export default function Profile() {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute -left-[16px] -top-[16px] z-10 h-[160px] w-[160px] max-w-none object-contain"
+                className="pointer-events-none absolute -left-[20px] -top-[20px] z-10 h-[168px] w-[168px] max-w-none object-contain"
               />
             )}
           </div>
@@ -524,8 +524,8 @@ export default function Profile() {
                   key={selectedFrame}
                   src={AVATAR_FRAMES.find((frame) => frame.id === selectedFrame)?.src}
                   alt=""
-                  initial={{ opacity: 0, scale: 0.82, rotate: -7 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", stiffness: 280, damping: 23 }}
                   className="pointer-events-none absolute left-1/2 top-1/2 h-[190px] w-[190px] object-contain"
                   style={{ marginLeft: -95, marginTop: -95 }}
@@ -612,8 +612,7 @@ export default function Profile() {
               top: frameFlight.from.top,
               width: frameFlight.from.width,
               height: frameFlight.from.height,
-              scale: 0.82,
-              rotate: -9,
+              scale: 0.9,
               opacity: 1,
             }}
             animate={{
@@ -622,7 +621,6 @@ export default function Profile() {
               width: frameFlight.to.width,
               height: frameFlight.to.height,
               scale: 1,
-              rotate: 0,
               opacity: 1,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 28, mass: 0.75 }}
