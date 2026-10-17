@@ -15,6 +15,7 @@ import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
 import { useTesterMode } from "@/hooks/useTesterMode";
+import { usePrivateReleaseAccess } from "@/hooks/usePrivateReleaseAccess";
 import { copyTextToClipboard, profileShareUrl } from "@/lib/share-links";
 
 type PlushProfilePrefs = { status: string; background: string };
@@ -34,16 +35,19 @@ type FrameFlight = {
   to: { left: number; top: number; width: number; height: number };
 };
 const AVATAR_FRAMES: { id: AvatarFrameId; name: string; src: string }[] = [
-  { id: "midnight-gold", name: "Золотая ночь", src: "/frames/frame-midnight-gold.svg" },
-  { id: "candy-party", name: "Сладкий Хэллоуин", src: "/frames/frame-candy.svg" },
-  { id: "moon-cat", name: "Лунный кот", src: "/frames/frame-moon-cat.svg" },
-  { id: "pumpkin-night", name: "Тыквенная ночь", src: "/frames/frame-pumpkin.svg" },
+  // These use the exact frame photos supplied by the user, with transparent
+  // paper/center areas so the real profile photo shows through.
+  { id: "midnight-gold", name: "Золотая ночь", src: "/frames/frame-black-gold-skull.webp" },
+  { id: "candy-party", name: "Сладкий Хэллоуин", src: "/frames/frame-orange-sweets.webp" },
+  { id: "moon-cat", name: "Лунный кот", src: "/frames/frame-blue-cat.webp" },
+  { id: "pumpkin-night", name: "Тыквенная ночь", src: "/frames/frame-purple-halloween.webp" },
 ];
 
 
 export default function Profile() {
   const { logout } = useAuth();
   const { enabled: isPrivateTester } = useTesterMode();
+  const { enabled: isPrivateRelease } = usePrivateReleaseAccess();
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const me = trpc.profile.me.useQuery();
@@ -64,7 +68,7 @@ export default function Profile() {
   const [selectedFrame, setSelectedFrame] = useState<AvatarFrameId | null>(null);
   const [appliedFrame, setAppliedFrame] = useState<AvatarFrameId | null>(null);
   const [frameFlight, setFrameFlight] = useState<FrameFlight | null>(null);
-  const frameOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const frameOptionRefs = useRef<Record<string, HTMLSpanElement | null>>({});
 
   const actionsRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -188,7 +192,7 @@ export default function Profile() {
     setFrameFlight({
       frameId: selectedFrame,
       from: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
-      to: { left: targetRect.left - 22, top: targetRect.top - 22, width: targetRect.width + 44, height: targetRect.height + 44 },
+      to: { left: targetRect.left - 20, top: targetRect.top - 20, width: targetRect.width + 40, height: targetRect.height + 40 },
     });
     setFramesOpen(false);
   };
@@ -350,13 +354,13 @@ export default function Profile() {
                 showOnline={!isPrivateTester}
               />
             </button>
-            {appliedFrame && (
+            {isPrivateRelease && appliedFrame && (
               <img
                 src={AVATAR_FRAMES.find((frame) => frame.id === appliedFrame)?.src}
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute -left-[22px] -top-[22px] z-10 h-[172px] w-[172px] max-w-none object-contain"
+                className="pointer-events-none absolute -left-[20px] -top-[20px] z-10 h-[168px] w-[168px] max-w-none object-contain"
               />
             )}
           </div>
@@ -385,6 +389,7 @@ export default function Profile() {
             {profile.bio}
           </p>
         )}
+        {isPrivateRelease && (
         <div className="mt-4 flex items-center justify-center gap-2.5 px-4">
           <TcButton size="sm" variant="soft" onClick={openEdit}>
             <Pencil size={15} className="text-black dark:text-white" /> Редактирование
@@ -401,6 +406,7 @@ export default function Profile() {
             Рамки
           </button>
         </div>
+        )}
         {isPrivateTester && plushPrefs && (
           <div className="mt-4 flex flex-col items-center gap-2">
             <span className="tcy-profile-status-chip">{plushPrefs.status}</span>
@@ -518,10 +524,11 @@ export default function Profile() {
                   key={selectedFrame}
                   src={AVATAR_FRAMES.find((frame) => frame.id === selectedFrame)?.src}
                   alt=""
-                  initial={{ opacity: 0, scale: 0.82, rotate: -7 }}
-                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: "spring", stiffness: 280, damping: 23 }}
-                  className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[190px] w-[190px] object-contain"
+                  style={{ marginLeft: -95, marginTop: -95 }}
                 />
               )}
             </div>
@@ -533,20 +540,22 @@ export default function Profile() {
             {AVATAR_FRAMES.map((frame) => (
               <button
                 key={frame.id}
-                ref={(element) => { frameOptionRefs.current[frame.id] = element; }}
                 type="button"
                 aria-pressed={selectedFrame === frame.id}
                 onClick={() => setSelectedFrame(frame.id)}
                 className={`tcy-press flex min-w-0 flex-col items-center gap-1.5 rounded-[18px] border p-2.5 text-center transition-colors ${selectedFrame === frame.id ? "border-[var(--tcy-accent)] bg-[color-mix(in_srgb,var(--tcy-accent)_12%,transparent)]" : "tcy-line tcy-card"}`}
               >
-                <span className="relative flex h-[94px] w-[94px] items-center justify-center">
+                <span
+                  ref={(element) => { frameOptionRefs.current[frame.id] = element; }}
+                  className="relative flex h-[94px] w-[94px] items-center justify-center"
+                >
                   <Avatar name={profile.displayName} avatarKey={profile.avatarKey} size={58} showOnline={false} />
                   <img
                     src={frame.src}
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+                    className="pointer-events-none absolute left-[3px] top-[3px] h-[88px] w-[88px] object-contain"
                   />
                 </span>
                 <span className="line-clamp-2 text-[11px] font-semibold leading-tight tcy-text">{frame.name}</span>
@@ -605,8 +614,7 @@ export default function Profile() {
               top: frameFlight.from.top,
               width: frameFlight.from.width,
               height: frameFlight.from.height,
-              scale: 0.82,
-              rotate: -9,
+              scale: 0.9,
               opacity: 1,
             }}
             animate={{
@@ -615,7 +623,6 @@ export default function Profile() {
               width: frameFlight.to.width,
               height: frameFlight.to.height,
               scale: 1,
-              rotate: 0,
               opacity: 1,
             }}
             transition={{ type: "spring", stiffness: 300, damping: 28, mass: 0.75 }}

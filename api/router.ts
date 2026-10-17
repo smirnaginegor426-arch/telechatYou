@@ -17,8 +17,8 @@ export const appRouter = createRouter({
   })),
 
   /** Permission for the private experimental UI preview, derived from the active session. */
-  experimentalAccess: authedQuery.query(({ ctx }) => ({
-    enabled: isPrivateExperimentalTester(ctx.user),
+  experimentalAccess: authedQuery.query(async ({ ctx }) => ({
+    enabled: await isPrivateExperimentalTester(ctx.user),
   })),
   auth: authRouter,
   profile: profileRouter,
