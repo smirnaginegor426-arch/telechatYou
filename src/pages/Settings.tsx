@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Bell,
   Check,
@@ -57,6 +58,7 @@ export default function Settings() {
   const [storageOpen, setStorageOpen] = useState(false);
   const [storageView, setStorageView] = useState(false);
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
+  const [emailPanelOpen, setEmailPanelOpen] = useState(false);
 
   useEffect(() => {
     setMediaPreferences(getMediaSendPreferences());
@@ -247,25 +249,50 @@ export default function Settings() {
             </span>
           }
         />
-        <div className="mx-4 mb-3 rounded-[18px] border tcy-line tcy-card p-3">
-          <div className="mb-1 flex justify-center" aria-hidden="true">
-            <ChevronDown size={16} style={{ color: "var(--tcy-selected-accent)" }} />
-          </div>
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-bold tcy-text">
-                {emailStatus.isLoading ? "Проверяем…" : emailStatus.data?.verified && emailStatus.data.email
-                  ? emailStatus.data.email
-                  : "Пу-Пу-Пусто"}
-              </p>
-              <p className="mt-0.5 text-[10.5px] tcy-faint">
-                {emailStatus.data?.verified ? "Привязанный адрес" : "Почта ещё не привязана"}
-              </p>
-            </div>
-            <TcButton size="sm" onClick={() => navigate("/email-binding")}>
-              <Mail size={15} /> Привязать почту
-            </TcButton>
-          </div>
+        <div className="mx-4 mb-3 overflow-hidden rounded-[18px] border tcy-line tcy-card">
+          <button
+            type="button"
+            onClick={() => setEmailPanelOpen((open) => !open)}
+            aria-expanded={emailPanelOpen}
+            aria-label={emailPanelOpen ? "Свернуть" : "Развернуть"}
+            className="tcy-press flex w-full items-center justify-center py-2.5"
+          >
+            <motion.span
+              animate={{ rotate: emailPanelOpen ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex"
+            >
+              <ChevronDown size={18} style={{ color: "var(--tcy-selected-accent)" }} />
+            </motion.span>
+          </button>
+          <AnimatePresence initial={false}>
+            {emailPanelOpen && (
+              <motion.div
+                key="email-panel"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.22, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="flex min-w-0 items-center gap-2.5 px-3 pb-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-bold tcy-text">
+                      {emailStatus.isLoading ? "Проверяем…" : emailStatus.data?.verified && emailStatus.data.email
+                        ? emailStatus.data.email
+                        : "Пу-Пу-Пусто"}
+                    </p>
+                    <p className="mt-0.5 text-[10.5px] tcy-faint">
+                      {emailStatus.data?.verified ? "Привязанный адрес" : "Почта ещё не привязана"}
+                    </p>
+                  </div>
+                  <TcButton size="sm" onClick={() => navigate("/email-binding")}>
+                    <Mail size={15} /> Привязать почту
+                  </TcButton>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </SettingsGroup>
 

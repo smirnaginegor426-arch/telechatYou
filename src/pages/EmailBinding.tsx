@@ -1,28 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Check, Delete, Mail } from "lucide-react";
+import { ArrowLeft, Delete } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
 
-type Step = "email" | "code" | "success";
+type Step = "email" | "code";
 
-const stepMotion: Record<Step, {
-  initial: { opacity: number; x: number; y: number; scale: number };
-  exit: { opacity: number; x: number; y: number; scale: number };
-}> = {
+// Each screen enters and leaves from a screen corner.
+const stepMotion: Record<
+  Step,
+  {
+    initial: { opacity: number; x: number; y: number; scale: number };
+    exit: { opacity: number; x: number; y: number; scale: number };
+  }
+> = {
   email: {
-    initial: { opacity: 0, x: -42, y: 38, scale: 0.97 },
-    exit: { opacity: 0, x: -35, y: -30, scale: 0.97 },
+    initial: { opacity: 0, x: -60, y: 48, scale: 0.94 },
+    exit: { opacity: 0, x: -52, y: -42, scale: 0.94 },
   },
   code: {
-    initial: { opacity: 0, x: 42, y: 38, scale: 0.97 },
-    exit: { opacity: 0, x: 36, y: -30, scale: 0.97 },
-  },
-  success: {
-    initial: { opacity: 0, x: -42, y: -38, scale: 0.97 },
-    exit: { opacity: 0, x: 42, y: 32, scale: 0.97 },
+    initial: { opacity: 0, x: 60, y: 48, scale: 0.94 },
+    exit: { opacity: 0, x: 52, y: -42, scale: 0.94 },
   },
 };
 
@@ -38,7 +38,6 @@ export default function EmailBinding() {
   const [verifiedCode, setVerifiedCode] = useState<boolean | null>(null);
   const verificationAttempted = useRef("");
   const verificationInFlight = useRef(false);
-  const codeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!email && emailStatus.data?.email) setEmail(emailStatus.data.email);
@@ -49,7 +48,7 @@ export default function EmailBinding() {
       setError("");
       if (result.alreadyVerified) {
         await utils.auth.emailStatus.invalidate();
-        setStep("success");
+        navigate("/", { replace: true });
         return;
       }
       setEmail(variables.email.trim().toLowerCase());
@@ -134,7 +133,7 @@ export default function EmailBinding() {
 
   const finishCodeStep = () => {
     if (verifiedCode === true) {
-      setStep("success");
+      navigate("/", { replace: true });
       return;
     }
     if (verifiedCode === false) {
@@ -158,7 +157,7 @@ export default function EmailBinding() {
         <button
           type="button"
           aria-label="Назад"
-          onClick={() => step === "email" ? navigate("/settings") : step === "code" ? (setStep("email"), setError("")) : navigate("/settings")}
+          onClick={() => step === "email" ? navigate("/settings") : (setStep("email"), setError(""))}
           className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full border tcy-line tcy-card tcy-dim"
         >
           <ArrowLeft size={18} />
@@ -177,15 +176,9 @@ export default function EmailBinding() {
               transition={{ type: "spring", stiffness: 250, damping: 28 }}
               className="flex min-h-[min(72vh,650px)] flex-col justify-center"
             >
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-[23px] border tcy-line tcy-card-strong tcy-accent">
-                <Mail size={29} />
-              </div>
-              <h2 className="mx-auto max-w-[340px] text-center text-[23px] font-extrabold leading-tight tcy-text">
-                Давай привяжем почту, чтобы не потерять твой аккаунт!
+              <h2 className="mx-auto max-w-[320px] text-center text-[23px] font-extrabold leading-tight tcy-text">
+                Введи почту, чтобы привязать её.
               </h2>
-              <p className="mx-auto mt-3 max-w-[310px] text-center text-[13px] leading-relaxed tcy-dim">
-                Отправим на неё одноразовый код. Подтверждённая почта поможет восстановить доступ к аккаунту.
-              </p>
 
               <div className="mt-8 space-y-3">
                 {!emailStatus.data?.deliveryConfigured && (
@@ -237,7 +230,7 @@ export default function EmailBinding() {
                   }
                   onClick={requestCode}
                 >
-                  <Mail size={17} /> Отправить код
+                  Дальше
                 </TcButton>
               </div>
             </motion.section>
@@ -250,16 +243,13 @@ export default function EmailBinding() {
               animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
               exit={stepMotion.code.exit}
               transition={{ type: "spring", stiffness: 250, damping: 28 }}
-              className="mx-auto flex min-h-[min(72vh,650px)] w-full max-w-[390px] flex-col justify-center"
+              className="mx-auto flex min-h-[min(72vh,650px)] w-full max-w-[420px] flex-col items-center justify-center pb-[12vh]"
             >
-              <h2 className="text-center text-[19px] font-extrabold leading-snug tcy-text">
-                Введи код с почты
-              </h2>
-              <p className="mx-auto mt-2 max-w-[330px] text-center text-[12.5px] leading-relaxed tcy-dim">
-                Не нашёл? Загляни в папку «СПАМ». Код отправлен на <span className="font-bold tcy-text">{email}</span>.
+              <p className="mx-auto max-w-[330px] text-center text-[14.5px] font-semibold leading-relaxed tcy-text">
+                Мы отправили код тебе на почту, не пришло? Загляни в папку «СПАМ»
               </p>
 
-              <div className="relative mt-6 flex justify-center gap-2.5" onClick={() => codeInputRef.current?.focus()}>
+              <div className="relative mt-7 flex w-full justify-center gap-2.5">
                 {Array.from({ length: 6 }, (_, index) => {
                   const hasDigit = index < code.length;
                   const isFeedback = verifiedCode !== null && code.length === 6;
@@ -288,32 +278,10 @@ export default function EmailBinding() {
                     </motion.div>
                   );
                 })}
-                <input
-                  ref={codeInputRef}
-                  aria-label="Шестизначный код с почты"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="[0-9]*"
-                  maxLength={6}
-                  value={code}
-                  onChange={(event) => {
-                    const next = event.target.value.replace(/[^0-9]/g, "").slice(0, 6);
-                    if (verifiedCode === false) {
-                      setVerifiedCode(null);
-                      setError("");
-                      verificationAttempted.current = "";
-                    }
-                    setCode(next);
-                    if (next.length === 6) verifyCode(next);
-                  }}
-                  className="absolute inset-0 h-full w-full cursor-text opacity-0"
-                  style={{ fontSize: "16px" }}
-                />
               </div>
 
               <div
-                className="mx-auto mt-5 w-full rounded-[25px] border p-3"
+                className="mt-6 w-full rounded-[22px] border p-3"
                 style={{
                   borderColor: "var(--tcy-line-strong)",
                   background: "linear-gradient(150deg, color-mix(in srgb, var(--tcy-solid) 94%, var(--tcy-selected-accent) 6%), var(--tcy-bg))",
@@ -341,50 +309,17 @@ export default function EmailBinding() {
                 </div>
               </div>
 
-              {verifyLinkedEmail.isPending && (
-                <p className="mt-4 text-center text-[12px] font-semibold tcy-accent">Проверяем код…</p>
-              )}
-              {error && <p role="alert" className="mt-3 text-center text-[12px] leading-relaxed tcy-danger">{error}</p>}
-              <div className="mt-5">
-                <TcButton
-                  size="lg"
-                  className="w-full"
-                  disabled={verifiedCode === null || codeBusy}
-                  onClick={finishCodeStep}
-                >
-                  {verifiedCode === false ? "Завершить" : verifiedCode === true ? "Завершить" : "Завершить"}
-                </TcButton>
-              </div>
-            </motion.section>
-          )}
+              {error && <p role="alert" className="mt-4 text-center text-[12px] leading-relaxed tcy-danger">{error}</p>}
 
-          {step === "success" && (
-            <motion.section
-              key="success"
-              initial={stepMotion.success.initial}
-              animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-              exit={stepMotion.success.exit}
-              transition={{ type: "spring", stiffness: 250, damping: 28 }}
-              className="flex min-h-[min(72vh,650px)] flex-col items-center justify-center text-center"
-            >
-              <motion.div
-                initial={{ scale: 0.55, opacity: 0, rotate: -14 }}
-                animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                transition={{ type: "spring", stiffness: 230, damping: 17 }}
-                className="mb-6 flex h-24 w-24 items-center justify-center rounded-full"
-                style={{ color: "#ffffff", background: "linear-gradient(145deg, #2dc779, #148d54)", boxShadow: "0 18px 45px -22px rgba(38,179,106,.8)" }}
+              <TcButton
+                size="lg"
+                className="mt-5 w-full"
+                loading={codeBusy}
+                disabled={codeBusy || verifiedCode === null}
+                onClick={finishCodeStep}
               >
-                <Check size={44} strokeWidth={3} />
-              </motion.div>
-              <h2 className="max-w-[340px] text-center text-[24px] font-extrabold leading-tight tcy-text">
-                Ты успешно привязал почту!
-              </h2>
-              <p className="mt-3 text-[13px] tcy-dim">{email || emailStatus.data?.email}</p>
-              <div className="mt-8 w-full max-w-[300px]">
-                <TcButton size="lg" className="w-full" onClick={() => navigate("/settings", { replace: true })}>
-                  Выйти
-                </TcButton>
-              </div>
+                Завершить
+              </TcButton>
             </motion.section>
           )}
         </AnimatePresence>

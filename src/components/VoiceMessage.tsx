@@ -17,7 +17,7 @@ export function parseVoiceMeta(raw: string | null): VoiceMeta | null {
 }
 
 /** compute normalized peaks from an audio blob for the waveform */
-export async function computePeaks(blob: Blob, bars = 40): Promise<VoiceMeta> {
+export async function computePeaks(blob: Blob, bars = 30): Promise<VoiceMeta> {
   try {
     const ctx = new AudioContext();
     const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
@@ -81,29 +81,29 @@ export function VoiceMessage({
     }
   };
 
-  const bars = meta?.peaks ?? [];
+  const bars = (meta?.peaks ?? []).slice(0, 30);
   const activeBars = Math.floor(progress * bars.length);
   const main = own ? "var(--tcy-on-accent)" : "var(--tcy-text)";
   const faded = own ? "color-mix(in srgb, var(--tcy-on-accent) 45%, transparent)" : "var(--tcy-faint)";
 
   return (
-    <div className="flex items-center gap-3 min-w-[190px] py-0.5">
+    <div className="flex items-center gap-2.5 min-w-[150px] py-0.5">
       <button
         onClick={toggle}
-        className="tcy-press w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+        className="tcy-press w-9 h-9 rounded-full flex items-center justify-center shrink-0"
         style={{
           background: own ? "color-mix(in srgb, var(--tcy-on-accent) 20%, transparent)" : "var(--tcy-accent)",
           color: own ? main : "var(--tcy-on-accent)",
         }}
         aria-label={playing ? "Пауза" : "Слушать"}
       >
-        {playing ? <Pause size={17} fill="currentColor" /> : <Play size={17} fill="currentColor" className="ml-0.5" />}
+        {playing ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
       </button>
       <div className="flex items-center gap-[2.5px] h-8 flex-1">
         {bars.map((h, i) => (
           <span
             key={i}
-            className="w-[3px] rounded-full"
+            className="w-[2.5px] rounded-full"
             style={{
               height: `${Math.max(14, h * 100) * 0.32}%`,
               minHeight: 4,
