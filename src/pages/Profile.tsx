@@ -68,7 +68,7 @@ export default function Profile() {
   const [selectedFrame, setSelectedFrame] = useState<AvatarFrameId | null>(null);
   const [appliedFrame, setAppliedFrame] = useState<AvatarFrameId | null>(null);
   const [frameFlight, setFrameFlight] = useState<FrameFlight | null>(null);
-  const frameOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const frameOptionRefs = useRef<Record<string, HTMLSpanElement | null>>({});
 
   const actionsRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -540,13 +540,15 @@ export default function Profile() {
             {AVATAR_FRAMES.map((frame) => (
               <button
                 key={frame.id}
-                ref={(element) => { frameOptionRefs.current[frame.id] = element; }}
                 type="button"
                 aria-pressed={selectedFrame === frame.id}
                 onClick={() => setSelectedFrame(frame.id)}
                 className={`tcy-press flex min-w-0 flex-col items-center gap-1.5 rounded-[18px] border p-2.5 text-center transition-colors ${selectedFrame === frame.id ? "border-[var(--tcy-accent)] bg-[color-mix(in_srgb,var(--tcy-accent)_12%,transparent)]" : "tcy-line tcy-card"}`}
               >
-                <span className="relative flex h-[94px] w-[94px] items-center justify-center">
+                <span
+                  ref={(element) => { frameOptionRefs.current[frame.id] = element; }}
+                  className="relative flex h-[94px] w-[94px] items-center justify-center"
+                >
                   <Avatar name={profile.displayName} avatarKey={profile.avatarKey} size={58} showOnline={false} />
                   <img
                     src={frame.src}
