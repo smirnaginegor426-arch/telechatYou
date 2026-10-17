@@ -35,10 +35,12 @@ type FrameFlight = {
   to: { left: number; top: number; width: number; height: number };
 };
 const AVATAR_FRAMES: { id: AvatarFrameId; name: string; src: string }[] = [
-  { id: "midnight-gold", name: "Золотая ночь", src: "/frames/frame-midnight-gold.svg" },
-  { id: "candy-party", name: "Сладкий Хэллоуин", src: "/frames/frame-candy.svg" },
-  { id: "moon-cat", name: "Лунный кот", src: "/frames/frame-moon-cat.svg" },
-  { id: "pumpkin-night", name: "Тыквенная ночь", src: "/frames/frame-pumpkin.svg" },
+  // These use the exact frame photos supplied by the user, with transparent
+  // paper/center areas so the real profile photo shows through.
+  { id: "midnight-gold", name: "Золотая ночь", src: "/frames/frame-black-gold-skull.webp" },
+  { id: "candy-party", name: "Сладкий Хэллоуин", src: "/frames/frame-orange-sweets.webp" },
+  { id: "moon-cat", name: "Лунный кот", src: "/frames/frame-blue-cat.webp" },
+  { id: "pumpkin-night", name: "Тыквенная ночь", src: "/frames/frame-purple-halloween.webp" },
 ];
 
 
@@ -190,7 +192,7 @@ export default function Profile() {
     setFrameFlight({
       frameId: selectedFrame,
       from: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
-      to: { left: targetRect.left - 22, top: targetRect.top - 22, width: targetRect.width + 44, height: targetRect.height + 44 },
+      to: { left: targetRect.left - 16, top: targetRect.top - 16, width: targetRect.width + 32, height: targetRect.height + 32 },
     });
     setFramesOpen(false);
   };
@@ -358,7 +360,7 @@ export default function Profile() {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute -left-[22px] -top-[22px] z-10 h-[172px] w-[172px] max-w-none object-contain"
+                className="pointer-events-none absolute -left-[16px] -top-[16px] z-10 h-[160px] w-[160px] max-w-none object-contain"
               />
             )}
           </div>
@@ -525,7 +527,8 @@ export default function Profile() {
                   initial={{ opacity: 0, scale: 0.82, rotate: -7 }}
                   animate={{ opacity: 1, scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 280, damping: 23 }}
-                  className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+                  className="pointer-events-none absolute left-1/2 top-1/2 h-[190px] w-[190px] object-contain"
+                  style={{ marginLeft: -95, marginTop: -95 }}
                 />
               )}
             </div>
@@ -550,7 +553,7 @@ export default function Profile() {
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+                    className="pointer-events-none absolute left-[3px] top-[3px] h-[88px] w-[88px] object-contain"
                   />
                 </span>
                 <span className="line-clamp-2 text-[11px] font-semibold leading-tight tcy-text">{frame.name}</span>
