@@ -126,7 +126,7 @@ export function SettingsGroup({
         {title}
       </h4>
 
-      <div className="tcy-settings-panel mx-4 flex flex-col gap-1.5">
+      <div className="tcy-settings-panel mx-4 flex flex-col gap-0">
         {children}
       </div>
     </div>
