@@ -78,9 +78,23 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
     "--tcy-dim": dark ? "#a1a1aa" : "#52525b",
     "--tcy-faint": dark ? "#71717a" : "#71717a",
     "--tcy-danger": dark ? "#fb7185" : "#e11d48",
-    "--tcy-bubble-in": dark
-      ? "rgba(244, 244, 245, 0.045)"
-      : "rgba(24, 24, 27, 0.045)",
+
+    /* Calm message bubbles. Outgoing bubbles use a soft accent tint with a
+       dedicated high-contrast text colour (instead of a bright accent fill with
+       low-contrast text). Incoming bubbles stay a quiet neutral surface. */
+    "--tcy-bubble-in": dark ? "rgba(244, 244, 245, 0.062)" : "#ffffff",
+    "--tcy-bubble-own-bg": dark
+      ? `color-mix(in srgb, ${selected.color} 30%, #121016)`
+      : `color-mix(in srgb, ${selected.color} 24%, #ffffff)`,
+    "--tcy-bubble-own-fg": dark
+      ? `color-mix(in srgb, ${selected.color} 12%, #f6f4f9)`
+      : `color-mix(in srgb, ${selected.deep} 80%, #2a2133)`,
+    "--tcy-bubble-own-muted": dark
+      ? "color-mix(in srgb, #f6f4f9 66%, transparent)"
+      : "color-mix(in srgb, #2a2133 70%, transparent)",
+    "--tcy-bubble-own-line": dark
+      ? `color-mix(in srgb, ${selected.color} 38%, transparent)`
+      : `color-mix(in srgb, ${selected.deep} 24%, transparent)`,
 
     /* Neutral base for ordinary headers, forms and ambient background. */
     "--tcy-header": dark ? "rgba(5, 5, 6, 0.82)" : "rgba(250, 250, 252, 0.88)",

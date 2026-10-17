@@ -83,8 +83,8 @@ export function VoiceMessage({
 
   const bars = (meta?.peaks ?? []).slice(0, 30);
   const activeBars = Math.floor(progress * bars.length);
-  const main = own ? "var(--tcy-on-accent)" : "var(--tcy-text)";
-  const faded = own ? "color-mix(in srgb, var(--tcy-on-accent) 45%, transparent)" : "var(--tcy-faint)";
+  const main = own ? "var(--tcy-bubble-own-fg)" : "var(--tcy-text)";
+  const faded = own ? "var(--tcy-bubble-own-muted)" : "var(--tcy-faint)";
 
   return (
     <div className="flex items-center gap-2.5 min-w-[150px] py-0.5">
@@ -92,7 +92,7 @@ export function VoiceMessage({
         onClick={toggle}
         className="tcy-press w-9 h-9 rounded-full flex items-center justify-center shrink-0"
         style={{
-          background: own ? "color-mix(in srgb, var(--tcy-on-accent) 20%, transparent)" : "var(--tcy-accent)",
+          background: own ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 20%, transparent)" : "var(--tcy-accent)",
           color: own ? main : "var(--tcy-on-accent)",
         }}
         aria-label={playing ? "Пауза" : "Слушать"}

@@ -53,7 +53,11 @@
     --tcy-dim: #a1a1aa;
     --tcy-faint: #71717a;
     --tcy-danger: #fb7185;
-    --tcy-bubble-in: rgba(244, 244, 245, 0.045);
+    --tcy-bubble-in: rgba(244, 244, 245, 0.062);
+    --tcy-bubble-own-bg: #221b2b;
+    --tcy-bubble-own-fg: #f5f2f8;
+    --tcy-bubble-own-muted: rgba(245, 242, 248, 0.66);
+    --tcy-bubble-own-line: rgba(162, 139, 191, 0.38);
     --tcy-header: rgba(5, 5, 6, 0.82);
     --tcy-glass-line: rgba(255, 255, 255, 0.19);
     --tcy-input: rgba(10, 11, 18, 0.58);
@@ -75,7 +79,11 @@
     --tcy-dim: #52525b;
     --tcy-faint: #71717a;
     --tcy-danger: #e11d48;
-    --tcy-bubble-in: rgba(24, 24, 27, 0.045);
+    --tcy-bubble-in: #ffffff;
+    --tcy-bubble-own-bg: #ece2f5;
+    --tcy-bubble-own-fg: #2a2133;
+    --tcy-bubble-own-muted: rgba(42, 33, 51, 0.70);
+    --tcy-bubble-own-line: rgba(120, 100, 143, 0.24);
     --tcy-header: rgba(250, 250, 252, 0.88);
     --tcy-glass-line: rgba(24, 24, 27, 0.14);
     --tcy-input: rgba(255, 255, 255, 0.62);
@@ -165,7 +173,7 @@
   }
 
   .tcy-shadow-soft {
-    box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.45);
+    box-shadow: 0 6px 22px -18px rgba(0, 0, 0, 0.5);
   }
 
   .tcy-shadow-accent {
@@ -427,6 +435,13 @@ body,
   letter-spacing: -0.006em;
 }
 
+/* Message bodies read calmer than the app's bold default: lighter weight and a
+   touch more line height, so long conversations stay comfortable to read. */
+#root .tcy-msg-body {
+  font-weight: clamp(400, calc(var(--tcy-font-weight, 750) - 170), 640) !important;
+  letter-spacing: -0.003em;
+}
+
 #root h1,
 #root h2,
 #root h3,
@@ -592,26 +607,21 @@ body,
 
 .tcy-glass-own,
 .tcy-glass-peer {
-  -webkit-backdrop-filter: blur(18px) saturate(1.65);
-  backdrop-filter: blur(18px) saturate(1.65);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.17),
-    inset 0 -1px 0 rgba(255,255,255,.045),
-    0 8px 22px -18px color-mix(in srgb, var(--tcy-accent) 72%, transparent);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 6px 18px -16px rgba(0, 0, 0, 0.5);
 }
 
 .tcy-glass-own {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--tcy-accent) 88%, rgba(255,255,255,.2)),
-    color-mix(in srgb, var(--tcy-accent-deep) 92%, transparent)
-  ) !important;
-  border: 1px solid color-mix(in srgb, var(--tcy-accent) 72%, rgba(255,255,255,.28));
+  background: var(--tcy-bubble-own-bg) !important;
+  border: 1px solid var(--tcy-bubble-own-line);
+  color: var(--tcy-bubble-own-fg);
 }
 
 .tcy-glass-peer {
   background: var(--tcy-bubble-in) !important;
-  border: 1px solid var(--tcy-glass-line) !important;
+  border: 1px solid var(--tcy-line) !important;
+  color: var(--tcy-text);
 }
 
 @media (prefers-reduced-motion: reduce) {

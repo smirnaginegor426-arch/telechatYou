@@ -59,13 +59,13 @@ function MessageMeta({
       style={{
         color: inCaptionFrame
           ? own
-            ? "color-mix(in srgb, var(--tcy-on-accent) 68%, transparent)"
-            : "var(--tcy-faint)"
+            ? "var(--tcy-bubble-own-muted)"
+            : "var(--tcy-dim)"
           : isImage || isStickerMessage
             ? "var(--tcy-faint)"
             : own
-              ? "color-mix(in srgb, var(--tcy-on-accent) 62%, transparent)"
-              : "var(--tcy-faint)",
+              ? "var(--tcy-bubble-own-muted)"
+              : "var(--tcy-dim)",
       }}
     >
       {m.editedAt && (
@@ -112,9 +112,9 @@ function FileAttachment({
         className="w-10 h-10 rounded-[14px] flex items-center justify-center shrink-0"
         style={{
           background: own
-            ? "color-mix(in srgb, var(--tcy-on-accent) 18%, transparent)"
+            ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 16%, transparent)"
             : "var(--tcy-card-strong)",
-          color: own ? "var(--tcy-on-accent)" : "var(--tcy-accent)",
+          color: own ? "var(--tcy-bubble-own-fg)" : "var(--tcy-accent)",
         }}
       >
         <FileText size={18} />
@@ -128,7 +128,7 @@ function FileAttachment({
           className="block text-[11.5px] font-medium"
           style={{
             color: own
-              ? "color-mix(in srgb, var(--tcy-on-accent) 60%, transparent)"
+              ? "var(--tcy-bubble-own-muted)"
               : "var(--tcy-faint)",
           }}
         >
@@ -286,7 +286,7 @@ export function MessageBubble({
     return (
       <div
         className={cn(
-          "flex px-4 my-[3px]",
+          "flex px-4 my-[4px]",
           own ? "justify-end" : "justify-start",
         )}
       >
@@ -342,7 +342,7 @@ export function MessageBubble({
       onPointerUp={finishSwipe}
       onPointerCancel={finishSwipe}
       className={cn(
-        "relative flex px-3 my-[3px] w-full overflow-visible touch-pan-y",
+        "relative flex px-3 my-[4px] w-full overflow-visible touch-pan-y",
         own ? "justify-end" : "justify-start",
         highlighted && "tcy-message-highlight",
       )}
@@ -412,7 +412,7 @@ export function MessageBubble({
           onDoubleClick={() => { if (!selectionMode) onReaction(m, "❤️"); }}
           className={cn(
             "relative select-none cursor-default tcy-no-select",
-            isImage || isPoll || isStickerMessage || hasMediaCaption ? "p-0 border-0 bg-transparent shadow-none" : "px-3.5 py-2.5",
+            isImage || isPoll || isStickerMessage || hasMediaCaption ? "p-0 border-0 bg-transparent shadow-none" : "px-4 py-2.5",
             !isImage && !isPoll && !isStickerMessage && !hasMediaCaption &&
               (own
                 ? "tcy-glass-own rounded-[22px] rounded-br-[8px]"
@@ -425,7 +425,7 @@ export function MessageBubble({
                   color: "var(--tcy-text)",
                 }
               : own
-                ? { color: "var(--tcy-on-accent)" }
+                ? { color: "var(--tcy-bubble-own-fg)" }
                 : {
                     background: "var(--tcy-bubble-in)",
                     color: "var(--tcy-text)",
@@ -450,7 +450,7 @@ export function MessageBubble({
               className="flex gap-2 items-stretch mb-1.5 rounded-[12px] px-2.5 py-1.5"
               style={{
                 background: own
-                  ? "color-mix(in srgb, var(--tcy-on-accent) 12%, transparent)"
+                  ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 12%, transparent)"
                   : "var(--tcy-card)",
               }}
             >
@@ -458,7 +458,7 @@ export function MessageBubble({
                 className="w-[3px] rounded-full shrink-0"
                 style={{
                   background: own
-                    ? "var(--tcy-on-accent)"
+                    ? "var(--tcy-bubble-own-fg)"
                     : "var(--tcy-accent)",
                 }}
               />
@@ -567,11 +567,11 @@ export function MessageBubble({
                 className="relative -mt-px block w-full min-w-0 rounded-t-[14px] rounded-b-[15px] px-3 py-2.5"
                 style={{
                   boxSizing: "border-box",
-                  background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
-                  color: own ? "var(--tcy-on-accent)" : "var(--tcy-text)",
+                  background: own ? "var(--tcy-bubble-own-bg)" : "var(--tcy-bubble-in)",
+                  color: own ? "var(--tcy-bubble-own-fg)" : "var(--tcy-text)",
                 }}
               >
-                <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
+                <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                   <MessageText text={m.body ?? ""} />
                 </p>
                 <MessageMeta
@@ -593,7 +593,7 @@ export function MessageBubble({
               className={hasMediaCaption ? "w-fit max-w-full rounded-[18px] border tcy-line px-3.5 py-2.5" : undefined}
               style={hasMediaCaption
                 ? own
-                  ? { background: "var(--tcy-accent)", color: "var(--tcy-on-accent)" }
+                  ? { background: "var(--tcy-bubble-own-bg)", color: "var(--tcy-bubble-own-fg)" }
                   : { background: "var(--tcy-bubble-in)", color: "var(--tcy-text)" }
                 : undefined}
             >
@@ -623,11 +623,11 @@ export function MessageBubble({
                   width: attachmentWidth ?? 200,
                   maxWidth: "100%",
                   boxSizing: "border-box",
-                  background: own ? "var(--tcy-accent)" : "var(--tcy-bubble-in)",
-                  color: own ? "var(--tcy-on-accent)" : "var(--tcy-text)",
+                  background: own ? "var(--tcy-bubble-own-bg)" : "var(--tcy-bubble-in)",
+                  color: own ? "var(--tcy-bubble-own-fg)" : "var(--tcy-text)",
                 }}
               >
-                <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
+                <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                   <MessageText text={m.body} />
                 </p>
                 <MessageMeta
@@ -640,7 +640,7 @@ export function MessageBubble({
                 />
               </div>
             ) : (
-              <p className="text-[15px] leading-[1.4] whitespace-pre-wrap break-words">
+              <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                 <MessageText text={m.body} />
               </p>
             )

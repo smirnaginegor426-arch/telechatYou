@@ -24,9 +24,9 @@ export function AudioFilePlayer({
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.85);
-  const main = own ? "var(--tcy-on-accent)" : "var(--tcy-text)";
+  const main = own ? "var(--tcy-bubble-own-fg)" : "var(--tcy-text)";
   const muted = own
-    ? "color-mix(in srgb, var(--tcy-on-accent) 64%, transparent)"
+    ? "var(--tcy-bubble-own-muted)"
     : "var(--tcy-faint)";
   const ext = name.split(".").pop()?.toUpperCase() || "AUDIO";
 
@@ -49,8 +49,8 @@ export function AudioFilePlayer({
   return (
     <div className="tcy-audio-card w-[min(270px,68vw)] rounded-[20px] p-3" style={{
       color: main,
-      background: own ? "color-mix(in srgb, var(--tcy-on-accent) 10%, transparent)" : "color-mix(in srgb, var(--tcy-card-strong) 72%, transparent)",
-      border: `1px solid ${own ? "color-mix(in srgb, var(--tcy-on-accent) 18%, transparent)" : "var(--tcy-line)"}`,
+      background: own ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 10%, transparent)" : "color-mix(in srgb, var(--tcy-card-strong) 72%, transparent)",
+      border: `1px solid ${own ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 18%, transparent)" : "var(--tcy-line)"}`,
     }}>
       <audio
         className="hidden"
@@ -67,7 +67,7 @@ export function AudioFilePlayer({
       />
       <div className="flex items-center gap-2.5 min-w-0">
         <div className="w-10 h-10 rounded-[14px] shrink-0 flex items-center justify-center"
-          style={{ background: own ? "color-mix(in srgb, var(--tcy-on-accent) 16%, transparent)" : "var(--tcy-accent)", color: own ? main : "var(--tcy-on-accent)" }}>
+          style={{ background: own ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 16%, transparent)" : "var(--tcy-accent)", color: own ? main : "var(--tcy-on-accent)" }}>
           <Music2 size={20} />
         </div>
         <div className="min-w-0 flex-1">
@@ -85,7 +85,7 @@ export function AudioFilePlayer({
       <div className="mt-3 flex items-center gap-2.5">
         <button type="button" onClick={() => void toggle()} disabled={!url} aria-label={playing ? "Пауза" : "Воспроизвести"}
           className="tcy-press w-9 h-9 rounded-full flex items-center justify-center shrink-0 disabled:opacity-50"
-          style={{ background: own ? "color-mix(in srgb, var(--tcy-on-accent) 18%, transparent)" : "var(--tcy-accent)", color: own ? main : "var(--tcy-on-accent)" }}>
+          style={{ background: own ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 18%, transparent)" : "var(--tcy-accent)", color: own ? main : "var(--tcy-on-accent)" }}>
           {playing ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
         </button>
         <div className="min-w-0 flex-1">

@@ -866,8 +866,8 @@ export default function ChatView() {
               return (
                 <div key={m.id}>
                   {dayBreak && (
-                    <div className="flex justify-center my-3">
-                      <span className="text-[11.5px] font-bold tcy-dim tcy-header-blur border tcy-line px-3.5 py-1.5 rounded-full">
+                    <div className="flex justify-center my-4">
+                      <span className="text-[11.5px] font-semibold tcy-dim tcy-header-blur border tcy-line px-3.5 py-1.5 rounded-full">
                         {formatDayLabel(m.createdAt)}
                       </span>
                     </div>

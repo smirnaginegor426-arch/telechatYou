@@ -73,6 +73,13 @@ html[data-tcy-plush="true"] {
   --tcy-faint: var(--plush-faint);
   --tcy-danger: var(--plush-danger);
   --tcy-bubble-in: var(--plush-bubble-in);
+
+  /* Keep the calm bubble tokens aligned with the Plush palette. `!important`
+     wins over the inline tokens applyTheme writes to <html>. */
+  --tcy-bubble-own-bg: var(--plush-bubble-out) !important;
+  --tcy-bubble-own-fg: var(--plush-text) !important;
+  --tcy-bubble-own-muted: color-mix(in srgb, var(--plush-text) 62%, transparent) !important;
+  --tcy-bubble-own-line: color-mix(in srgb, var(--plush-lilac) 58%, var(--plush-line)) !important;
   --tcy-header: var(--plush-panel);
   --tcy-glass-line: var(--plush-line);
   --tcy-input: var(--plush-input);
