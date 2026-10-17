@@ -117,14 +117,16 @@ export function SettingsGroup({
   title,
   children,
 }: {
-  title: string;
+  title?: string;
   children: ReactNode;
 }) {
   return (
     <div className="mb-5">
-      <h4 className="px-5 pb-2 text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
-        {title}
-      </h4>
+      {title && (
+        <h4 className="px-5 pb-2 text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
+          {title}
+        </h4>
+      )}
 
       <div className="tcy-settings-panel mx-4 flex flex-col gap-0">
         {children}
