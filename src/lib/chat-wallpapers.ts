@@ -5,6 +5,14 @@ export const CHAT_WALLPAPERS = [
   { id: "space", name: "Космос", description: "Сине-фиолетовое свечение" },
   { id: "violet", name: "Фиолетовый", description: "Тёмный фиолетовый" },
   { id: "wine", name: "Бордо", description: "Тёплые сумерки" },
+  { id: "sand", name: "Песок", description: "Классический песочный" },
+  { id: "sage", name: "Шалфей", description: "Классический зелёный" },
+  { id: "ocean", name: "Океан", description: "Классический синий" },
+  { id: "plum", name: "Слива", description: "Классический сливовый" },
+  { id: "rose", name: "Роза", description: "Классический розовый" },
+  { id: "slate", name: "Сланец", description: "Классический серо-синий" },
+  { id: "mint", name: "Мята", description: "Классический мятный" },
+  { id: "cocoa", name: "Какао", description: "Классический кофейный" },
 ] as const;
 
 export type ChatWallpaperId = (typeof CHAT_WALLPAPERS)[number]["id"];

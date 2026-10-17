@@ -465,7 +465,15 @@ html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--graphite,
 html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--stars,
 html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--space,
 html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--violet,
-html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--wine {
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--wine,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--sand,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--sage,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--ocean,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--plum,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--rose,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--slate,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--mint,
+html[data-tcy-plush="true"] #root .tcy-wallpaper-bg--cocoa {
   background:
     radial-gradient(circle at 18px 22px, color-mix(in srgb, var(--plush-pink) 50%, transparent) 0 2px, transparent 3px),
     radial-gradient(circle at 78px 62px, color-mix(in srgb, var(--plush-blue) 60%, transparent) 0 3px, transparent 4px),
