@@ -78,6 +78,9 @@ export function Composer({
   const timerRef = useRef<number | null>(null);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
   const cancelRef = useRef(false);
+  const pressActiveRef = useRef(false);
+  const pendingSendRef = useRef<boolean | null>(null);
+  const gestureCleanupRef = useRef<(() => void) | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -158,14 +161,56 @@ export function Composer({
         recSecondsRef.current += 0.1;
         setRecSeconds((s) => s + 0.1);
       }, 100);
+      // The user may release the button before the microphone permission is
+      // granted. If the gesture already ended, finish it now instead of
+      // leaving the recorder running forever.
+      if (pendingSendRef.current !== null) {
+        const send = pendingSendRef.current;
+        pendingSendRef.current = null;
+        stopRecording(send);
+      }
     } catch {
+      // Reset the whole gesture so a denied permission cannot leave the
+      // composer stuck or cut off the next recording.
+      pressActiveRef.current = false;
+      pendingSendRef.current = null;
+      startPosRef.current = null;
+      gestureCleanupRef.current?.();
+      gestureCleanupRef.current = null;
+      setCancelHint(false);
       alert("Нет доступа к микрофону. Разрешите доступ в настройках браузера.");
     }
   };
 
   const recSecondsRef = useRef(0);
 
-  useEffect(() => () => stopRecording(false), [stopRecording]);
+  const endMicGesture = useCallback(
+    (send: boolean) => {
+      if (!pressActiveRef.current) return;
+      pressActiveRef.current = false;
+      startPosRef.current = null;
+      setCancelHint(false);
+      gestureCleanupRef.current?.();
+      gestureCleanupRef.current = null;
+      // getUserMedia may still be resolving; remember the outcome and finish
+      // the gesture as soon as the recorder is ready.
+      if (!mediaRef.current) {
+        pendingSendRef.current = send;
+        return;
+      }
+      stopRecording(send);
+    },
+    [stopRecording],
+  );
+
+  useEffect(
+    () => () => {
+      gestureCleanupRef.current?.();
+      gestureCleanupRef.current = null;
+      stopRecording(false);
+    },
+    [stopRecording],
+  );
 
   // auto-grow textarea
   useEffect(() => {
@@ -295,23 +340,34 @@ export function Composer({
 
   const onMicDown = (e: React.PointerEvent) => {
     if (text.trim()) return;
+    if (pressActiveRef.current) return;
     e.preventDefault();
+    pressActiveRef.current = true;
     startPosRef.current = { x: e.clientX, y: e.clientY };
+    setCancelHint(false);
+
+    // While recording, the mic button is replaced by the recording indicator,
+    // so pointer events on the button never fire. Listen on the window instead
+    // for the whole press gesture so releasing sends and swiping left cancels.
+    const onWindowPointerMove = (event: PointerEvent) => {
+      if (!startPosRef.current) return;
+      const dx = startPosRef.current.x - event.clientX;
+      if (dx > 90) setCancelHint(true);
+      if (dx > 140) endMicGesture(false);
+    };
+    const onWindowPointerUp = () => endMicGesture(true);
+    const onWindowPointerCancel = () => endMicGesture(false);
+
+    gestureCleanupRef.current = () => {
+      window.removeEventListener("pointermove", onWindowPointerMove);
+      window.removeEventListener("pointerup", onWindowPointerUp);
+      window.removeEventListener("pointercancel", onWindowPointerCancel);
+    };
+    window.addEventListener("pointermove", onWindowPointerMove);
+    window.addEventListener("pointerup", onWindowPointerUp);
+    window.addEventListener("pointercancel", onWindowPointerCancel);
+
     void startRecording();
-  };
-  const onMicMove = (e: React.PointerEvent) => {
-    if (!recording || !startPosRef.current) return;
-    const dx = startPosRef.current.x - e.clientX;
-    if (dx > 90) setCancelHint(true);
-    if (dx > 140) {
-      startPosRef.current = null;
-      stopRecording(false);
-    }
-  };
-  const onMicUp = () => {
-    if (!recording) return;
-    startPosRef.current = null;
-    stopRecording(true);
   };
 
   const hasText = text.trim().length > 0;
@@ -550,11 +606,8 @@ export function Composer({
                       exit={{ scale: 0.12, opacity: 0, transition: { duration: 0.12, ease: "easeIn" } }}
                       transition={{ type: "spring", stiffness: 720, damping: 30, mass: 0.62 }}
                       onPointerDown={onMicDown}
-                      onPointerMove={onMicMove}
-                      onPointerUp={onMicUp}
-                      onPointerCancel={() => recording && stopRecording(false)}
                       onContextMenu={(e) => e.preventDefault()}
-                      className="tcy-press absolute inset-0 rounded-full flex items-center justify-center touch-none"
+                      className="tcy-press absolute inset-0 rounded-full flex items-center justify-center touch-none select-none"
                       style={{
                         background: recording ? "var(--tcy-danger)" : "var(--tcy-card-strong)",
                         color: recording ? "#fff" : "var(--tcy-dim)",
