@@ -139,13 +139,17 @@ export default function Settings() {
   );
 
   return (
-    <div className="tcy-settings-page relative h-full overflow-y-auto no-scrollbar pb-32">
+    <div className="tcy-settings-page relative h-full flex flex-col">
+      <div
+        className={
+          experimentalUI
+            ? "flex-1 min-h-0 overflow-y-auto no-scrollbar pb-4"
+            : "flex-1 min-h-0 overflow-y-auto no-scrollbar pb-32"
+        }
+      >
       <header className="relative z-10 px-5 pt-5 safe-top pb-3">
         <h1 className="text-[24px] font-extrabold tcy-text">Настройки</h1>
       </header>
-
-      {/* разделы настроек (тестовый режим) */}
-      {experimentalUI && <SettingsTabs value={tab} onChange={setTab} />}
 
       <motion.div
         key={tab}
@@ -526,6 +530,10 @@ export default function Settings() {
       <p className="text-center text-[11px] tcy-faint pt-2">
         TeleChatYou · сделано с любовью к общению
       </p>
+      </div>
+
+      {/* разделы настроек внизу экрана (тестовый режим) */}
+      {experimentalUI && <SettingsTabs value={tab} onChange={setTab} />}
 
       {/* about */}
       <BottomSheet open={aboutOpen} onClose={() => setAboutOpen(false)} title="О TeleChatYou">

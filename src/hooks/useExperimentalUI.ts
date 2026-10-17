@@ -1,10 +1,10 @@
 import { trpc } from "@/providers/trpc";
-import { isTesterUsername } from "@/lib/testers";
+import { isPrivateExperimentalUser } from "@/lib/testers";
 
 /**
  * Private experimental interface gate.
  *
- * Only the configured tester account (see src/lib/testers.ts) receives the
+ * Only the private experimental account (see src/lib/testers.ts) receives the
  * experimental UI: the calm conversation refresh, the new wallpapers and the
  * tabbed settings. Everyone else keeps the stable, shipped look.
  *
@@ -14,6 +14,6 @@ import { isTesterUsername } from "@/lib/testers";
 export function useExperimentalUI(options: { enabled?: boolean } = {}) {
   const queryEnabled = options.enabled ?? true;
   const me = trpc.profile.me.useQuery(undefined, { enabled: queryEnabled });
-  const enabled = isTesterUsername(me.data?.profile?.username, me.data?.profile?.userId);
+  const enabled = isPrivateExperimentalUser(me.data?.profile?.username, me.data?.profile?.userId);
   return { enabled, isLoading: queryEnabled && me.isLoading };
 }
