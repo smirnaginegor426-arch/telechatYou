@@ -428,7 +428,6 @@ export default function Settings() {
         />
       </SettingsGroup>
 
-      {isPrivateRelease && (
       <SettingsGroup title="Данные">
         <SettingsRow
           icon={<Database size={17} />}
@@ -436,7 +435,7 @@ export default function Settings() {
           subtitle={`${files.length} файлов · ${formatFileSize(totalSize)}`}
           onClick={() => { setStorageView(false); setStorageOpen(true); }}
         />
-        <SettingsRow icon={<Globe size={17} />} title="Мой язык" subtitle="Создать, изменить и сохранить свой язык" onClick={() => navigate("/language")} />
+        {isPrivateRelease && (<SettingsRow icon={<Globe size={17} />} title="Мой язык" subtitle="Создать, изменить и сохранить свой язык" onClick={() => navigate("/language")} />) }
       </SettingsGroup>
 
       )}
