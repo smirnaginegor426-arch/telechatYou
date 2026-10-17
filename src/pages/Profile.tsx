@@ -27,6 +27,20 @@ const PLUSH_BACKGROUNDS = [
 ];
 const DEFAULT_PLUSH_PREFS: PlushProfilePrefs = { status: "🌼 На связи", background: "cotton" };
 
+type AvatarFrameId = "midnight-gold" | "candy-party" | "moon-cat" | "pumpkin-night";
+type FrameFlight = {
+  frameId: AvatarFrameId;
+  from: { left: number; top: number; width: number; height: number };
+  to: { left: number; top: number; width: number; height: number };
+};
+const AVATAR_FRAMES: { id: AvatarFrameId; name: string; src: string }[] = [
+  { id: "midnight-gold", name: "Золотая ночь", src: "/frames/frame-midnight-gold.svg" },
+  { id: "candy-party", name: "Сладкий Хэллоуин", src: "/frames/frame-candy.svg" },
+  { id: "moon-cat", name: "Лунный кот", src: "/frames/frame-moon-cat.svg" },
+  { id: "pumpkin-night", name: "Тыквенная ночь", src: "/frames/frame-pumpkin.svg" },
+];
+
+
 export default function Profile() {
   const { logout } = useAuth();
   const { enabled: isPrivateTester } = useTesterMode();
@@ -46,6 +60,12 @@ export default function Profile() {
   const [deleteAvatarOpen, setDeleteAvatarOpen] = useState(false);
   const [plushCustomizeOpen, setPlushCustomizeOpen] = useState(false);
   const [plushPrefs, setPlushPrefs] = useState<PlushProfilePrefs | null>(null);
+  const [framesOpen, setFramesOpen] = useState(false);
+  const [selectedFrame, setSelectedFrame] = useState<AvatarFrameId | null>(null);
+  const [appliedFrame, setAppliedFrame] = useState<AvatarFrameId | null>(null);
+  const [frameFlight, setFrameFlight] = useState<FrameFlight | null>(null);
+  const frameOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
   const actionsRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +77,18 @@ export default function Profile() {
     onError: (e) => setError(e.message),
   });
   const upload = trpc.storage.upload.useMutation();
+
+  useEffect(() => {
+    if (!profile?.userId) return;
+    try {
+      const stored = localStorage.getItem(`tcy-avatar-frame-${profile.userId}`);
+      const validFrame = AVATAR_FRAMES.find((frame) => frame.id === stored);
+      setAppliedFrame(validFrame?.id ?? null);
+      setSelectedFrame(validFrame?.id ?? AVATAR_FRAMES[0].id);
+    } catch {
+      setSelectedFrame(AVATAR_FRAMES[0].id);
+    }
+  }, [profile?.userId]);
 
   useEffect(() => {
     if (!isPrivateTester || !profile?.userId) {
@@ -135,6 +167,30 @@ export default function Profile() {
     });
     await update.mutateAsync({ avatarKey: res.key });
     toast.success(profile?.avatarKey ? "Аватарка заменена" : "Аватарка добавлена");
+  };
+
+  const applySelectedFrame = () => {
+    if (!selectedFrame) return;
+    const source = frameOptionRefs.current[selectedFrame];
+    const target = document.getElementById("avatar-frame-target");
+    if (!source || !target) {
+      setAppliedFrame(selectedFrame);
+      try {
+        localStorage.setItem(`tcy-avatar-frame-${profile.userId}`, selectedFrame);
+      } catch {
+        // Keep the applied frame for this session when storage is unavailable.
+      }
+      setFramesOpen(false);
+      return;
+    }
+    const sourceRect = source.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    setFrameFlight({
+      frameId: selectedFrame,
+      from: { left: sourceRect.left, top: sourceRect.top, width: sourceRect.width, height: sourceRect.height },
+      to: { left: targetRect.left - 22, top: targetRect.top - 22, width: targetRect.width + 44, height: targetRect.height + 44 },
+    });
+    setFramesOpen(false);
   };
 
   const copyProfileLink = async () => {
@@ -278,24 +334,37 @@ export default function Profile() {
           transition={{ type: "spring", stiffness: 260, damping: 22 }}
           className="relative mt-5"
         >
+          <div id="avatar-frame-target" className="relative shrink-0" style={{ width: 128, height: 128 }}>
+            <button
+              type="button"
+              onClick={() => setAvatarPreviewOpen(true)}
+              aria-label="Открыть свою аватарку"
+              title="Открыть аватарку"
+              className="tcy-press relative z-[1] block cursor-zoom-in rounded-[30%] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--tcy-accent)]"
+            >
+              <Avatar
+                name={profile.displayName}
+                avatarKey={profile.avatarKey}
+                size={128}
+                lastSeenAt={profile.lastSeenAt}
+                showOnline={!isPrivateTester}
+              />
+            </button>
+            {appliedFrame && (
+              <img
+                src={AVATAR_FRAMES.find((frame) => frame.id === appliedFrame)?.src}
+                alt=""
+                aria-hidden="true"
+                draggable={false}
+                className="pointer-events-none absolute -left-[22px] -top-[22px] z-10 h-[172px] w-[172px] max-w-none object-contain"
+              />
+            )}
+          </div>
           <button
             type="button"
-            onClick={() => setAvatarPreviewOpen(true)}
-            aria-label="Открыть свою аватарку"
-            title="Открыть аватарку"
-            className="tcy-press block cursor-zoom-in rounded-[30%] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--tcy-accent)]"
-          >
-            <Avatar
-              name={profile.displayName}
-              avatarKey={profile.avatarKey}
-              size={128}
-              lastSeenAt={profile.lastSeenAt}
-              showOnline={!isPrivateTester}
-            />
-          </button>
-          <button
+            aria-label="Изменить аватарку"
             onClick={() => fileRef.current?.click()}
-            className="tcy-press absolute -bottom-1 -right-1 w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
+            className="tcy-press absolute -bottom-1 -right-1 z-20 w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
             style={{ color: "var(--tcy-on-accent)" }}
           >
             <Camera size={17} />
@@ -316,9 +385,22 @@ export default function Profile() {
             {profile.bio}
           </p>
         )}
-        <TcButton size="sm" variant="soft" className="mt-5" onClick={openEdit}>
-          <Pencil size={14} /> Редактировать
-        </TcButton>
+        <div className="mt-4 flex items-center justify-center gap-2.5 px-4">
+          <TcButton size="sm" variant="soft" onClick={openEdit}>
+            <Pencil size={15} className="text-black dark:text-white" /> Редактирование
+          </TcButton>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedFrame(appliedFrame ?? AVATAR_FRAMES[0].id);
+              setFramesOpen(true);
+            }}
+            className="tcy-press inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-[color:var(--tcy-line)] px-3.5 text-[12px] font-semibold tcy-card tcy-text"
+          >
+            <span aria-hidden="true" className="text-[16px] leading-none">🎃</span>
+            Рамки
+          </button>
+        </div>
         {isPrivateTester && plushPrefs && (
           <div className="mt-4 flex flex-col items-center gap-2">
             <span className="tcy-profile-status-chip">{plushPrefs.status}</span>
@@ -426,6 +508,57 @@ export default function Profile() {
           <TcButton size="lg" onClick={() => setPlushCustomizeOpen(false)}>Готово ✨</TcButton>
         </div>
       </BottomSheet>
+      <BottomSheet open={framesOpen} onClose={() => setFramesOpen(false)} title="Рамки">
+        <div className="space-y-4 px-5 pb-5">
+          <div className="flex flex-col items-center pt-1">
+            <div className="relative flex h-[204px] w-[204px] items-center justify-center">
+              <Avatar name={profile.displayName} avatarKey={profile.avatarKey} size={120} showOnline={false} />
+              {selectedFrame && (
+                <motion.img
+                  key={selectedFrame}
+                  src={AVATAR_FRAMES.find((frame) => frame.id === selectedFrame)?.src}
+                  alt=""
+                  initial={{ opacity: 0, scale: 0.82, rotate: -7 }}
+                  animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 280, damping: 23 }}
+                  className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+                />
+              )}
+            </div>
+            <p className="mt-1 text-center text-[12px] font-medium tcy-dim">
+              {AVATAR_FRAMES.find((frame) => frame.id === selectedFrame)?.name ?? "Выбери рамку"}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {AVATAR_FRAMES.map((frame) => (
+              <button
+                key={frame.id}
+                ref={(element) => { frameOptionRefs.current[frame.id] = element; }}
+                type="button"
+                aria-pressed={selectedFrame === frame.id}
+                onClick={() => setSelectedFrame(frame.id)}
+                className={`tcy-press flex min-w-0 flex-col items-center gap-1.5 rounded-[18px] border p-2.5 text-center transition-colors ${selectedFrame === frame.id ? "border-[var(--tcy-accent)] bg-[color-mix(in_srgb,var(--tcy-accent)_12%,transparent)]" : "tcy-line tcy-card"}`}
+              >
+                <span className="relative flex h-[94px] w-[94px] items-center justify-center">
+                  <Avatar name={profile.displayName} avatarKey={profile.avatarKey} size={58} showOnline={false} />
+                  <img
+                    src={frame.src}
+                    alt=""
+                    aria-hidden="true"
+                    draggable={false}
+                    className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+                  />
+                </span>
+                <span className="line-clamp-2 text-[11px] font-semibold leading-tight tcy-text">{frame.name}</span>
+              </button>
+            ))}
+          </div>
+          <TcButton size="lg" onClick={applySelectedFrame}>
+            <Check size={17} /> Применить
+          </TcButton>
+        </div>
+      </BottomSheet>
+
       <BottomSheet open={deleteAvatarOpen} onClose={() => setDeleteAvatarOpen(false)} title="Удалить аватарку?">
         <div className="px-5 pb-5 space-y-4">
           <p className="text-[13.5px] leading-relaxed tcy-dim">Текущая фотография профиля будет удалена. Вместо неё будет отображаться стандартная аватарка.</p>
@@ -459,6 +592,50 @@ export default function Profile() {
           </TcButton>
         </div>
       </BottomSheet>
+      <AnimatePresence>
+        {frameFlight && (
+          <motion.img
+            key={frameFlight.frameId}
+            src={AVATAR_FRAMES.find((frame) => frame.id === frameFlight.frameId)?.src}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            initial={{
+              left: frameFlight.from.left,
+              top: frameFlight.from.top,
+              width: frameFlight.from.width,
+              height: frameFlight.from.height,
+              scale: 0.82,
+              rotate: -9,
+              opacity: 1,
+            }}
+            animate={{
+              left: frameFlight.to.left,
+              top: frameFlight.to.top,
+              width: frameFlight.to.width,
+              height: frameFlight.to.height,
+              scale: 1,
+              rotate: 0,
+              opacity: 1,
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 28, mass: 0.75 }}
+            onAnimationComplete={() => {
+              const completedFrame = frameFlight.frameId;
+              setAppliedFrame(completedFrame);
+              setSelectedFrame(completedFrame);
+              try {
+                localStorage.setItem(`tcy-avatar-frame-${profile.userId}`, completedFrame);
+              } catch {
+                // Keep the selected frame in React state if storage is unavailable.
+              }
+              setFrameFlight(null);
+              toast.success("Рамка применена");
+            }}
+            className="pointer-events-none fixed z-[100] max-w-none object-contain"
+            style={{ position: "fixed", transformOrigin: "center center" }}
+          />
+        )}
+      </AnimatePresence>
       <AvatarEditor
         file={avatarToEdit}
         onCancel={() => setAvatarToEdit(null)}
