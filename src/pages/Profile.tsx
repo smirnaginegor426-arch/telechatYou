@@ -170,7 +170,7 @@ export default function Profile() {
   };
 
   const applySelectedFrame = () => {
-    if (!selectedFrame) return;
+    if (!profile?.userId || !selectedFrame) return;
     const source = frameOptionRefs.current[selectedFrame];
     const target = document.getElementById("avatar-frame-target");
     if (!source || !target) {
@@ -624,7 +624,7 @@ export default function Profile() {
               setAppliedFrame(completedFrame);
               setSelectedFrame(completedFrame);
               try {
-                localStorage.setItem(`tcy-avatar-frame-${profile.userId}`, completedFrame);
+                if (profile?.userId) localStorage.setItem(`tcy-avatar-frame-${profile.userId}`, completedFrame);
               } catch {
                 // Keep the selected frame in React state if storage is unavailable.
               }
