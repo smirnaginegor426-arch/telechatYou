@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
 export function SettingsRow({
   icon,
@@ -117,17 +116,10 @@ export function Toggle({
 export function SettingsGroup({
   title,
   children,
-  hidden,
 }: {
   title: string;
   children: ReactNode;
-  hidden?: boolean;
 }) {
-  // `hidden` is a tab filter: only meaningful in the experimental tabbed
-  // settings. The stable flat list always shows every group.
-  const { enabled: experimentalUI } = useExperimentalUI();
-  if (hidden && experimentalUI) return null;
-
   return (
     <div className="mb-5">
       <h4 className="px-5 pb-2 text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">

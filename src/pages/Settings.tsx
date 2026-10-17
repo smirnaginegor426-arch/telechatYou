@@ -39,8 +39,6 @@ import { formatFileSize } from "@/lib/format";
 import { useTheme } from "@/hooks/useTheme";
 import { ACCENTS } from "@/lib/accents";
 import { getMediaSendPreferences, saveMediaSendPreferences, type MediaSendPreferences } from "@/lib/media-send-preferences";
-import { SettingsTabs, type SettingsTabId } from "@/components/SettingsTabs";
-import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -62,10 +60,6 @@ export default function Settings() {
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
   const [emailPanelOpen, setEmailPanelOpen] = useState(false);
   const [unlinkMessage, setUnlinkMessage] = useState("");
-  const [tab, setTab] = useState<SettingsTabId>("account");
-  // Tabs are a private experimental change: without them every group is shown
-  // as one flat list, exactly like the stable settings screen.
-  const { enabled: experimentalUI } = useExperimentalUI();
 
   useEffect(() => {
     setMediaPreferences(getMediaSendPreferences());
@@ -140,17 +134,11 @@ export default function Settings() {
 
   return (
     <div className="tcy-settings-page relative h-full overflow-y-auto no-scrollbar pb-32">
-      <header className="relative z-10 px-5 pt-5 safe-top pb-3">
+      <header className="relative z-10 px-5 pt-5 safe-top pb-4">
         <h1 className="text-[24px] font-extrabold tcy-text">Настройки</h1>
       </header>
 
-      <motion.div
-        key={tab}
-        initial={experimentalUI ? { opacity: 0, y: 8 } : false}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.22, ease: "easeOut" }}
-      >
-      {/* account card (вкладки разделов — сразу под профилем) */}
+      {/* account card */}
       <div className="mx-4 mb-5 rounded-[24px] tcy-card border tcy-line p-4 flex items-center gap-4">
         <Avatar
           name={me.data?.profile?.displayName ?? "?"}
@@ -170,14 +158,7 @@ export default function Settings() {
         <UserRound size={18} className="tcy-faint" />
       </div>
 
-      {/* разделы настроек — обычный блок на экране, как остальные секции */}
-      {experimentalUI && (
-        <div className="px-4 pb-5">
-          <SettingsTabs value={tab} onChange={setTab} />
-        </div>
-      )}
-
-      <SettingsGroup title="Внешний вид" hidden={tab !== "appearance"}>
+      <SettingsGroup title="Внешний вид">
         <SettingsRow
           icon={theme === "dark" ? <Moon size={17} /> : <Sun size={17} />}
           title="Тема"
@@ -230,7 +211,7 @@ export default function Settings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup title="Уведомления" hidden={tab !== "notifications"}>
+      <SettingsGroup title="Уведомления">
         <SettingsRow
           icon={<Bell size={17} />}
           title="Уведомления"
@@ -259,7 +240,7 @@ export default function Settings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup title="Почта для восстановления" hidden={tab !== "account"}>
+      <SettingsGroup title="Почта для восстановления">
         <SettingsRow
           icon={<Mail size={17} />}
           title="Почта аккаунта"
@@ -343,7 +324,7 @@ export default function Settings() {
         </div>
       </SettingsGroup>
 
-      <SettingsGroup title="Безопасность аккаунта" hidden={tab !== "account"}>
+      <SettingsGroup title="Безопасность аккаунта">
         <SettingsRow
           icon={<KeyRound size={17} />}
           title="Резервный секрет"
@@ -433,7 +414,7 @@ export default function Settings() {
         )}
       </SettingsGroup>
 
-      <SettingsGroup title="Приватность" hidden={tab !== "privacy"}>
+      <SettingsGroup title="Приватность">
         <SettingsRow
           icon={<Eye size={17} />}
           title="Статус «в сети»"
@@ -457,7 +438,7 @@ export default function Settings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup title="Чаты и медиа" hidden={tab !== "chats"}>
+      <SettingsGroup title="Чаты и медиа">
         <SettingsRow
           icon={<Keyboard size={17} />}
           title="Enter отправляет"
@@ -490,7 +471,7 @@ export default function Settings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup title="Данные" hidden={tab !== "data"}>
+      <SettingsGroup title="Данные">
         <SettingsRow
           icon={<Database size={17} />}
           title="Хранилище"
@@ -500,7 +481,7 @@ export default function Settings() {
         <SettingsRow icon={<Globe size={17} />} title="Мой язык" subtitle="Создать, изменить и сохранить свой язык" onClick={() => navigate("/language")} />
       </SettingsGroup>
 
-      <SettingsGroup title="Сезонное" hidden={tab !== "other"}>
+      <SettingsGroup title="Сезонное">
         <SettingsRow
           icon={<Ghost size={17} />}
           title="Halloween"
@@ -509,7 +490,7 @@ export default function Settings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup title="О приложении" hidden={tab !== "other"}>
+      <SettingsGroup title="О приложении">
         <SettingsRow
           icon={<RefreshCw size={17} />}
           title="Системное обновление"
@@ -523,7 +504,6 @@ export default function Settings() {
           onClick={() => setAboutOpen(true)}
         />
       </SettingsGroup>
-      </motion.div>
 
       <p className="text-center text-[11px] tcy-faint pt-2">
         TeleChatYou · сделано с любовью к общению
