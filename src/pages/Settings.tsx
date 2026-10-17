@@ -38,12 +38,14 @@ import { formatFileSize } from "@/lib/format";
 import { useTheme } from "@/hooks/useTheme";
 import { ACCENTS } from "@/lib/accents";
 import { getMediaSendPreferences, saveMediaSendPreferences, type MediaSendPreferences } from "@/lib/media-send-preferences";
+import { usePrivateReleaseAccess } from "@/hooks/usePrivateReleaseAccess";
 
 export default function Settings() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const { theme, setTheme, accent } = useTheme();
   const me = trpc.profile.me.useQuery();
+  const { enabled: isPrivateRelease } = usePrivateReleaseAccess();
   const settingsQuery = trpc.settings.get.useQuery();
   const recoverySecretStatus = trpc.auth.recoverySecretStatus.useQuery();
   const emailStatus = trpc.auth.emailStatus.useQuery();
@@ -173,31 +175,33 @@ export default function Settings() {
           }
         />
 
-        <SettingsRow
-          icon={<Palette size={17} />}
-          title="Акцент"
-          subtitle={`Текущий цвет: ${ACCENTS.find((option) => option.id === accent)?.name ?? "Фиолетовый"}`}
-          onClick={() => navigate("/accent")}
-          right={
-            <span
-              aria-hidden="true"
-              className="h-7 w-7 rounded-full border flex items-center justify-center"
-              style={{
-                background: "var(--tcy-selected-accent)",
-                borderColor: "var(--tcy-glass-line)",
-                boxShadow: "0 0 0 3px color-mix(in srgb, var(--tcy-selected-accent) 18%, transparent)",
-              }}
-            >
-              <Check size={14} strokeWidth={3} color="var(--tcy-selected-on-accent)" />
-            </span>
-          }
-        />
-        <SettingsRow
-          icon={<Type size={17} />}
-          title="Шрифт"
-          subtitle="Толщина текста и пример переписки"
-          onClick={() => navigate("/font")}
-        />
+        {isPrivateRelease && (
+          <SettingsRow
+            icon={<Palette size={17} />}
+            title="Акцент"
+            subtitle={`Текущий цвет: ${ACCENTS.find((option) => option.id === accent)?.name ?? "Фиолетовый"}`}
+            onClick={() => navigate("/accent")}
+            right={
+              <span
+                aria-hidden="true"
+                className="h-7 w-7 rounded-full border flex items-center justify-center"
+                style={{
+                  background: "var(--tcy-selected-accent)",
+                  borderColor: "var(--tcy-glass-line)",
+                  boxShadow: "0 0 0 3px color-mix(in srgb, var(--tcy-selected-accent) 18%, transparent)",
+                }}
+              >
+                <Check size={14} strokeWidth={3} color="var(--tcy-selected-on-accent)" />
+              </span>
+            }
+          />
+          <SettingsRow
+            icon={<Type size={17} />}
+            title="Шрифт"
+            subtitle="Толщина текста и пример переписки"
+            onClick={() => navigate("/font")}
+          />
+        )}
       </SettingsGroup>
 
       <SettingsGroup title="Уведомления">
@@ -229,6 +233,7 @@ export default function Settings() {
         />
       </SettingsGroup>
 
+      {isPrivateRelease && (
       <SettingsGroup title="Почта для восстановления">
         <SettingsRow
           icon={<Mail size={17} />}
@@ -269,6 +274,9 @@ export default function Settings() {
         </div>
       </SettingsGroup>
 
+      )}
+
+      {isPrivateRelease && (
       <SettingsGroup title="Безопасность аккаунта">
         <SettingsRow
           icon={<KeyRound size={17} />}
@@ -359,6 +367,8 @@ export default function Settings() {
         )}
       </SettingsGroup>
 
+      )}
+
       <SettingsGroup title="Приватность">
         <SettingsRow
           icon={<Eye size={17} />}
@@ -416,6 +426,7 @@ export default function Settings() {
         />
       </SettingsGroup>
 
+      {isPrivateRelease && (
       <SettingsGroup title="Данные">
         <SettingsRow
           icon={<Database size={17} />}
@@ -426,6 +437,9 @@ export default function Settings() {
         <SettingsRow icon={<Globe size={17} />} title="Мой язык" subtitle="Создать, изменить и сохранить свой язык" onClick={() => navigate("/language")} />
       </SettingsGroup>
 
+      )}
+
+      {isPrivateRelease && (
       <SettingsGroup title="Сезонное">
         <SettingsRow
           icon={<Ghost size={17} />}
@@ -434,6 +448,8 @@ export default function Settings() {
           onClick={() => navigate("/halloween")}
         />
       </SettingsGroup>
+
+      )}
 
       <SettingsGroup title="О приложении">
         <SettingsRow
