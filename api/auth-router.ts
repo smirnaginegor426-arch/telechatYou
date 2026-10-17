@@ -36,7 +36,7 @@ import {
 } from "./lib/recovery-secret";
 import { createUser, findUserByUsername, touchLastSignIn } from "./queries/users";
 import { env } from "./lib/env";
-import { isEmailDeliveryConfigured, sendEmailCode } from "./lib/email-service";
+import { isEmailDeliveryConfigured, sendEmailCode, EmailDeliveryError } from "./lib/email-service";
 
 const usernameSchema = z.string().trim().regex(/^[a-zA-Z0-9_]{3,32}$/, "Имя пользователя: 3–32 символа, латиница, цифры и _");
 const passwordSchema = z.string().min(8, "Пароль должен содержать минимум 8 символов").max(128, "Пароль слишком длинный");
@@ -51,6 +51,27 @@ const emailCodeSchema = z.string().regex(/^\d{6}$/, "Код должен сос�
 
 function createEmailCode(): string {
   return randomInt(0, 1_000_000).toString().padStart(6, "0");
+}
+
+/** Turns a provider rejection into a short, actionable message for the owner. */
+function emailDeliveryErrorMessage(cause: unknown): string {
+  if (cause instanceof EmailDeliveryError) {
+    const reason = cause.reason.toLowerCase();
+    if (cause.status === 401 || cause.status === 403) {
+      if (reason.includes("domain") || reason.includes("not verified") || reason.includes("verify")) {
+        return "Resend отклонил отправку: домен отправителя не подтверждён. Подтверди домен в Resend или укажи EMAIL_FROM с адресом onboarding@resend.dev.";
+      }
+      return `Resend отклонил запрос (${cause.status}). Проверь правильность RESEND_API_KEY.`;
+    }
+    if (cause.status === 422) {
+      return "Resend отклонил данные письма. Проверь адрес EMAIL_FROM.";
+    }
+    if (cause.status === 429) {
+      return "Resend ограничил частоту отправки. Попробуй позже.";
+    }
+    return `Resend вернул ошибку ${cause.status}. Проверь настройки почтового сервиса.`;
+  }
+  return "Не удалось отправить письмо. Попробуй ещё раз позже.";
 }
 
 function hashEmailCode(userId: number, email: string, purpose: "link" | "password_reset", code: string): string {
@@ -232,7 +253,7 @@ export const authRouter = createRouter({
 
       try {
         await sendEmailCode(email, code, "link");
-      } catch {
+      } catch (cause) {
         await db.update(emailVerificationCodes)
           .set({ usedAt: new Date() })
           .where(and(
@@ -241,7 +262,7 @@ export const authRouter = createRouter({
             eq(emailVerificationCodes.purpose, "link"),
             isNull(emailVerificationCodes.usedAt),
           ));
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Не удалось отправить письмо. Попробуй ещё раз позже." });
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: emailDeliveryErrorMessage(cause) });
       }
 
       return { success: true, alreadyVerified: false, expiresAt: expiresAt.toISOString() };

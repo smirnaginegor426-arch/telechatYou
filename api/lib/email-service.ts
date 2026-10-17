@@ -1,5 +1,19 @@
 type EmailPurpose = "link" | "password_reset";
 
+/** Thrown when the email provider rejects the request. Carries the provider
+ * status and a safe human-readable reason (never credentials). */
+export class EmailDeliveryError extends Error {
+  status: number;
+  reason: string;
+
+  constructor(status: number, reason: string) {
+    super(`Email delivery failed (${status}): ${reason}`);
+    this.name = "EmailDeliveryError";
+    this.status = status;
+    this.reason = reason;
+  }
+}
+
 export function isEmailDeliveryConfigured(): boolean {
   return Boolean(
     process.env.RESEND_API_KEY?.trim() &&
@@ -60,9 +74,17 @@ export async function sendEmailCode(
   });
 
   if (!response.ok) {
-    // Do not expose the provider response or credentials through the UI.
-    const providerMessage = await response.text().catch(() => "");
-    console.error("Transactional email delivery failed", response.status, providerMessage.slice(0, 500));
-    throw new Error("Email delivery failed");
+    // Keep the provider reason for diagnostics, but never expose credentials.
+    const raw = await response.text().catch(() => "");
+    let reason = raw.trim();
+    try {
+      const parsed = JSON.parse(raw) as { message?: string; error?: string };
+      reason = parsed.message ?? parsed.error ?? reason;
+    } catch {
+      /* provider did not return JSON */
+    }
+    reason = reason.slice(0, 300);
+    console.error("Transactional email delivery failed", response.status, reason.slice(0, 500));
+    throw new EmailDeliveryError(response.status, reason);
   }
 }
