@@ -176,6 +176,7 @@ export default function Settings() {
         />
 
         {isPrivateRelease && (
+          <>
           <SettingsRow
             icon={<Palette size={17} />}
             title="Акцент"
@@ -201,6 +202,7 @@ export default function Settings() {
             subtitle="Толщина текста и пример переписки"
             onClick={() => navigate("/font")}
           />
+          </>
         )}
       </SettingsGroup>
 
