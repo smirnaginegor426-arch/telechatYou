@@ -13,6 +13,15 @@ import { ensurePinnedMessageSchema } from "./lib/pinned-message-schema";
 import { ensureUserCustomDataSchema } from "./lib/user-custom-data-schema";
 import { ensureUserBlocksSchema } from "./lib/user-blocks-schema";
 import { ensureEmailVerificationSchema } from "./lib/email-verification-schema";
+import { emailDeliveryConfigSummary, isEmailDeliveryConfigured } from "./lib/email-service";
+
+// Make email configuration problems obvious in the server logs at startup.
+if (!isEmailDeliveryConfigured()) {
+  console.warn(
+    `[email] Delivery is NOT configured (${emailDeliveryConfigSummary()}). ` +
+      "Email verification and password recovery will be disabled until both values are set.",
+  );
+}
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 

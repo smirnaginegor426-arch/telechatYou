@@ -21,6 +21,13 @@ export function isEmailDeliveryConfigured(): boolean {
   );
 }
 
+/** Safe, value-free summary of which email variables are present, for logs. */
+export function emailDeliveryConfigSummary(): string {
+  const hasKey = Boolean(process.env.RESEND_API_KEY?.trim());
+  const hasFrom = Boolean(process.env.EMAIL_FROM?.trim());
+  return `RESEND_API_KEY=${hasKey ? "set" : "MISSING"}, EMAIL_FROM=${hasFrom ? "set" : "MISSING"}`;
+}
+
 export async function sendEmailCode(
   recipient: string,
   code: string,
