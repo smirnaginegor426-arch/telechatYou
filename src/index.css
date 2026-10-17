@@ -1006,3 +1006,9 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
 .tcy-settings-panel > .tcy-settings-item:only-child {
   border-radius: 27px !important;
 }
+
+
+/* Remove Tailwind's divider borders between chat rows; keep each row's own outline. */
+.tcy-chat-list-scroll .divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-top-width: 0 !important;
+}
