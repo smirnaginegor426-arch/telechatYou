@@ -1,22 +1,8 @@
-import { trpc } from "@/providers/trpc";
-
 /**
- * Preview access is decided by the server from the signed-in account.
- * Never grant preview access based on query parameters or local storage.
+ * The experimental plush/child-oriented interface has been retired.
+ * Keep this compatibility hook returning a disabled state for existing
+ * components until their old conditional branches are cleaned up.
  */
-export function useTesterMode(options: { enabled?: boolean } = {}) {
-  const queryEnabled = options.enabled ?? true;
-  const access = trpc.experimentalAccess.useQuery(undefined, {
-    enabled: queryEnabled,
-    retry: false,
-    staleTime: 30_000,
-    refetchOnWindowFocus: true,
-  });
-
-  const enabled = access.data?.enabled === true;
-  return {
-    isTester: enabled,
-    enabled,
-    isLoading: queryEnabled && access.isLoading,
-  };
+export function useTesterMode(_options: { enabled?: boolean } = {}) {
+  return { isTester: false, enabled: false, isLoading: false };
 }
