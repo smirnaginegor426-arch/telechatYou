@@ -4,6 +4,7 @@
  */
 const TESTERS = [
   { username: "artemizzz", userId: 848009 },
+  { username: "amongopin", userId: 1573622 },
 ] as const;
 
 export function isTesterUsername(
