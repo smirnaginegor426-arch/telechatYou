@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none">
+  <circle cx="150" cy="150" r="137" stroke="#4A2767" stroke-width="3.5"/>
+  <circle cx="150" cy="150" r="126" stroke="#251238" stroke-width="25"/>
+  <circle cx="150" cy="150" r="109" stroke="#FF8E2B" stroke-width="2.5"/>
+  <circle cx="150" cy="150" r="119" stroke="#C65E29" stroke-width="2.5" stroke-dasharray="2 11" stroke-linecap="round"/>
+  <g transform="translate(58 48)">
+    <path d="M-25 -8 0 -34 11 -8Z" fill="#442467"/><path d="M-27 -10Q0 -19 23 -10L14 -2H-20Z" fill="#623A9B"/>
+    <rect x="-8" y="-12" width="17" height="4" rx="1" fill="#FF9A2E"/>
+    <path d="M-14 7Q-20 22 -13 34L-7 26 0 35 8 27 13 32Q19 16 10 5Z" fill="#F7F0FF"/>
+    <circle cx="-6" cy="16" r="3" fill="#251238"/><circle cx="7" cy="16" r="3" fill="#251238"/><ellipse cy="24" rx="3" ry="4" fill="#251238"/>
+  </g>
+  <g transform="translate(209 36)" fill="#D8C4FA">
+    <path d="M-25 0Q-13 -15 0 -4Q14 -15 25 0Q12 -4 10 6Q2 1 0 9Q-3 1 -12 6Q-15 -4 -25 0Z"/>
+  </g>
+  <g transform="translate(245 54)" stroke="#D7C6F8" stroke-width="2" stroke-linecap="round">
+    <path d="M0 -7V-25M0 -7-17 -15M0 -7 17 -15M0 -7-19 0M0 -7 19 0M0 -7-11 12M0 -7 11 12"/>
+    <circle cy="-7" r="6" fill="#D4BDF5" stroke="none"/>
+  </g>
+  <g transform="translate(54 216)" fill="#D5C1F6">
+    <path d="M-27 0Q-15 -14 0 -4Q15 -14 27 0Q12 -3 10 8Q2 2 0 10Q-3 2 -13 8Q-16 -3 -27 0Z"/>
+  </g>
+  <g transform="translate(53 255) rotate(-20)">
+    <path d="M-13 -20H13L7 -7H-7Z" fill="#FFFFFF"/><path d="M-7 -7H7L3 6H-3Z" fill="#FFD64A"/><path d="M-3 6H3L8 19H-8Z" fill="#FF8D1F"/><path d="M-13 -20H13L8 19H-8Z" stroke="#4A2767" stroke-width="1.8" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(239 236)">
+    <path d="M-23 -7Q-29 -26 -12 -28Q-3 -38 2 -27Q22 -25 19 -7L18 10Q1 29 -18 10Z" fill="#FF861C" stroke="#4A2767" stroke-width="2.5"/>
+    <path d="M-3 -27Q-7 -38 1 -41Q5 -31 2 -25" fill="#54B84A" stroke="#4A2767" stroke-width="2"/>
+    <path d="M-13 -9Q-19 -15 -20 -8L-11 -1ZM11 -9Q17 -15 18 -8L9 -1Z" fill="#FFE65B"/>
+    <path d="M-13 3Q-2 18 12 3L8 13H-9Z" fill="#FFE65B"/><path d="M-8 7V11M0 8V14M7 7V11" stroke="#4A2767" stroke-width="1.8"/>
+  </g>
+</svg>
