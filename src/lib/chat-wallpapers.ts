@@ -37,4 +37,30 @@ export function isChatWallpaperId(value: string | null): value is ChatWallpaperI
   return CHAT_WALLPAPERS.some((wallpaper) => wallpaper.id === value);
 }
 
+/**
+ * Wallpapers introduced by the private experimental refresh. They stay hidden
+ * from the wallpaper picker for accounts that are not the configured tester,
+ * so only that account can select (and therefore display) them.
+ */
+const EXPERIMENTAL_WALLPAPER_IDS: ReadonlySet<string> = new Set([
+  "sand",
+  "sage",
+  "ocean",
+  "plum",
+  "rose",
+  "slate",
+  "mint",
+  "cocoa",
+  "pattern-sky",
+  "pattern-emerald",
+  "pattern-lavender",
+  "pattern-sunset",
+  "pattern-coral",
+  "pattern-teal",
+]);
+
+export function isExperimentalWallpaper(id: string): boolean {
+  return EXPERIMENTAL_WALLPAPER_IDS.has(id);
+}
+
 export const CHAT_WALLPAPER_CHANGE_EVENT = "tcy:chat-wallpaper-change";

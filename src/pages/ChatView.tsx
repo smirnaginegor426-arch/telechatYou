@@ -46,7 +46,9 @@ import {
   DEFAULT_CHAT_WALLPAPER,
   chatWallpaperImageKey,
   chatWallpaperKey,
+  isExperimentalWallpaper,
 } from "@/lib/chat-wallpapers";
+import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 type LocalPinnedSnapshot = {
   id: number;
   kind: string;
@@ -185,6 +187,9 @@ export default function ChatView() {
   const me = trpc.profile.me.useQuery(undefined, { staleTime: 60_000 });
   const myId = me.data?.profile?.userId ?? 0;
   myIdRef.current = myId;
+  // Calm-refresh details (divider spacing, experimental wallpapers) are gated
+  // to the private tester account; everyone else keeps the stable look.
+  const { enabled: experimentalUI } = useExperimentalUI();
 
   const info = trpc.chats.info.useQuery({ chatId }, { refetchInterval: 8000 });
   const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
@@ -813,7 +818,9 @@ export default function ChatView() {
           aria-hidden="true"
           className={cn(
             "tcy-wallpaper",
-            wallpaper !== "custom" && `tcy-wallpaper-bg--${wallpaper}`,
+            wallpaper !== "custom" &&
+              // Experimental wallpapers fall back to the default for stable accounts.
+              `tcy-wallpaper-bg--${experimentalUI || !isExperimentalWallpaper(wallpaper) ? wallpaper : DEFAULT_CHAT_WALLPAPER}`,
           )}
           style={
             wallpaper === "custom" && wallpaperImage
@@ -866,8 +873,10 @@ export default function ChatView() {
               return (
                 <div key={m.id}>
                   {dayBreak && (
-                    <div className="flex justify-center my-4">
-                      <span className="text-[11.5px] font-semibold tcy-dim tcy-header-blur border tcy-line px-3.5 py-1.5 rounded-full">
+                    <div className={experimentalUI ? "flex justify-center my-4" : "flex justify-center my-3"}>
+                      <span className={experimentalUI
+                        ? "text-[11.5px] font-semibold tcy-dim tcy-header-blur border tcy-line px-3.5 py-1.5 rounded-full"
+                        : "text-[11.5px] font-bold tcy-dim tcy-header-blur border tcy-line px-3.5 py-1.5 rounded-full"}>
                         {formatDayLabel(m.createdAt)}
                       </span>
                     </div>
@@ -899,6 +908,7 @@ export default function ChatView() {
                       setEditing(null);
                       setActionMsg(null);
                     }}
+                    experimental={experimentalUI}
                   />
                 </div>
               );

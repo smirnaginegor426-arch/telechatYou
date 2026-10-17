@@ -11,6 +11,7 @@ import { Logo } from "@/components/Logo";
 import { ConnectionLoader } from "@/components/ConnectionLoader";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
 import { useTesterMode } from "@/hooks/useTesterMode";
+import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
 import Welcome from "@/pages/Welcome";
 import WelcomeLegacy from "@/pages/WelcomeLegacy";
@@ -251,6 +252,20 @@ export default function App() {
       delete root.dataset.tcyPlush;
     }
   }, [isPrivateTester]);
+
+  // Marks the document so the private experimental look (calm bubbles, new
+  // wallpapers, tabbed settings) applies only to the configured tester
+  // account. Everyone else falls back to the stable styles in index.css.
+  const { enabled: experimentalUI } = useExperimentalUI({ enabled: isAuthenticated });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (experimentalUI) {
+      root.dataset.tcyExperimental = "true";
+    } else {
+      delete root.dataset.tcyExperimental;
+    }
+  }, [experimentalUI]);
 
 
   const maintenanceUser = trpc.profile.me.useQuery(undefined, {

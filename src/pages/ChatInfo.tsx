@@ -36,6 +36,7 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
 import { useFileUrl } from "@/hooks/useFileUrl";
+import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 import { fileToBase64, formatFileSize, isOnline } from "@/lib/format";
 import {
   CHAT_WALLPAPERS,
@@ -44,6 +45,7 @@ import {
   chatWallpaperImageKey,
   chatWallpaperKey,
   isChatWallpaperId,
+  isExperimentalWallpaper,
 } from "@/lib/chat-wallpapers";
 
 function readWallpaper(chatId: number) {
@@ -106,6 +108,8 @@ export default function ChatInfo() {
   const blockStatus = trpc.chats.blockStatus.useQuery({ chatId }, { enabled: Number.isSafeInteger(chatId) && chatId > 0 });
   const me = trpc.profile.me.useQuery();
   const myId = me.data?.profile?.userId;
+  // Experimental wallpapers are only offered to the configured tester account.
+  const { enabled: experimentalUI } = useExperimentalUI();
 
   const [addOpen, setAddOpen] = useState(false);
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
@@ -511,7 +515,9 @@ export default function ChatInfo() {
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          {CHAT_WALLPAPERS.map((item) => (
+          {CHAT_WALLPAPERS.filter(
+            (item) => experimentalUI || !isExperimentalWallpaper(item.id),
+          ).map((item) => (
             <button
               type="button"
               key={item.id}

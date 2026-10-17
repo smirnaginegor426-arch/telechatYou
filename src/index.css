@@ -702,6 +702,67 @@ body,
   color: var(--tcy-text);
 }
 
+/* ===== Stable look for non-test accounts =====
+   The calm conversation refresh (soft accent-tinted outgoing bubbles, lighter
+   message weight, gentler glass and shadows) is a private experimental change.
+   Accounts without data-tcy-experimental keep the previous stable appearance:
+   bright accent-fill outgoing bubbles with on-accent text, the original glass
+   treatment, and the app's default message weight. applyTheme writes the
+   bubble tokens inline, so these overrides use !important to win for everyone
+   outside the experimental group; the tester account keeps the calm refresh. */
+html:not([data-tcy-experimental="true"]) {
+  --tcy-bubble-own-fg: var(--tcy-on-accent) !important;
+  --tcy-bubble-own-muted: color-mix(in srgb, var(--tcy-on-accent) 62%, transparent) !important;
+  --tcy-bubble-own-line: color-mix(in srgb, var(--tcy-accent) 72%, rgba(255, 255, 255, 0.28)) !important;
+  --tcy-bubble-own-bg: var(--tcy-accent) !important;
+}
+
+/* The old incoming-bubble surface is theme dependent. */
+html[data-theme="dark"]:not([data-tcy-experimental="true"]) {
+  --tcy-bubble-in: rgba(244, 244, 245, 0.045) !important;
+}
+html[data-theme="light"]:not([data-tcy-experimental="true"]) {
+  --tcy-bubble-in: rgba(24, 24, 27, 0.045) !important;
+}
+
+/* Regular outgoing bubbles were a bright accent gradient before the refresh. */
+html:not([data-tcy-experimental="true"]) .tcy-glass-own {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--tcy-accent) 88%, rgba(255, 255, 255, 0.2)),
+    color-mix(in srgb, var(--tcy-accent-deep) 92%, transparent)
+  ) !important;
+}
+
+/* Original glass treatment: deeper blur/saturation with inset highlights. */
+html:not([data-tcy-experimental="true"]) .tcy-glass-own,
+html:not([data-tcy-experimental="true"]) .tcy-glass-peer {
+  -webkit-backdrop-filter: blur(18px) saturate(1.65) !important;
+  backdrop-filter: blur(18px) saturate(1.65) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.17),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.045),
+    0 8px 22px -18px color-mix(in srgb, var(--tcy-accent) 72%, transparent) !important;
+}
+
+/* Original incoming bubble border used the glass line, not the plain line. */
+html:not([data-tcy-experimental="true"]) .tcy-glass-peer {
+  border-color: var(--tcy-glass-line) !important;
+}
+
+/* Original soft drop shadow. */
+html:not([data-tcy-experimental="true"]) .tcy-shadow-soft {
+  box-shadow: 0 8px 32px -12px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Message bodies kept the app's default (bolder, tighter) weight before the
+   refresh; the utilities on the element lose to this stable override. */
+html:not([data-tcy-experimental="true"]) #root .tcy-msg-body {
+  font-weight: var(--tcy-font-weight, 750) !important;
+  letter-spacing: -0.006em;
+  line-height: 1.4 !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html, body, .tcy-app-shell, .tcy-bg, .tcy-bg-2,
   .tcy-card, .tcy-card-strong, .tcy-solid, .tcy-solid-2,

@@ -157,6 +157,7 @@ export function MessageBubble({
   highlighted = false,
   selected = false,
   selectionMode = false,
+  experimental = false,
 }: {
   m: MessageItem;
   own: boolean;
@@ -175,6 +176,8 @@ export function MessageBubble({
   highlighted?: boolean;
   selected?: boolean;
   selectionMode?: boolean;
+  /** Private experimental spacing (calm refresh); stable accounts keep the old metrics. */
+  experimental?: boolean;
 }) {
   const imgUrl = useFileUrl(m.kind === "image" ? m.attachmentKey : null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
@@ -286,7 +289,7 @@ export function MessageBubble({
     return (
       <div
         className={cn(
-          "flex px-4 my-[4px]",
+          experimental ? "flex px-4 my-[4px]" : "flex px-4 my-[3px]",
           own ? "justify-end" : "justify-start",
         )}
       >
@@ -342,7 +345,7 @@ export function MessageBubble({
       onPointerUp={finishSwipe}
       onPointerCancel={finishSwipe}
       className={cn(
-        "relative flex px-3 my-[4px] w-full overflow-visible touch-pan-y",
+        experimental ? "relative flex px-3 my-[4px] w-full overflow-visible touch-pan-y" : "relative flex px-3 my-[3px] w-full overflow-visible touch-pan-y",
         own ? "justify-end" : "justify-start",
         highlighted && "tcy-message-highlight",
       )}
@@ -412,7 +415,11 @@ export function MessageBubble({
           onDoubleClick={() => { if (!selectionMode) onReaction(m, "❤️"); }}
           className={cn(
             "relative select-none cursor-default tcy-no-select",
-            isImage || isPoll || isStickerMessage || hasMediaCaption ? "p-0 border-0 bg-transparent shadow-none" : "px-4 py-2.5",
+            isImage || isPoll || isStickerMessage || hasMediaCaption
+              ? "p-0 border-0 bg-transparent shadow-none"
+              : experimental
+                ? "px-4 py-2.5"
+                : "px-3.5 py-2.5",
             !isImage && !isPoll && !isStickerMessage && !hasMediaCaption &&
               (own
                 ? "tcy-glass-own rounded-[22px] rounded-br-[8px]"
