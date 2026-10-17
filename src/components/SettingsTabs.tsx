@@ -27,7 +27,7 @@ export function SettingsTabs({
   onChange: (id: SettingsTabId) => void;
 }) {
   return (
-    <div className="relative z-20 shrink-0 border-t tcy-line tcy-header-blur px-4 pt-2.5 pb-[calc(64px+env(safe-area-inset-bottom))]">
+    <div className="relative z-10">
       <div
         role="tablist"
         aria-label="Разделы настроек"

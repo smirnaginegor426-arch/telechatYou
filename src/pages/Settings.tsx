@@ -139,14 +139,7 @@ export default function Settings() {
   );
 
   return (
-    <div className="tcy-settings-page relative h-full flex flex-col">
-      <div
-        className={
-          experimentalUI
-            ? "flex-1 min-h-0 overflow-y-auto no-scrollbar pb-4"
-            : "flex-1 min-h-0 overflow-y-auto no-scrollbar pb-32"
-        }
-      >
+    <div className="tcy-settings-page relative h-full overflow-y-auto no-scrollbar pb-32">
       <header className="relative z-10 px-5 pt-5 safe-top pb-3">
         <h1 className="text-[24px] font-extrabold tcy-text">Настройки</h1>
       </header>
@@ -157,8 +150,7 @@ export default function Settings() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22, ease: "easeOut" }}
       >
-      {/* account card */}
-      {tab === "account" && (
+      {/* account card (вкладки разделов — сразу под профилем) */}
       <div className="mx-4 mb-5 rounded-[24px] tcy-card border tcy-line p-4 flex items-center gap-4">
         <Avatar
           name={me.data?.profile?.displayName ?? "?"}
@@ -177,6 +169,12 @@ export default function Settings() {
         </div>
         <UserRound size={18} className="tcy-faint" />
       </div>
+
+      {/* разделы настроек — обычный блок на экране, как остальные секции */}
+      {experimentalUI && (
+        <div className="px-4 pb-5">
+          <SettingsTabs value={tab} onChange={setTab} />
+        </div>
       )}
 
       <SettingsGroup title="Внешний вид" hidden={tab !== "appearance"}>
@@ -530,10 +528,6 @@ export default function Settings() {
       <p className="text-center text-[11px] tcy-faint pt-2">
         TeleChatYou · сделано с любовью к общению
       </p>
-      </div>
-
-      {/* разделы настроек внизу экрана (тестовый режим) */}
-      {experimentalUI && <SettingsTabs value={tab} onChange={setTab} />}
 
       {/* about */}
       <BottomSheet open={aboutOpen} onClose={() => setAboutOpen(false)} title="О TeleChatYou">
