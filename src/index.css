@@ -977,3 +977,32 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Chat and Settings list geometry: first row rounded on top, middle rows square,
+   final row rounded on the bottom. Keep the existing colors and surfaces. */
+.tcy-chat-list-scroll > .divide-y > div > .tcy-chat-list-item {
+  border-radius: 0 !important;
+}
+.tcy-chat-list-scroll > .divide-y > div:first-child > .tcy-chat-list-item {
+  border-radius: 22px 22px 0 0 !important;
+}
+.tcy-chat-list-scroll > .divide-y > div:last-child > .tcy-chat-list-item {
+  border-radius: 0 0 22px 22px !important;
+}
+.tcy-chat-list-scroll > .divide-y > div:only-child > .tcy-chat-list-item {
+  border-radius: 22px !important;
+}
+
+.tcy-settings-panel > .tcy-settings-item {
+  border-radius: 0 !important;
+}
+.tcy-settings-panel > .tcy-settings-item:first-child {
+  border-radius: 27px 27px 0 0 !important;
+}
+.tcy-settings-panel > .tcy-settings-item:last-child {
+  border-radius: 0 0 27px 27px !important;
+}
+.tcy-settings-panel > .tcy-settings-item:only-child {
+  border-radius: 27px !important;
+}
