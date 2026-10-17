@@ -6,6 +6,7 @@ import { MessageCircle, Users, UserRound, Settings2, Sparkles } from "lucide-rea
 import { useTesterMode } from "@/hooks/useTesterMode";
 import { cn } from "@/lib/utils";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
+import { usePrivateReleaseAccess } from "@/hooks/usePrivateReleaseAccess";
 
 const tabs = [
   { to: "/", label: "Чаты", icon: MessageCircle, plushEmoji: "💌" },
@@ -28,6 +29,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const navigate = useNavigate();
   const deviceMode = useDeviceMode();
   const { enabled: isPrivateTester } = useTesterMode();
+  const { enabled: isPrivateRelease } = usePrivateReleaseAccess();
   const [dragTarget, setDragTarget] = useState<string | null>(null);
   const gestureRef = useRef<Gesture | null>(null);
   const longPressTimer = useRef<number | null>(null);
@@ -156,6 +158,66 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   };
 
   if (hidden) return null;
+
+  // Public accounts stay on the original, simple navigation while the newer
+  // animated navigation is released only to the private test accounts.
+  if (!isPrivateRelease) {
+    return (
+      <nav
+        aria-label="Основная навигация"
+        className="absolute bottom-0 left-0 right-0 z-30 safe-bottom"
+      >
+        <div className="mx-4 mb-3 rounded-[26px] tcy-header-blur border tcy-line tcy-shadow-soft">
+          <div className="grid grid-cols-4 h-[64px]">
+            {tabs.map(({ to, label, icon: Icon }) => {
+              const active = activeTo === to;
+              return (
+                <button
+                  key={to}
+                  type="button"
+                  aria-label={label}
+                  aria-current={active ? "page" : undefined}
+                  onClick={() => navigate(to)}
+                  className="relative flex flex-col items-center justify-center gap-0.5"
+                >
+                  <span className="relative">
+                    <Icon
+                      size={22}
+                      strokeWidth={active ? 2.4 : 1.8}
+                      style={{ color: active ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
+                    />
+                    {to === "/" && unreadTotal > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full tcy-gradient-accent text-[10px] font-bold flex items-center justify-center"
+                        style={{ color: "var(--tcy-on-accent)" }}
+                      >
+                        {unreadTotal > 99 ? "99+" : unreadTotal}
+                      </motion.span>
+                    )}
+                  </span>
+                  <span
+                    className="text-[10.5px] font-semibold"
+                    style={{ color: active ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
+                  >
+                    {label}
+                  </span>
+                  {active && (
+                    <motion.span
+                      layoutId="tcy-tab-orb-legacy"
+                      className="absolute -bottom-[1px] w-8 h-[3px] rounded-full tcy-gradient-accent"
+                      transition={{ type: "spring", stiffness: 500, damping: 36 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav
