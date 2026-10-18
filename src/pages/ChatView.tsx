@@ -609,7 +609,8 @@ export default function ChatView() {
           </button>
           <button
             onClick={() => navigate(`/chat/${chatId}/info`)}
-            className="tcy-press tcy-glass-surface flex min-w-0 flex-1 items-center gap-2.5 rounded-[20px] px-2.5 py-2 text-left"
+            className="tcy-press tcy-glass-surface flex min-w-0 flex-1 items-center gap-2.5 rounded-full px-2.5 py-2 text-left"
+            style={{ borderRadius: 9999 }}
           >
             <Avatar
               name={title}
