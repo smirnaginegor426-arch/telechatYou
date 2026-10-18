@@ -582,7 +582,7 @@ export function MessageBubble({
                 <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                   <MessageText text={m.body ?? ""} />
                 </p>
-                {experimental && <LinkPreview text={m.body ?? ""} own={own} enabled />}
+                <LinkPreview text={m.body ?? ""} own={own} enabled />
                 <MessageMeta
                   m={m}
                   own={own}
@@ -639,7 +639,7 @@ export function MessageBubble({
                 <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                   <MessageText text={m.body} />
                 </p>
-                {experimental && <LinkPreview text={m.body ?? ""} own={own} enabled />}
+                <LinkPreview text={m.body ?? ""} own={own} enabled />
                 <MessageMeta
                   m={m}
                   own={own}
@@ -654,7 +654,7 @@ export function MessageBubble({
                 <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                   <MessageText text={m.body} />
                 </p>
-                {experimental && <LinkPreview text={m.body ?? ""} own={own} enabled />}
+                <LinkPreview text={m.body ?? ""} own={own} enabled />
               </>
             )
           )}
