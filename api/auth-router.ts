@@ -19,7 +19,7 @@ import {
 } from "./lib/session";
 import { hashPassword, verifyPassword } from "./lib/passwords";
 import { and, desc, eq, gt, isNotNull, isNull, lt, sql } from "drizzle-orm";
-import { channels, emailVerificationCodes, profiles, recoveryCodes, recoverySecrets, users } from "@db/schema";
+import { accountSecurityPasswords, channels, emailVerificationCodes, profiles, recoveryCodes, recoverySecrets, users } from "@db/schema";
 import { getDb } from "./queries/connection";
 import { assertRateLimit, affectedRows } from "./lib/rate-limit";
 import {
@@ -37,6 +37,7 @@ import {
 import { createUser, findUserByUsername, touchLastSignIn } from "./queries/users";
 import { env } from "./lib/env";
 import { isEmailDeliveryConfigured, sendEmailCode, EmailDeliveryError } from "./lib/email-service";
+import { ensureAccountSecurityPasswordSchema } from "./lib/account-security-password-schema";
 
 const usernameSchema = z.string().trim().regex(/^[a-zA-Z0-9_]{3,32}$/, "Имя пользователя: 3–32 символа, латиница, цифры и _");
 const passwordSchema = z.string().min(8, "Пароль должен содержать минимум 8 символов").max(128, "Пароль слишком длинный");
@@ -162,6 +163,63 @@ function sessionMeta(req: Request) {
 
 export const authRouter = createRouter({
   me: authedQuery.query(({ ctx }) => ctx.user),
+  /** Status of the additional app/account security password; only the hashed value is stored. */
+  accountSecurityPasswordStatus: authedQuery.query(async ({ ctx }) => {
+    await ensureAccountSecurityPasswordSchema();
+    const saved = await getDb().query.accountSecurityPasswords.findFirst({
+      where: eq(accountSecurityPasswords.userId, ctx.user.id),
+    });
+    return {
+      configured: Boolean(saved),
+      format: saved?.passwordType ?? null,
+      createdAt: saved?.createdAt ?? null,
+    };
+  }),
+
+  /** Create or replace the additional security password for the current signed-in account. */
+  createAccountSecurityPassword: authedQuery
+    .input(z.object({
+      format: z.enum(["digital", "graphical"]),
+      password: z.string().min(1).max(64),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (input.format === "digital" && !/^\d{6}$/.test(input.password)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Цифровой пароль должен состоять ровно из 6 цифр.",
+        });
+      }
+      if (input.format === "graphical") {
+        const nodes = input.password.split("-");
+        if (
+          nodes.length < 4 ||
+          nodes.length > 9 ||
+          nodes.some((node) => !/^[1-9]$/.test(node)) ||
+          new Set(nodes).size !== nodes.length
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Графический ключ должен соединять от 4 до 9 разных точек.",
+          });
+        }
+      }
+
+      await ensureAccountSecurityPasswordSchema();
+      const passwordHash = await hashPassword(input.password);
+      await getDb().insert(accountSecurityPasswords).values({
+        userId: ctx.user.id,
+        passwordType: input.format,
+        passwordHash,
+      }).onDuplicateKeyUpdate({
+        set: {
+          passwordType: input.format,
+          passwordHash,
+          updatedAt: new Date(),
+        },
+      });
+      return { success: true, format: input.format };
+    }),
+
 
   /** Email is considered linked only after its owner enters a fresh one-time code. */
   emailStatus: authedQuery.query(async ({ ctx }) => {
