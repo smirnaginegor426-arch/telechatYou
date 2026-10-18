@@ -738,7 +738,7 @@ export default function Settings() {
           <UserRound size={18} className="tcy-faint" />
         </div>
 
-        <div className="mx-4 mb-5 flex flex-col gap-1">
+        <div className="mx-4 mb-5 flex flex-col gap-[1mm]">
           {SETTINGS_SECTIONS.map(({ id, title, subtitle, icon: Icon }, index) => {
             const open = section === id;
             return (
@@ -748,7 +748,7 @@ export default function Settings() {
                 <SettingsRow
                   style={{
                     borderRadius: sectionShapes[index % sectionShapes.length],
-                    padding: "11px 15px",
+                    padding: "10px 15px",
                   }}
                   icon={<Icon size={17} />}
                   title={title}
