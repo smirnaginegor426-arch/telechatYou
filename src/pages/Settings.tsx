@@ -80,13 +80,13 @@ function SectionBlock({
       style={{ background: "var(--tcy-card)", borderColor: "var(--tcy-line)" }}
     >
       <span
-        className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-full"
+        className="tcy-settings-item-icon flex shrink-0 items-center justify-center"
         style={{
           background: "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card-strong))",
           color: "var(--tcy-selected-accent)",
         }}
       >
-        <Icon size={30} strokeWidth={2} />
+        <Icon size={17} />
       </span>
 
       <span className="min-w-0 flex-1">
