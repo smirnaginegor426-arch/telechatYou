@@ -207,7 +207,13 @@ export default function AccountSecurityPassword() {
           {format === "digital" && (
             <div className="mb-6 flex items-center justify-center gap-2">
               {Array.from({ length: 6 }, (_, index) => (
-                <span key={index} className="h-3.5 w-3.5 rounded-full border-2" style={{ borderColor: "#2eae78", background: "#2eae78" }} />
+                <span
+                  key={index}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 text-[15px] font-bold"
+                  style={{ borderColor: "#2eae78", color: "#2eae78", background: "rgba(46,174,120,.08)" }}
+                >
+                  {firstValue[index] ?? ""}
+                </span>
               ))}
             </div>
           )}
@@ -275,7 +281,12 @@ export default function AccountSecurityPassword() {
                       background: entered.length > index ? (feedback === "error" ? "transparent" : "var(--tcy-card-strong)") : "transparent",
                     }}
                   >
-                    {entered.length > index && <span className="h-2.5 w-2.5 rounded-full" style={{ background: feedback === "error" ? "var(--tcy-danger)" : feedback === "success" ? "#2eae78" : "var(--tcy-selected-accent)" }} />}
+                    <span
+                      className="text-[14px] font-bold tabular-nums"
+                      style={{ color: feedback === "error" ? "var(--tcy-danger)" : feedback === "success" ? "#2eae78" : "var(--tcy-text)" }}
+                    >
+                      {entered[index] ?? ""}
+                    </span>
                   </span>
                 ))}
               </div>
