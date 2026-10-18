@@ -35,11 +35,12 @@ export function serveStaticFiles(app: App) {
   };
 
   // Browser navigations choose their application before static files are tried,
-  // so "/" cannot leak the current shell to a non-experimental account.
+  // so "/" cannot leak the current shell to a non-experimental account. Every
+  // HTML navigation is handled here, including /index.html, so the only way to
+  // reach a shell is through the session check below.
   app.use("*", async (c, next) => {
-    if (c.req.method !== "GET" && c.req.method !== "HEAD") return next();
+    if (c.req.method !== "GET") return next();
     if (!(c.req.header("accept") ?? "").includes("text/html")) return next();
-    if (new URL(c.req.url).pathname.endsWith(".html")) return next();
 
     const shell = await shellFor(c.req.raw.headers);
     if (!shell) return next();
