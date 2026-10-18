@@ -113,6 +113,7 @@ export default function ChatInfo() {
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
   const [editAvatarPreviewUrl, setEditAvatarPreviewUrl] = useState<string | null>(null);
   const [editIsPublic, setEditIsPublic] = useState(false);
@@ -268,6 +269,7 @@ export default function ChatInfo() {
           ...(avatarKey ? { avatarKey } : {}),
           isPublic: editIsPublic,
           username: editUsername.trim(),
+          description: editDescription.trim(),
         });
       } else {
         await updateGroup.mutateAsync({
@@ -417,6 +419,7 @@ export default function ChatInfo() {
                 setEditAvatarFile(null);
                 setEditIsPublic(channel?.isPublic ?? publicGroup?.isPublic ?? false);
                 setEditUsername(channel?.username ?? publicGroup?.username ?? "");
+                setEditDescription(channel?.description ?? publicGroup?.description ?? "");
                 setEditOpen(true);
               }}
               className="tcy-press h-10 px-4 rounded-full tcy-card border tcy-line text-[13px] font-bold tcy-accent"
@@ -917,6 +920,14 @@ export default function ChatInfo() {
                   className="w-full rounded-[18px] border tcy-line tcy-card px-4 py-3.5 text-[15px] tcy-text outline-none focus:border-[color:var(--tcy-accent)]"
                 />
               </section>
+
+              {hasCommunitySettings && (
+                <section className="space-y-2">
+                  <label htmlFor="tcy-edit-community-description" className="block text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">Описание</label>
+                  <textarea id="tcy-edit-community-description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} maxLength={280} rows={4} placeholder={channel ? "Описание канала" : "Описание группы"} className="w-full resize-none rounded-[18px] border tcy-line tcy-card px-4 py-3.5 text-[14px] leading-relaxed tcy-text outline-none focus:border-[color:var(--tcy-accent)]" />
+                  <p className="text-right text-[11px] tcy-faint">{editDescription.length}/280</p>
+                </section>
+              )}
 
               {hasCommunitySettings && (
                 <section className="space-y-3">
