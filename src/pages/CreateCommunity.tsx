@@ -223,24 +223,28 @@ function SimpleChannelWizard() {
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         {/* размытый водяной знак «TeleChatYou» по всему фону экрана создания */}
         <div
-          className="absolute -left-1/2 -top-1/2 w-[300%] h-[300%] flex flex-col items-center justify-center gap-7"
+          className="absolute -left-1/2 -top-1/2 w-[300%] h-[300%]"
           style={{
             transform: "rotate(-22deg)",
             transformOrigin: "center",
-            opacity: 0.14,
-            filter: "blur(6px)",
+            opacity: 0.18,
+            filter: "blur(3px)",
             color: "var(--tcy-text)",
           }}
         >
-          {[...Array(16)].map((_, row) => (
-            <div key={row} className="flex gap-20">
-              {[...Array(8)].map((_, col) => (
-                <span key={col} className="text-[64px] font-black whitespace-nowrap select-none">
+          <svg className="h-full w-full" aria-hidden="true">
+            <defs>
+              <pattern id="tcy-create-watermark" width="400" height="110" patternUnits="userSpaceOnUse">
+                <text x="14" y="48" fontSize="28" fontWeight="900" fill="currentColor">
                   TeleChatYou
-                </span>
-              ))}
-            </div>
-          ))}
+                </text>
+                <text x="214" y="100" fontSize="28" fontWeight="900" fill="currentColor">
+                  TeleChatYou
+                </text>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#tcy-create-watermark)" />
+          </svg>
         </div>
         {backgroundShapes.map((shape, index) => (
           <motion.span
