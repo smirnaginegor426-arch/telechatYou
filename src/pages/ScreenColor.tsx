@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { applyScreenColor, getSavedScreenColor, SCREEN_COLORS, type ScreenColorId } from "@/lib/screen-colors";
 
