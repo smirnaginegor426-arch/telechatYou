@@ -609,6 +609,8 @@ export function Composer({
                       onContextMenu={(e) => e.preventDefault()}
                       className="tcy-press tcy-glass-surface absolute inset-0 flex items-center justify-center rounded-full touch-none select-none"
                       style={{
+                        position: "absolute",
+                        inset: 0,
                         background: recording ? "var(--tcy-danger)" : undefined,
                         color: recording ? "#fff" : "var(--tcy-dim)",
                       }}
