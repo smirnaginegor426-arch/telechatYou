@@ -63,16 +63,23 @@ type SettingsSectionId =
 /** Фигурные блоки вкладок: 1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх; далее цикл. */
 const sectionShapes = ["22px 22px 0px 0px", "9px", "0px 0px 22px 22px"];
 
-const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; heading: string; subtitle: string; icon: LucideIcon }[] = [
-  { id: "appearance", title: "Внешний вид", heading: "Оформление", subtitle: "Тема, акцент и шрифт", icon: Palette },
-  { id: "notifications", title: "Уведомления", heading: "Уведомления", subtitle: "Звук и превью сообщений", icon: Bell },
-  { id: "email", title: "Почта для восстановления", heading: "Аккаунт", subtitle: "Привязка почты аккаунта", icon: Mail },
-  { id: "security", title: "Безопасность аккаунта", heading: "Безопасность", subtitle: "Резервный секрет", icon: KeyRound },
-  { id: "privacy", title: "Приватность", heading: "Приватность", subtitle: "Статус «в сети» и отметки прочтения", icon: Eye },
-  { id: "chats", title: "Чаты и медиа", heading: "Чаты и медиа", subtitle: "Клавиатура, медиа и стикеры", icon: Paperclip },
-  { id: "data", title: "Данные", heading: "Данные", subtitle: "Хранилище и язык", icon: Database },
-  { id: "seasonal", title: "Сезонное", heading: "Сезонное", subtitle: "Halloween и сезонные функции", icon: Ghost },
-  { id: "about", title: "О приложении", heading: "Прочее", subtitle: "Версия 1.0.0", icon: Info },
+const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: string; icon: LucideIcon }[] = [
+  { id: "appearance", title: "Внешний вид", subtitle: "Тема, акцент и шрифт", icon: Palette },
+  { id: "notifications", title: "Уведомления", subtitle: "Звук и превью сообщений", icon: Bell },
+  { id: "email", title: "Почта для восстановления", subtitle: "Привязка почты аккаунта", icon: Mail },
+  { id: "security", title: "Безопасность аккаунта", subtitle: "Резервный секрет", icon: KeyRound },
+  { id: "privacy", title: "Приватность", subtitle: "Статус «в сети» и отметки прочтения", icon: Eye },
+  { id: "chats", title: "Чаты и медиа", subtitle: "Клавиатура, медиа и стикеры", icon: Paperclip },
+  { id: "data", title: "Данные", subtitle: "Хранилище и язык", icon: Database },
+  { id: "seasonal", title: "Сезонное", subtitle: "Halloween и сезонные функции", icon: Ghost },
+  { id: "about", title: "О приложении", subtitle: "Версия 1.0.0", icon: Info },
+];
+
+/** Названия групп — по одной на три раздела (вкладки). */
+const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
+  { heading: "Оформление", ids: ["appearance", "notifications", "chats"] },
+  { heading: "Аккаунт", ids: ["email", "security", "privacy"] },
+  { heading: "Прочее", ids: ["data", "seasonal", "about"] },
 ];
 
 function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
@@ -791,30 +798,37 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
           <UserRound size={18} className="tcy-faint" />
         </div>
 
-        <div className="mx-4 mb-5 flex flex-col gap-[3mm]">
-          {SETTINGS_SECTIONS.map(({ id, title, heading, subtitle, icon: Icon }, index) => (
-            <div key={id} id={"settings-section-" + id}>
-              {/* заголовок блока */}
-              <h4 className="px-1.5 pb-1.5 text-[11.5px] font-bold uppercase tracking-[0.08em] tcy-faint">
+        <div className="mx-4 mb-5 flex flex-col gap-8">
+          {SETTINGS_GROUPS.map(({ heading, ids }) => (
+            <div key={heading}>
+              <h4 className="px-1.5 pb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] tcy-faint">
                 {heading}
               </h4>
-              {/* кнопка раздела — как обычные пункты настроек; фигурный блок:
-                  1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх */}
-              <SettingsRow
-                style={{
-                  borderRadius: sectionShapes[index % sectionShapes.length],
-                  padding: "10px 15px",
-                }}
-                icon={<Icon size={17} />}
-                title={title}
-                subtitle={subtitle}
-                onClick={() => navigate("/settings/" + id)}
-                right={
-                  <span className="flex" style={{ color: "var(--tcy-faint)" }}>
-                    <ChevronRight size={17} />
-                  </span>
-                }
-              />
+              <div className="flex flex-col gap-[3mm]">
+                {ids.map((id, index) => {
+                  const section = SETTINGS_SECTIONS.find((item) => item.id === id)!;
+                  const { title, subtitle, icon: Icon } = section;
+                  return (
+                    <div key={id} id={"settings-section-" + id}>
+                      <SettingsRow
+                        style={{
+                          borderRadius: sectionShapes[index % sectionShapes.length],
+                          padding: "10px 15px",
+                        }}
+                        icon={<Icon size={17} />}
+                        title={title}
+                        subtitle={subtitle}
+                        onClick={() => navigate("/settings/" + id)}
+                        right={
+                          <span className="flex" style={{ color: "var(--tcy-faint)" }}>
+                            <ChevronRight size={17} />
+                          </span>
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </div>
