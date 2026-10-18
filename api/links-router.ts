@@ -103,16 +103,48 @@ async function fetchPage(parsed: URL): Promise<LinkPreview> {
   const timer = setTimeout(() => controller.abort(), 5_000);
 
   try {
-    const response = await fetch(parsed.toString(), {
-      redirect: "follow",
-      signal: controller.signal,
-      headers: {
-        "user-agent": "Mozilla/5.0 (compatible; TeleChatYouBot/1.0)",
-        accept: "text/html,application/xhtml+xml",
-        "accept-language": "ru,en;q=0.8",
-      },
-    });
-    if (!response.ok) return base;
+    // Validate every redirect destination instead of following redirects blindly.
+    // This prevents an allowed public URL from redirecting the preview fetch to
+    // localhost or a private network address.
+    let target = parsed;
+    let response: Response | null = null;
+    for (let redirectCount = 0; redirectCount <= 3; redirectCount += 1) {
+      if (
+        (target.protocol !== "http:" && target.protocol !== "https:") ||
+        isBlockedHost(target.hostname)
+      ) {
+        return base;
+      }
+
+      response = await fetch(target.toString(), {
+        redirect: "manual",
+        signal: controller.signal,
+        headers: {
+          "user-agent": "Mozilla/5.0 (compatible; TeleChatYouBot/1.0)",
+          accept: "text/html,application/xhtml+xml",
+          "accept-language": "ru,en;q=0.8",
+        },
+      });
+
+      if (![301, 302, 303, 307, 308].includes(response.status)) break;
+      const location = response.headers.get("location");
+      if (!location || redirectCount === 3) {
+        await response.body?.cancel().catch(() => undefined);
+        return base;
+      }
+
+      let next: URL;
+      try {
+        next = new URL(location, target);
+      } catch {
+        await response.body?.cancel().catch(() => undefined);
+        return base;
+      }
+      await response.body?.cancel().catch(() => undefined);
+      target = next;
+    }
+
+    if (!response || !response.ok) return base;
     const type = response.headers.get("content-type") ?? "";
     if (!type.includes("html")) return base;
 
@@ -135,7 +167,7 @@ async function fetchPage(parsed: URL): Promise<LinkPreview> {
 
     const image = absolute(
       metaContent(html, ["og:image:secure_url", "og:image", "og:image:url", "twitter:image"]),
-      parsed,
+      target,
     );
     return {
       url: parsed.toString(),
