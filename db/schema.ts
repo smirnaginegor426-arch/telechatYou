@@ -84,6 +84,20 @@ export const recoverySecrets = mysqlTable(
   }),
 );
 
+/** Account lock/password created from the security settings screen. Only a hash is stored. */
+export const accountSecurityPasswords = mysqlTable(
+  "account_security_passwords",
+  {
+    id: serial("id").primaryKey(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull().unique(),
+    passwordType: mysqlEnum("passwordType", ["digital", "graphical"]).notNull(),
+    passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+  },
+  (t) => ({ accountSecurityPasswordUserIdx: index("account_security_passwords_user_idx").on(t.userId) }),
+);
+
 /** One-time email verification and password recovery codes. Codes are HMAC-hashed, short-lived and single-use. */
 export const emailVerificationCodes = mysqlTable(
   "email_verification_codes",
