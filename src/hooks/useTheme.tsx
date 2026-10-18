@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { applyTheme, ACCENTS, type AccentId } from "@/lib/accents";
+import { applyScreenColor, getSavedScreenColor } from "@/lib/screen-colors";
 import { applyFontWeight, getSavedFontWeight } from "@/lib/font-weight";
 import { trpc } from "@/providers/trpc";
 
@@ -63,6 +64,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     applyTheme(theme, accent);
+    applyScreenColor(theme, getSavedScreenColor());
     try {
       localStorage.setItem("tcy-theme", theme);
       localStorage.setItem("tcy-accent", accent);
