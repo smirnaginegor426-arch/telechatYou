@@ -509,7 +509,7 @@ export function Composer({
         )}
         <div
           className={cn(
-            "flex items-end gap-2 rounded-[26px] border tcy-line tcy-header-blur px-2 py-2 tcy-shadow-soft transition-colors",
+            "flex items-end gap-2 rounded-[26px] tcy-glass-surface px-2 py-2 tcy-shadow-soft transition-colors",
             recording && "border-[color:var(--tcy-danger)]",
           )}
         >
@@ -545,10 +545,10 @@ export function Composer({
                   setStickerOpen(false);
                 }}
                 className={cn(
-                  "tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform",
+                  "tcy-press tcy-glass-surface flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform",
                   attachOpen && "rotate-45",
                 )}
-                style={{ background: "var(--tcy-card-strong)", color: "var(--tcy-dim)" }}
+                style={{ color: "var(--tcy-dim)" }}
                 disabled={preparingImage}
                 aria-label="Прикрепить"
               >
@@ -573,7 +573,7 @@ export function Composer({
               {stickersEnabled && (
               <button
                 onClick={() => setStickerOpen((value) => !value)}
-                className="tcy-press w-10 h-11 flex items-center justify-center shrink-0"
+                className="tcy-press tcy-glass-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
                 style={{ color: stickerOpen ? "var(--tcy-selected-accent)" : "var(--tcy-faint)" }}
                 aria-label="Стикеры"
                 aria-expanded={stickerOpen}
@@ -607,9 +607,9 @@ export function Composer({
                       transition={{ type: "spring", stiffness: 720, damping: 30, mass: 0.62 }}
                       onPointerDown={onMicDown}
                       onContextMenu={(e) => e.preventDefault()}
-                      className="tcy-press absolute inset-0 rounded-full flex items-center justify-center touch-none select-none"
+                      className="tcy-press tcy-glass-surface absolute inset-0 flex items-center justify-center rounded-full touch-none select-none"
                       style={{
-                        background: recording ? "var(--tcy-danger)" : "var(--tcy-card-strong)",
+                        background: recording ? "var(--tcy-danger)" : undefined,
                         color: recording ? "#fff" : "var(--tcy-dim)",
                       }}
                       aria-label="Удерживайте для голосового"
