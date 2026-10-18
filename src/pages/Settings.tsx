@@ -738,7 +738,7 @@ export default function Settings() {
           <UserRound size={18} className="tcy-faint" />
         </div>
 
-        <div className="mx-4 mb-5 flex flex-col gap-2.5">
+        <div className="mx-4 mb-5 flex flex-col gap-1.5">
           {SETTINGS_SECTIONS.map(({ id, title, subtitle, icon: Icon }, index) => {
             const open = section === id;
             return (
@@ -746,7 +746,10 @@ export default function Settings() {
                 {/* кнопка раздела — как обычные пункты настроек; фигурный блок:
                     1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх */}
                 <SettingsRow
-                  style={{ borderRadius: sectionShapes[index % sectionShapes.length] }}
+                  style={{
+                    borderRadius: sectionShapes[index % sectionShapes.length],
+                    padding: "13px 16px",
+                  }}
                   icon={<Icon size={17} />}
                   title={title}
                   subtitle={subtitle}
