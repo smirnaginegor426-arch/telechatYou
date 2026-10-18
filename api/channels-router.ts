@@ -162,6 +162,7 @@ export const channelsRouter = createRouter({
       avatarKey: z.string().max(255).nullable().optional(),
       isPublic: z.boolean(),
       username: z.string().trim().toLowerCase().max(32).optional().nullable(),
+      description: z.string().trim().max(280).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const community = await getDb().query.channels.findFirst({
@@ -211,6 +212,7 @@ export const channelsRouter = createRouter({
       await getDb().update(channels).set({
         isPublic: input.isPublic,
         username,
+        ...(input.description !== undefined ? { description: input.description } : {}),
       }).where(eq(channels.chatId, input.chatId));
       await touchChat(input.chatId);
 
