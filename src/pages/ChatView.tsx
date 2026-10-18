@@ -831,7 +831,7 @@ export default function ChatView() {
       )}
 
       {/* messages */}
-      <div className="relative flex-1 min-h-0">
+      <div className="relative z-[1] flex-1 min-h-0">
         <div
           ref={scrollRef}
           onScroll={onScroll}
