@@ -28,6 +28,7 @@ import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
 import Settings, { SettingsSectionScreen } from "@/pages/Settings";
+import AccountSecurityPassword from "@/pages/AccountSecurityPassword";
 import EmailBinding from "@/pages/EmailBinding";
 import Halloween from "@/pages/Halloween";
 import AccentSettings from "@/pages/Accent";
@@ -213,6 +214,8 @@ useEffect(() => {
             <Route path="/:username" element={<UserView />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/security/create-password" element={<AccountSecurityPassword />} />
+            <Route path="/settings/security/create-password/:format" element={<AccountSecurityPassword />} />
             <Route path="/settings/:section" element={<SettingsSectionScreen />} />
             <Route path="/email-binding" element={<EmailBinding />} />
             <Route path="/halloween" element={<Halloween />} />
