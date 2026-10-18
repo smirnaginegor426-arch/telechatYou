@@ -79,8 +79,8 @@ const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
   { heading: "Прочее", ids: ["data", "seasonal", "about"] },
 ];
 
-/** Фигурные блоки вкладок: 1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх; далее цикл. */
-const sectionShapes = ["22px 22px 0px 0px", "9px", "0px 0px 22px 22px"];
+/** Фигурные блоки вкладок: 1-я — прямой низ, средние — прямые и стыкуются с соседями, последняя — прямой верх. */
+const sectionShapes = ["22px 22px 0px 0px", "0px", "0px 0px 22px 22px"];
 
 function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
   const navigate = useNavigate();
@@ -804,7 +804,7 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
               <h4 className="px-1.5 pb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] tcy-faint">
                 {heading}
               </h4>
-              <div className="flex flex-col gap-[1mm]">
+              <div className="flex flex-col">
                 {ids.map((id, index) => {
                   const section = SETTINGS_SECTIONS.find((item) => item.id === id)!;
                   const { title, subtitle, icon: Icon } = section;
@@ -814,6 +814,9 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
                         style={{
                           borderRadius: sectionShapes[index % sectionShapes.length],
                           padding: "10px 15px",
+                          // Верхний блок задаёт линию стыка; у соседей верхняя граница убрана,
+                          // чтобы блоки стыковались в одну фигуру без двойной линии.
+                          borderTopWidth: index === 0 ? undefined : 0,
                         }}
                         icon={<Icon size={17} />}
                         title={title}

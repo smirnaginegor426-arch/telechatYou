@@ -227,14 +227,15 @@ function SimpleChannelWizard() {
           style={{
             transform: "rotate(-22deg)",
             transformOrigin: "center",
-            opacity: 0.16,
-            filter: "blur(7px)",
+            opacity: 0.14,
+            filter: "blur(6px)",
+            color: "var(--tcy-text)",
           }}
         >
           {[...Array(16)].map((_, row) => (
             <div key={row} className="flex gap-20">
               {[...Array(8)].map((_, col) => (
-                <span key={col} className="text-[64px] font-black tcy-accent whitespace-nowrap select-none">
+                <span key={col} className="text-[64px] font-black whitespace-nowrap select-none">
                   TeleChatYou
                 </span>
               ))}
