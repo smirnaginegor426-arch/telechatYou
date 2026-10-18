@@ -9,6 +9,7 @@ import { storage, StorageError } from "./lib/storage";
 import { getSessionToken, getSessionUser } from "./lib/session";
 import { ensureCommunitySchema } from "./lib/community-schema";
 import { ensureRecoverySecretSchema } from "./lib/recovery-secret-schema";
+import { ensureAccountSecurityPasswordSchema } from "./lib/account-security-password-schema";
 import { ensurePinnedMessageSchema } from "./lib/pinned-message-schema";
 import { ensureUserCustomDataSchema } from "./lib/user-custom-data-schema";
 import { ensureUserBlocksSchema } from "./lib/user-blocks-schema";
@@ -82,6 +83,7 @@ app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 if (env.isProduction) {
   await ensureCommunitySchema();
   await ensureRecoverySecretSchema();
+  await ensureAccountSecurityPasswordSchema();
   await ensurePinnedMessageSchema();
   await ensureUserCustomDataSchema();
   await ensureUserBlocksSchema();
