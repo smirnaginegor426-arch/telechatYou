@@ -205,7 +205,7 @@ export const authRouter = createRouter({
       }
 
       await ensureAccountSecurityPasswordSchema();
-      const passwordHash = await hashPassword(input.password);
+      const passwordHash = await hashPassword(`${env.sessionSecret}:${input.password}`);
       await getDb().insert(accountSecurityPasswords).values({
         userId: ctx.user.id,
         passwordType: input.format,
