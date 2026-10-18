@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import { Archive, ArchiveRestore, Plus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
 import { trpc } from "@/providers/trpc";
+import { Avatar } from "@/components/Avatar";
 import { ChatItem } from "@/components/ChatItem";
 import { EmptyState } from "@/components/EmptyState";
 import { TcButton } from "@/components/TcButton";
@@ -30,6 +31,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
   const archiveTouchStart = useRef<number | null>(null);
   const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
   const contactNames = contactNamesQuery.data?.names ?? {};
+  const me = trpc.profile.me.useQuery();
   const [selectedChatIds, setSelectedChatIds] = useState<number[]>([]);
   const [botArchived, setBotArchived] = useState(() => {
     try {
@@ -203,13 +205,29 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
         ) : (
           <>
             <div className="flex items-center justify-between">
-              <button
-                onClick={() => navigate("/search")}
-                className="tcy-search-control tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
-                aria-label="Поиск"
-              >
-                <Search size={18} className="tcy-search-control-icon" />
-              </button>
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => navigate("/profile")}
+                  aria-label="Профиль"
+                  className="tcy-press shrink-0"
+                >
+                  <Avatar
+                    name={me.data?.profile?.displayName ?? "?"}
+                    avatarKey={me.data?.profile?.avatarKey}
+                    size={36}
+                    lastSeenAt={me.data?.profile?.lastSeenAt}
+                    showOnline
+                  />
+                </button>
+                <button
+                  onClick={() => navigate("/search")}
+                  className="tcy-search-control tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
+                  aria-label="Поиск"
+                >
+                  <Search size={18} className="tcy-search-control-icon" />
+                </button>
+              </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate("/create")}
