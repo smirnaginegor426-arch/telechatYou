@@ -14,13 +14,11 @@ const CURRENT_SHELL = "index.html";
 const LEGACY_SHELL = path.join("legacy", "index.html");
 
 /**
- * TEMPORARY OVERRIDE — set back to false to restore the split.
- *
- * While true every visitor receives the current build, so the new version can
- * be opened without being signed in as the tester. Only the routing is affected;
- * the experimental features still require the tester account.
+ * TEMPORARY OVERRIDE — set back to false to fetch the current build for every
+ * visitor (used for a short preview window). While it is true the split below
+ * is bypassed.
  */
-const SERVE_CURRENT_BUILD_TO_EVERYONE = true;
+const SERVE_CURRENT_BUILD_TO_EVERYONE = false;
 
 export function serveStaticFiles(app: App) {
   const distPath = path.resolve(import.meta.dirname, "../dist/public");

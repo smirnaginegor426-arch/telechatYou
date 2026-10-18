@@ -1,16 +1,32 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Download, RefreshCw } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { TcButton } from "@/components/TcButton";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
 const APP_VERSION = "1.0.0";
 
+/**
+ * Direct link to the v2 build. Left empty while v2 has not shipped: the
+ * download button then reports that the update is not out yet.
+ */
+const V2_DOWNLOAD_URL = "";
+
 export default function SystemUpdate() {
   const navigate = useNavigate();
   const [checkRequested, setCheckRequested] = useState(false);
+  const [downloadNotice, setDownloadNotice] = useState(false);
   const { enabled: experimentalUI } = useExperimentalUI();
+
+  const download = () => {
+    if (!V2_DOWNLOAD_URL) {
+      setDownloadNotice(true);
+      return;
+    }
+    setDownloadNotice(false);
+    window.open(V2_DOWNLOAD_URL, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="h-full flex flex-col overflow-y-auto no-scrollbar">
@@ -64,6 +80,27 @@ export default function SystemUpdate() {
             Проверить обновления
           </TcButton>
         </div>
+
+        <div className="mt-3 w-full max-w-sm">
+          <TcButton size="lg" variant="soft" onClick={download}>
+            <Download size={17} />
+            Скачать
+          </TcButton>
+        </div>
+
+        {downloadNotice && (
+          <div
+            role="alert"
+            className="mt-4 w-full max-w-sm rounded-2xl border px-4 py-3 flex items-center gap-3 text-left"
+            style={{
+              borderColor: "var(--tcy-danger)",
+              background: "color-mix(in srgb, var(--tcy-danger) 12%, transparent)",
+            }}
+          >
+            <AlertCircle size={22} className="tcy-danger shrink-0" />
+            <p className="text-[14px] font-bold tcy-danger">Обновление не вышло!</p>
+          </div>
+        )}
       </main>
     </div>
   );
