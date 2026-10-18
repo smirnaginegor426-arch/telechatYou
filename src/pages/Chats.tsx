@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Archive, ArchiveRestore, Plus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { ChatItem } from "@/components/ChatItem";
-import { Logo, Wordmark } from "@/components/Logo";
+import { Logo } from "@/components/Logo";
 import { EmptyState } from "@/components/EmptyState";
 import { TcButton } from "@/components/TcButton";
 import { Lightbox } from "@/components/Lightbox";
@@ -206,9 +206,6 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <Logo size={34} />
-                <Wordmark />
-              </div>
-              <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate("/search")}
                   className="tcy-search-control tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
@@ -216,6 +213,8 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
                 >
                   <Search size={18} className="tcy-search-control-icon" />
                 </button>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => navigate("/create")}
                   className="tcy-press w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"

@@ -59,6 +59,9 @@ type SettingsSectionId =
   | "seasonal"
   | "about";
 
+/** Фигурные блоки вкладок: 1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх; далее цикл. */
+const sectionShapes = ["22px 22px 0px 0px", "9px", "0px 0px 22px 22px"];
+
 const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: string; icon: LucideIcon }[] = [
   { id: "appearance", title: "Внешний вид", subtitle: "Тема, акцент и шрифт", icon: Palette },
   { id: "notifications", title: "Уведомления", subtitle: "Звук и превью сообщений", icon: Bell },
@@ -736,12 +739,14 @@ export default function Settings() {
         </div>
 
         <div className="mx-4 mb-5 flex flex-col gap-2.5">
-          {SETTINGS_SECTIONS.map(({ id, title, subtitle, icon: Icon }) => {
+          {SETTINGS_SECTIONS.map(({ id, title, subtitle, icon: Icon }, index) => {
             const open = section === id;
             return (
               <div key={id} id={"settings-section-" + id}>
-                {/* кнопка раздела — как обычные пункты настроек */}
+                {/* кнопка раздела — как обычные пункты настроек; фигурный блок:
+                    1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх */}
                 <SettingsRow
+                  style={{ borderRadius: sectionShapes[index % sectionShapes.length] }}
                   icon={<Icon size={17} />}
                   title={title}
                   subtitle={subtitle}

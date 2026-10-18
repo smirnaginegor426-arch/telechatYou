@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ export function SettingsRow({
   right,
   onClick,
   danger,
+  style,
 }: {
   icon: ReactNode;
   title: string;
@@ -16,6 +17,7 @@ export function SettingsRow({
   right?: ReactNode;
   onClick?: () => void;
   danger?: boolean;
+  style?: CSSProperties;
 }) {
   const content = (
     <>
@@ -51,7 +53,10 @@ export function SettingsRow({
   );
 
   return (
-    <div className="tcy-settings-item w-full flex items-center gap-3.5 px-4 py-[17px] rounded-[27px] border">
+    <div
+      className="tcy-settings-item w-full flex items-center gap-3.5 px-4 py-[17px] rounded-[27px] border"
+      style={style}
+    >
       {onClick ? (
         <button
           type="button"
