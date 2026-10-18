@@ -213,6 +213,26 @@ function SimpleChannelWizard() {
   return (
     <div className="relative h-full flex flex-col overflow-hidden">
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        {/* размытый водяной знак «TeleChatYou» по всему фону экрана создания */}
+        <div
+          className="absolute -left-1/2 -top-1/2 w-[300%] h-[300%] flex flex-col items-center justify-center gap-7"
+          style={{
+            transform: "rotate(-22deg)",
+            transformOrigin: "center",
+            opacity: 0.05,
+            filter: "blur(16px)",
+          }}
+        >
+          {[...Array(16)].map((_, row) => (
+            <div key={row} className="flex gap-20">
+              {[...Array(8)].map((_, col) => (
+                <span key={col} className="text-[64px] font-black tcy-accent whitespace-nowrap select-none">
+                  TeleChatYou
+                </span>
+              ))}
+            </div>
+          ))}
+        </div>
         {backgroundShapes.map((shape, index) => (
           <motion.span
             key={index}
