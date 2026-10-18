@@ -52,10 +52,10 @@ export function applyScreenColor(theme: "dark" | "light", colorId: string) {
       : `color-mix(in srgb, ${neutral} ${neutralPercent}%, ${selected.color} ${100 - neutralPercent}%)`;
 
   root.style.setProperty("--tcy-screen-color", selected.color);
-  root.style.setProperty("--tcy-bg", mix(base.bg, dark ? 78 : 70));
-  root.style.setProperty("--tcy-bg-2", mix(base.bg2, dark ? 70 : 61));
-  root.style.setProperty("--tcy-solid", mix(base.solid, dark ? 88 : 87));
-  root.style.setProperty("--tcy-solid-2", mix(base.solid2, dark ? 83 : 81));
+  root.style.setProperty("--tcy-bg", mix(base.bg, dark ? 72 : 64));
+  root.style.setProperty("--tcy-bg-2", mix(base.bg2, dark ? 64 : 55));
+  root.style.setProperty("--tcy-solid", mix(base.solid, dark ? 83 : 82));
+  root.style.setProperty("--tcy-solid-2", mix(base.solid2, dark ? 78 : 76));
 
   // Tint the navigation island too, while preserving its selected accent.
   // Always blend from stable base tokens so repeated color changes never stack.
@@ -66,7 +66,7 @@ export function applyScreenColor(theme: "dark" | "light", colorId: string) {
       "--tcy-selected-header",
       selected.id === "default"
         ? headerBase
-        : `color-mix(in srgb, ${headerBase} 84%, ${selected.color} 16%)`,
+        : `color-mix(in srgb, ${headerBase} 77%, ${selected.color} 23%)`,
     );
   }
   if (glassLineBase) {
@@ -74,7 +74,7 @@ export function applyScreenColor(theme: "dark" | "light", colorId: string) {
       "--tcy-selected-glass-line",
       selected.id === "default"
         ? glassLineBase
-        : `color-mix(in srgb, ${glassLineBase} 82%, ${selected.color} 18%)`,
+        : `color-mix(in srgb, ${glassLineBase} 76%, ${selected.color} 24%)`,
     );
   }
 
