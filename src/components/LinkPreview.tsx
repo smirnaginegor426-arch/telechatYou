@@ -55,9 +55,8 @@ export function parseAppLink(raw: string): AppLink | null {
 }
 
 /**
- * Link preview card shown under the link inside the same message bubble.
- * Private experimental feature: app links get a branded card, everything else
- * comes from the server unfurl.
+ * Link preview card shown under a link inside the same message bubble.
+ * TeleChat You links use app data; external links use server-fetched page metadata.
  */
 export function LinkPreview({
   text,
