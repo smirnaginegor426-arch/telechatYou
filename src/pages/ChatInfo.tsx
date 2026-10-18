@@ -874,27 +874,6 @@ export default function ChatInfo() {
             </div>
           </header>
 
-          <input
-            ref={editFileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              e.target.value = "";
-              if (!file) return;
-              if (!file.type.startsWith("image/")) {
-                toast.error("Выберите файл изображения");
-                return;
-              }
-              if (file.size > 20 * 1024 * 1024) {
-                toast.error("Аватар слишком большой. Максимальный размер — 20 МБ.");
-                return;
-              }
-              setEditAvatarFile(file);
-            }}
-          />
-
           <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-6">
             <div className="mx-auto w-full max-w-[480px] space-y-6">
               <section className="flex flex-col items-center gap-3">
