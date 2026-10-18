@@ -8,8 +8,8 @@ const TESTERS = [
 ] as const;
 
 /**
- * Previous private-rollout target, retained as metadata for reference.
- * The experimental interface is now enabled for everyone.
+ * Account reserved for the current experimental interface.
+ * UI release access is based on numeric account ID, not mutable usernames.
  */
 export const PRIVATE_EXPERIMENTAL_USER = {
   username: "teste",
@@ -41,12 +41,14 @@ export function isTesterUsername(
 }
 
 /**
- * Public rollout: the current interface is enabled for every account.
+ * The current interface is enabled only for the designated account ID.
  * Tester-badge checks remain separate in isTesterUsername().
  */
 export function isPrivateExperimentalUser(
   _username?: string | null,
-  _userId?: number | string | null,
+  userId?: number | string | null,
 ): boolean {
-  return true;
+  const normalizedUserId = normalizeUserId(userId);
+  return Number.isSafeInteger(normalizedUserId) &&
+    normalizedUserId === PRIVATE_EXPERIMENTAL_USER.userId;
 }
