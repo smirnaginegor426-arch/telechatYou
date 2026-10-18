@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Backspace, Check, Fingerprint, Grid3X3, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Delete, Grid3X3, KeyRound, ShieldCheck } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 
 type PasswordFormat = "digital" | "graphical";
@@ -290,7 +290,7 @@ export default function AccountSecurityPassword() {
                       aria-label={key === "delete" ? "Удалить последнюю цифру" : key}
                       className="tcy-press flex h-[58px] items-center justify-center rounded-[18px] border tcy-line tcy-card text-[22px] font-semibold tcy-text disabled:opacity-35"
                     >
-                      {key === "delete" ? <Backspace size={21} className="tcy-dim" /> : key}
+                      {key === "delete" ? <Delete size={21} className="tcy-dim" /> : key}
                     </button>
                   )
                 ))}
