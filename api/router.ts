@@ -7,6 +7,7 @@ import { profileRouter } from "./profile-router";
 import { settingsRouter } from "./settings-router";
 import { accountDataRouter } from "./account-data-router";
 import { storageRouter } from "./storage-router";
+import { linksRouter } from "./links-router";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
 import { isPrivateExperimentalTester } from "./lib/experimental-access";
 
@@ -26,6 +27,7 @@ export const appRouter = createRouter({
   channels: channelsRouter,
   messages: messagesRouter,
   storage: storageRouter,
+  links: linksRouter,
   settings: settingsRouter,
   accountData: accountDataRouter,
   admin: adminRouter,

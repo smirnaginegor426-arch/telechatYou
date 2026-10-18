@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, type TargetAndTransition } from "framer-motion";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
@@ -68,6 +68,7 @@ function AuthedApp() {
   const navigate = useNavigate();
   const deviceMode = useDeviceMode();
   const isDesktop = deviceMode === "desktop";
+  const { enabled: experimentalUI } = useExperimentalUI();
 
 
   const desktopHome = isDesktop && location.pathname === "/";
@@ -127,7 +128,7 @@ useEffect(() => {
 
   // Each screen enters from its own corner.
   const path = location.pathname;
-  const routeMotion = path.startsWith("/email-binding")
+  const slideMotion = path.startsWith("/email-binding")
     ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
     : path.startsWith("/contacts")
       ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
@@ -140,6 +141,28 @@ useEffect(() => {
           : path.startsWith("/search") || path.startsWith("/new") || path.startsWith("/create") || path.startsWith("/channels")
             ? { origin: "100% 50%", x: 28, y: 0, exitX: 20, exitY: 0 }
             : { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 };
+
+  // Private experimental look: the incoming screen pivots around the corner it
+  // comes from (a circular swing) and its corners round out as it settles into
+  // place. Everyone else keeps the plain diagonal slide.
+  const routeMotion: {
+    initial: TargetAndTransition;
+    animate: TargetAndTransition;
+    exit: TargetAndTransition;
+    origin: string;
+  } = experimentalUI
+    ? {
+        initial: { opacity: 0, rotate: slideMotion.x >= 0 ? 7 : -7, scale: 0.9, borderRadius: "30px" },
+        animate: { opacity: 1, rotate: 0, scale: 1, borderRadius: "0px" },
+        exit: { opacity: 0, rotate: slideMotion.x >= 0 ? -5 : 5, scale: 0.94, borderRadius: "26px" },
+        origin: slideMotion.origin,
+      }
+    : {
+        initial: { opacity: 0, x: slideMotion.x, y: slideMotion.y, scale: 0.88 },
+        animate: { opacity: 1, x: 0, y: 0, scale: 1 },
+        exit: { opacity: 0, scale: 0.94, x: slideMotion.exitX, y: slideMotion.exitY },
+        origin: slideMotion.origin,
+      };
 
   return (
     <div className={`relative h-full tcy-authed-layout ${desktopHome ? "tcy-authed-layout--desktop-home" : desktopChat ? "tcy-authed-layout--desktop-chat" : ""}`}>
@@ -167,14 +190,14 @@ useEffect(() => {
               ? location.pathname
               : location.pathname.split("/")[1] || "/"
           }
-          initial={{ opacity: 0, x: routeMotion.x, y: routeMotion.y, scale: 0.88 }}
-          animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.94, x: routeMotion.exitX, y: routeMotion.exitY }}
+          initial={routeMotion.initial}
+          animate={routeMotion.animate}
+          exit={routeMotion.exit}
           transition={{
             type: "spring",
-            stiffness: 240,
-            damping: 29,
-            mass: 0.86,
+            stiffness: experimentalUI ? 210 : 240,
+            damping: experimentalUI ? 28 : 29,
+            mass: experimentalUI ? 0.9 : 0.86,
           }}
           style={{ transformOrigin: routeMotion.origin }}
           className="tcy-route-animated absolute inset-0"

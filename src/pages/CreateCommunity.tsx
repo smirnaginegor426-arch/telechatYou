@@ -58,7 +58,7 @@ type WizardChoice = "private" | "public";
 function SimpleChannelWizard() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
-  const [step, setStep] = useState<"name" | "type">("name");
+  const [step, setStep] = useState<"choose" | "name" | "type">("choose");
   const [kind, setKind] = useState<CommunityKind>("channel");
   const [title, setTitle] = useState("");
   const [choice, setChoice] = useState<WizardChoice | null>(null);
@@ -95,6 +95,11 @@ function SimpleChannelWizard() {
       setChoice(null);
       setUsername("");
       setStep("name");
+      return;
+    }
+    if (step === "name") {
+      setTitle("");
+      setStep("choose");
       return;
     }
     navigate(-1);
@@ -273,33 +278,76 @@ function SimpleChannelWizard() {
         <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-[0.16em] font-extrabold tcy-faint">TeleChat You</p>
           <h1 className="text-[18px] font-extrabold tcy-text">
-            {step === "name"
-              ? (isChannel ? "Новый канал" : "Новая группа")
-              : (isChannel ? "Тип канала" : "Тип группы")}
+            {step === "choose"
+              ? "Создание"
+              : step === "name"
+                ? (isChannel ? "Новый канал" : "Новая группа")
+                : (isChannel ? "Тип канала" : "Тип группы")}
           </h1>
         </div>
       </header>
 
       <div className="relative z-10 min-h-0 flex-1 overflow-y-auto no-scrollbar px-4 pb-8">
-        {/* выбор: Канал или Группа */}
-        <div className="mx-auto mt-1 mb-4 flex w-full max-w-[560px] gap-1 rounded-full border tcy-line tcy-card p-1">
-          {(["channel", "group"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              disabled={busy || Boolean(done)}
-              onClick={() => { setError(""); setKind(option); }}
-              className="tcy-press flex-1 rounded-full py-2 text-[13px] font-extrabold transition-colors disabled:opacity-60"
-              style={{
-                background: kind === option ? "var(--tcy-selected-accent)" : "transparent",
-                color: kind === option ? "var(--tcy-selected-on-accent)" : "var(--tcy-dim)",
-              }}
-            >
-              {option === "channel" ? "Канал" : "Группа"}
-            </button>
-          ))}
-        </div>
         <AnimatePresence mode="wait" initial={false}>
+          {step === "choose" && (
+            <motion.section
+              key="choose"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.22 }}
+              className="flex min-h-[52vh] flex-col items-center justify-center text-center"
+            >
+              <h2 className="text-[27px] leading-tight font-black tcy-text">Что создаём?</h2>
+              <p className="mt-2.5 max-w-[320px] text-[13.5px] leading-relaxed tcy-dim">
+                Выбери формат — дальше придумаем название.
+              </p>
+              <div className="mt-8 grid w-full max-w-[420px] gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => { setError(""); setKind("channel"); setStep("name"); }}
+                  className="tcy-press flex w-full items-center gap-3.5 rounded-[22px] border tcy-line tcy-card px-4 py-3.5 text-left"
+                >
+                  <span
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[17px]"
+                    style={{
+                      background: "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card))",
+                      color: "var(--tcy-selected-accent)",
+                    }}
+                  >
+                    <Radio size={22} strokeWidth={2.1} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[16px] font-extrabold tcy-text">Канал</span>
+                    <span className="block text-[11.5px] tcy-faint">Публикации для подписчиков</span>
+                  </span>
+                  <ChevronRight size={18} className="shrink-0 tcy-faint" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setError(""); setKind("group"); setStep("name"); }}
+                  className="tcy-press flex w-full items-center gap-3.5 rounded-[22px] border tcy-line tcy-card px-4 py-3.5 text-left"
+                >
+                  <span
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[17px]"
+                    style={{
+                      background: "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card))",
+                      color: "var(--tcy-selected-accent)",
+                    }}
+                  >
+                    <Users size={22} strokeWidth={2.1} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[16px] font-extrabold tcy-text">Группа</span>
+                    <span className="block text-[11.5px] tcy-faint">Общий чат для общения</span>
+                  </span>
+                  <ChevronRight size={18} className="shrink-0 tcy-faint" />
+                </button>
+              </div>
+            </motion.section>
+          )}
+
           {step === "name" && (
             <motion.section
               key="name"
@@ -453,14 +501,15 @@ function SimpleChannelWizard() {
         </AnimatePresence>
       </div>
 
-      <footer
-        className="relative z-20 shrink-0 border-t tcy-line px-4 pt-3"
-        style={{
-          background: "color-mix(in srgb, var(--tcy-bg) 91%, transparent)",
-          backdropFilter: "blur(20px)",
-          paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
-        }}
-      >
+      {step !== "choose" && (
+        <footer
+          className="relative z-20 shrink-0 border-t tcy-line px-4 pt-3"
+          style={{
+            background: "color-mix(in srgb, var(--tcy-bg) 91%, transparent)",
+            backdropFilter: "blur(20px)",
+            paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
+          }}
+        >
         <div className="mx-auto w-full max-w-[560px]">
           {step === "name" && (
             <div className="space-y-3">
@@ -503,7 +552,8 @@ function SimpleChannelWizard() {
               <p className="py-2 text-center text-[12px] tcy-dim">Выбери тип: «Частный» или «Публичный».</p>
             ) : null)}
         </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }

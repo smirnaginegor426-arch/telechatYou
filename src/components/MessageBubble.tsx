@@ -15,6 +15,7 @@ import type { MessageItem } from "@/types/api";
 import { cn } from "@/lib/utils";
 import { AppleEmoji } from "./AppleEmoji";
 import { MessageText } from "./MessageText";
+import { LinkPreview } from "./LinkPreview";
 import { PollCard } from "./PollCard";
 
 function isStandaloneEmoji(text: string) {
@@ -581,6 +582,7 @@ export function MessageBubble({
                 <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                   <MessageText text={m.body ?? ""} />
                 </p>
+                {experimental && <LinkPreview text={m.body ?? ""} own={own} enabled />}
                 <MessageMeta
                   m={m}
                   own={own}
@@ -637,6 +639,7 @@ export function MessageBubble({
                 <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
                   <MessageText text={m.body} />
                 </p>
+                {experimental && <LinkPreview text={m.body ?? ""} own={own} enabled />}
                 <MessageMeta
                   m={m}
                   own={own}
@@ -647,9 +650,12 @@ export function MessageBubble({
                 />
               </div>
             ) : (
-              <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
-                <MessageText text={m.body} />
-              </p>
+              <>
+                <p className="tcy-msg-body text-[15px] leading-[1.5] whitespace-pre-wrap break-words">
+                  <MessageText text={m.body} />
+                </p>
+                {experimental && <LinkPreview text={m.body ?? ""} own={own} enabled />}
+              </>
             )
           )}
 

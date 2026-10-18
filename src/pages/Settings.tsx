@@ -60,45 +60,6 @@ type SettingsSectionId =
   | "seasonal"
   | "about";
 
-/** Блок раздела настроек: крупный скруглённый прямоугольник, круглая иконка слева, круглый шеврон справа. */
-function SectionBlock({
-  title,
-  subtitle,
-  icon: Icon,
-  onClick,
-}: {
-  title: string;
-  subtitle: string;
-  icon: LucideIcon;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="tcy-press flex w-full items-center gap-4 rounded-[28px] border px-4 py-4 text-left transition-colors"
-      style={{ background: "var(--tcy-card)", borderColor: "var(--tcy-line)" }}
-    >
-      <span
-        className="tcy-settings-item-icon flex shrink-0 items-center justify-center"
-        style={{
-          background: "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card-strong))",
-          color: "var(--tcy-selected-accent)",
-        }}
-      >
-        <Icon size={17} />
-      </span>
-
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-[19px] font-extrabold tcy-text">{title}</span>
-        <span className="mt-0.5 block truncate text-[14px] font-bold tcy-faint">{subtitle}</span>
-      </span>
-
-      <ChevronRight size={17} className="shrink-0" style={{ color: "var(--tcy-faint)" }} />
-    </button>
-  );
-}
-
 const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: string; icon: LucideIcon }[] = [
   { id: "appearance", title: "Внешний вид", subtitle: "Тема, акцент и шрифт", icon: Palette },
   { id: "notifications", title: "Уведомления", subtitle: "Звук и превью сообщений", icon: Bell },
@@ -117,6 +78,9 @@ const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
   { heading: "Аккаунт", ids: ["email", "security", "privacy"] },
   { heading: "Прочее", ids: ["data", "seasonal", "about"] },
 ];
+
+/** Фигурные блоки вкладок: 1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх; далее цикл. */
+const sectionShapes = ["22px 22px 0px 0px", "9px", "0px 0px 22px 22px"];
 
 function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
   const navigate = useNavigate();
@@ -841,16 +805,25 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
                 {heading}
               </h4>
               <div className="flex flex-col gap-[1mm]">
-                {ids.map((id) => {
+                {ids.map((id, index) => {
                   const section = SETTINGS_SECTIONS.find((item) => item.id === id)!;
                   const { title, subtitle, icon: Icon } = section;
                   return (
                     <div key={id} id={"settings-section-" + id}>
-                      <SectionBlock
+                      <SettingsRow
+                        style={{
+                          borderRadius: sectionShapes[index % sectionShapes.length],
+                          padding: "10px 15px",
+                        }}
+                        icon={<Icon size={17} />}
                         title={title}
                         subtitle={subtitle}
-                        icon={Icon}
                         onClick={() => navigate("/settings/" + id)}
+                        right={
+                          <span className="flex" style={{ color: "var(--tcy-faint)" }}>
+                            <ChevronRight size={17} />
+                          </span>
+                        }
                       />
                     </div>
                   );
