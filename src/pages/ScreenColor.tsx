@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Menu, MessageCircle, RadioTower, UserRound } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { applyScreenColor, getSavedScreenColor, SCREEN_COLORS, type ScreenColorId } from "@/lib/screen-colors";
 
 const PREVIEWS = [
-  { id: "chat", title: "В чате", icon: MessageCircle },
-  { id: "channel", title: "В канале", icon: RadioTower },
-  { id: "menu", title: "В меню", icon: Menu },
-  { id: "profile", title: "В профиле", icon: UserRound },
+  { id: "chat", title: "В чате" },
+  { id: "channel", title: "В канале" },
+  { id: "menu", title: "В меню" },
+  { id: "profile", title: "В профиле" },
 ] as const;
 
 function ChatPreview() {
@@ -136,75 +136,55 @@ export default function ScreenColorSettings() {
         <div className="mb-3 flex items-end justify-between gap-3 px-1">
           <div>
             <p className="text-[14px] font-extrabold tcy-text">Предпросмотр</p>
-            <p className="mt-0.5 text-[11.5px] tcy-dim">Листай примеры экранов</p>
+            <p className="mt-0.5 text-[11.5px] tcy-dim">Свайпай, чтобы посмотреть другие экраны</p>
           </div>
-          <span className="text-[11px] font-semibold tcy-dim">{previewIndex + 1} / {PREVIEWS.length}</span>
+          <span className="text-[11px] font-semibold tcy-dim">{activePreview.title}</span>
         </div>
 
-        <div className="overflow-hidden rounded-[24px] border tcy-line" style={{ background: "var(--tcy-bg-2)" }}>
-          <div className="flex items-center gap-1 overflow-x-auto px-2.5 pt-2.5 no-scrollbar">
-            {PREVIEWS.map((preview, index) => {
-              const Icon = preview.icon;
-              const active = previewIndex === index;
-              return (
-                <button
-                  type="button"
-                  key={preview.id}
-                  onClick={() => setPreviewIndex(index)}
-                  aria-pressed={active}
-                  className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 text-[10.5px] font-bold transition-colors"
-                  style={{ background: active ? "var(--tcy-solid)" : "transparent", color: active ? "var(--tcy-text)" : "var(--tcy-dim)", border: active ? "1px solid var(--tcy-line)" : "1px solid transparent" }}
-                >
-                  <Icon size={13} />{preview.title}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="px-3 pb-3 pt-2">
-            <div
-              className="h-[270px] overflow-hidden rounded-[19px] border transition-colors duration-300"
-              style={{ background: "var(--tcy-bg)", borderColor: "var(--tcy-line)" }}
-              onTouchStart={(event) => {
-                const touchX = event.touches[0]?.clientX;
-                if (touchX !== undefined) event.currentTarget.dataset.touchStartX = String(touchX);
-              }}
-              onTouchEnd={(event) => {
-                const start = Number(event.currentTarget.dataset.touchStartX);
-                const end = event.changedTouches[0]?.clientX;
-                if (!Number.isFinite(start) || end === undefined) return;
-                if (start - end > 45) movePreview(1);
-                else if (end - start > 45) movePreview(-1);
-              }}
-            >
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={activePreview.id}
-                  initial={{ opacity: 0, x: 14 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.16 }}
-                  className="h-full"
-                >
-                  {activePreview.id === "chat" && <ChatPreview />}
-                  {activePreview.id === "channel" && <ChannelPreview />}
-                  {activePreview.id === "menu" && <MenuPreview />}
-                  {activePreview.id === "profile" && <ProfilePreview />}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-          <div className="flex items-center justify-center gap-4 pb-3">
-            <button type="button" aria-label="Предыдущий пример" onClick={() => movePreview(-1)} className="flex h-8 w-8 items-center justify-center rounded-full border tcy-line tcy-card-strong tcy-dim"><ChevronLeft size={16} /></button>
-            <div className="flex items-center gap-1.5">
-              {PREVIEWS.map((preview, index) => (
-                <button key={preview.id} type="button" aria-label={preview.title} onClick={() => setPreviewIndex(index)} className="h-1.5 rounded-full transition-all" style={{ width: previewIndex === index ? 18 : 6, background: previewIndex === index ? "var(--tcy-selected-accent)" : "var(--tcy-line-strong)" }} />
-              ))}
-            </div>
-            <button type="button" aria-label="Следующий пример" onClick={() => movePreview(1)} className="flex h-8 w-8 items-center justify-center rounded-full border tcy-line tcy-card-strong tcy-dim"><ChevronRight size={16} /></button>
+        <div className="overflow-hidden rounded-[18px]">
+          <div
+            aria-label={`Предпросмотр: ${activePreview.title}`}
+            className="h-[270px] overflow-hidden rounded-[18px] border transition-colors duration-300"
+            style={{
+              background: "var(--tcy-bg)",
+              borderColor: "color-mix(in srgb, var(--tcy-line) 60%, transparent)",
+              borderWidth: "1px",
+              touchAction: "pan-y",
+              userSelect: "none",
+            }}
+            onPointerDown={(event) => {
+              event.currentTarget.dataset.previewStartX = String(event.clientX);
+              event.currentTarget.setPointerCapture(event.pointerId);
+            }}
+            onPointerUp={(event) => {
+              const startX = Number(event.currentTarget.dataset.previewStartX);
+              delete event.currentTarget.dataset.previewStartX;
+              if (!Number.isFinite(startX)) return;
+              const delta = startX - event.clientX;
+              if (delta > 45) movePreview(1);
+              else if (delta < -45) movePreview(-1);
+            }}
+            onPointerCancel={(event) => {
+              delete event.currentTarget.dataset.previewStartX;
+            }}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activePreview.id}
+                initial={{ opacity: 0, x: 14 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.16 }}
+                className="h-full"
+              >
+                {activePreview.id === "chat" && <ChatPreview />}
+                {activePreview.id === "channel" && <ChannelPreview />}
+                {activePreview.id === "menu" && <MenuPreview />}
+                {activePreview.id === "profile" && <ProfilePreview />}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
-
         <div className="mb-3 mt-6 flex items-center justify-between gap-3 px-1">
           <div>
             <p className="text-[14px] font-extrabold tcy-text">Выбери цвет</p>
