@@ -1,12 +1,28 @@
 /**
- * Grant the unreleased app version only to the explicitly approved account.
- * The authenticated user ID comes from the server-verified session; client
- * supplied IDs and usernames are never trusted.
+ * Server-side access rule for the private current TeleChat You build.
+ * Access is tied only to the server-verified numeric account ID.
+ * Usernames and client-supplied identity fields are not authorization inputs.
  */
-const PRIVATE_TESTER_USER_IDS = new Set([1633623]);
+import type { PublicUser } from "./session";
 
-export async function isPrivateExperimentalTester(
-  user: { id: number } | null | undefined,
-): Promise<boolean> {
-  return !!user && PRIVATE_TESTER_USER_IDS.has(user.id);
+type CandidateUser = Pick<PublicUser, "id"> | null | undefined;
+const PRIVATE_TESTER_USER_ID = 1633623;
+
+export type PrivateExperimentalMatch = "user-id" | "none";
+
+/** Explain whether this authenticated account receives the current build. */
+export function privateExperimentalMatch(user: CandidateUser): PrivateExperimentalMatch {
+  return user && Number.isSafeInteger(user.id) && user.id === PRIVATE_TESTER_USER_ID
+    ? "user-id"
+    : "none";
+}
+
+/** The current application is served only to the single approved account. */
+export function isPrivateExperimentalUser(user: CandidateUser): boolean {
+  return privateExperimentalMatch(user) !== "none";
+}
+
+/** Back-compat alias used by the experimental-access API endpoint. */
+export function isPrivateExperimentalTester(user: CandidateUser): boolean {
+  return isPrivateExperimentalUser(user);
 }
