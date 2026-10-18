@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { TeleChatYouIcon } from "@/components/TeleChatYouIcon";
 import { TcButton } from "@/components/TcButton";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
@@ -29,8 +28,14 @@ export default function SystemUpdate() {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-12 text-center">
         {experimentalUI ? (
-          <div className="h-[112px] w-[112px] overflow-hidden rounded-[28px] tcy-shadow-accent">
-            <TeleChatYouIcon size={112} />
+          <div className="h-[132px] w-[132px] overflow-hidden rounded-[32px] tcy-shadow-accent">
+            <img
+              src="/onboarding/telechatyou-logo.webp"
+              alt="TeleChatYou"
+              width={132}
+              height={132}
+              className="h-full w-full object-cover"
+            />
           </div>
         ) : (
           <div className="w-24 h-24 rounded-[28px] border tcy-line tcy-card flex items-center justify-center">
