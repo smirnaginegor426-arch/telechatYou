@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { Archive, ArchiveRestore, Plus, MessagesSquare, Search, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
+import { Archive, ArchiveRestore, Plus, MessagesSquare, Volume2, VolumeX, Trash2, X, Folder } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Avatar } from "@/components/Avatar";
 import { ChatItem } from "@/components/ChatItem";
@@ -204,49 +204,39 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => navigate("/profile")}
-                  aria-label="Профиль"
-                  className="tcy-press shrink-0"
-                >
-                  <Avatar
-                    name={me.data?.profile?.displayName ?? "?"}
-                    avatarKey={me.data?.profile?.avatarKey}
-                    size={36}
-                    lastSeenAt={me.data?.profile?.lastSeenAt}
-                    showOnline
-                  />
-                </button>
-                <button
-                  onClick={() => navigate("/search")}
-                  className="tcy-search-control tcy-press w-10 h-10 rounded-full tcy-card border tcy-line flex items-center justify-center tcy-dim"
-                  aria-label="Поиск"
-                >
-                  <Search size={18} className="tcy-search-control-icon" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => navigate("/create")}
-                  className="tcy-press w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center"
-                  style={{ color: "var(--tcy-selected-on-accent)" }}
-                  aria-label="Создать канал или группу"
-                  title="Создать канал или группу"
-                >
-                  <Plus size={21} strokeWidth={2.5} />
-                </button>
-              </div>
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/profile")}
+                aria-label="Профиль"
+                className="tcy-press shrink-0"
+              >
+                <Avatar
+                  name={me.data?.profile?.displayName ?? "?"}
+                  avatarKey={me.data?.profile?.avatarKey}
+                  size={36}
+                  lastSeenAt={me.data?.profile?.lastSeenAt}
+                  showOnline
+                />
+              </button>
+              <button
+                onClick={() => navigate("/search")}
+                className="tcy-search-control flex-1 min-w-0 h-11 rounded-[18px] tcy-card border tcy-line flex items-center gap-3 px-4 text-left tcy-press overflow-hidden"
+              >
+                <span className="truncate text-[13.5px] tcy-faint font-medium">
+                  Поиск чатов, людей, сообщений…
+                </span>
+              </button>
+              <button
+                onClick={() => navigate("/create")}
+                className="tcy-press w-10 h-10 rounded-full tcy-gradient-accent tcy-shadow-accent flex items-center justify-center shrink-0"
+                style={{ color: "var(--tcy-selected-on-accent)" }}
+                aria-label="Создать канал или группу"
+                title="Создать канал или группу"
+              >
+                <Plus size={21} strokeWidth={2.5} />
+              </button>
             </div>
-            <button
-              onClick={() => navigate("/search")}
-              className="tcy-search-control mt-4 w-full h-11 rounded-[18px] tcy-card border tcy-line flex items-center gap-3 px-4 text-left tcy-press"
-            >
-              <Search size={16} className="tcy-search-control-icon" />
-              <span className="text-[13.5px] tcy-faint font-medium">Поиск чатов, людей, сообщений…</span>
-            </button>
           </>
         )}
       </header>
