@@ -579,19 +579,37 @@ export default function ChatView() {
 
   return (
     <div className="tcy-chat-view-root relative h-full flex flex-col">
+      <div
+        aria-hidden="true"
+        className={cn(
+          "tcy-wallpaper",
+          wallpaper !== "custom" &&
+            `tcy-wallpaper-bg--${experimentalUI || !isExperimentalWallpaper(wallpaper) ? wallpaper : DEFAULT_CHAT_WALLPAPER}`,
+        )}
+        style={
+          wallpaper === "custom" && wallpaperImage
+            ? {
+                backgroundImage: `${theme === "light" ? "linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18))" : "linear-gradient(rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.36))"}, url("${wallpaperImage}")`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+              }
+            : undefined
+        }
+      />
       {/* header */}
-      <header className="relative z-20 tcy-header-blur border-b tcy-line">
-        <div className="flex items-center gap-2 px-2.5 pt-3 pb-2.5 safe-top">
+      <header className="relative z-20 shrink-0 bg-transparent">
+        <div className="flex items-center gap-2 px-3 pt-3 pb-2 safe-top">
           <button
             onClick={() => navigate("/")}
-            className="tcy-press w-10 h-10 rounded-full flex items-center justify-center tcy-dim"
+            className="tcy-press tcy-glass-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-full tcy-dim"
             aria-label="Назад"
           >
             <ArrowLeft size={20} />
           </button>
           <button
             onClick={() => navigate(`/chat/${chatId}/info`)}
-            className="flex items-center gap-3 flex-1 min-w-0 text-left tcy-press rounded-[18px] py-0.5"
+            className="tcy-press tcy-glass-surface flex min-w-0 flex-1 items-center gap-2.5 rounded-[20px] px-2.5 py-2 text-left"
           >
             <Avatar
               name={title}
@@ -615,7 +633,7 @@ export default function ChatView() {
           </button>
           <button
             onClick={() => navigate(`/chat/${chatId}/info`)}
-            className="tcy-press w-10 h-10 rounded-full flex items-center justify-center tcy-dim"
+            className="tcy-press tcy-glass-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-full tcy-dim"
             aria-label="Информация"
           >
             <Info size={19} />
@@ -623,7 +641,7 @@ export default function ChatView() {
           <button
             type="button"
             onClick={() => setChatMenuOpen((open) => !open)}
-            className="tcy-press w-10 h-10 rounded-full flex items-center justify-center tcy-dim"
+            className="tcy-press tcy-glass-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-full tcy-dim"
             aria-label="Действия с чатом"
             aria-expanded={chatMenuOpen}
           >
@@ -814,25 +832,6 @@ export default function ChatView() {
 
       {/* messages */}
       <div className="relative flex-1 min-h-0">
-        <div
-          aria-hidden="true"
-          className={cn(
-            "tcy-wallpaper",
-            wallpaper !== "custom" &&
-              // Experimental wallpapers fall back to the default for stable accounts.
-              `tcy-wallpaper-bg--${experimentalUI || !isExperimentalWallpaper(wallpaper) ? wallpaper : DEFAULT_CHAT_WALLPAPER}`,
-          )}
-          style={
-            wallpaper === "custom" && wallpaperImage
-              ? {
-                  backgroundImage: `${theme === "light" ? "linear-gradient(rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.18))" : "linear-gradient(rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.36))"}, url("${wallpaperImage}")`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  backgroundRepeat: "no-repeat",
-                }
-              : undefined
-          }
-        />
         <div
           ref={scrollRef}
           onScroll={onScroll}
