@@ -804,7 +804,7 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
               <h4 className="px-1.5 pb-2 text-[11.5px] font-bold uppercase tracking-[0.08em] tcy-faint">
                 {heading}
               </h4>
-              <div className="flex flex-col gap-[3mm]">
+              <div className="flex flex-col gap-[1mm]">
                 {ids.map((id, index) => {
                   const section = SETTINGS_SECTIONS.find((item) => item.id === id)!;
                   const { title, subtitle, icon: Icon } = section;
