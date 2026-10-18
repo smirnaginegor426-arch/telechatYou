@@ -196,7 +196,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                   <motion.span
                     layoutId="tcy-tab-orb"
                     className="absolute inset-0 rounded-[20px] tcy-tab-orb pointer-events-none"
-                    transition={{ type: "spring", stiffness: 220, damping: 27, mass: 0.85 }}
+                    transition={{ type: "spring", bounce: 0, duration: 0.5 }}
                   />
                 )}
                 <span className="tcy-tab-icon-wrap relative z-[1] flex h-10 items-center justify-center pointer-events-none">
