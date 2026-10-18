@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, Delete, Fingerprint, KeyRound, ShieldCheck } from "lucide-react";
@@ -42,6 +42,8 @@ export default function AccountSecurityPassword() {
   const [firstPattern, setFirstPattern] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<EntryFeedback>("neutral");
   const [errorMessage, setErrorMessage] = useState("");
+  const patternGridRef = useRef<HTMLDivElement>(null);
+  const drawingPatternRef = useRef(false);
 
   const createPassword = trpc.auth.createAccountSecurityPassword.useMutation();
   const status = trpc.auth.accountSecurityPasswordStatus.useQuery();
@@ -77,6 +79,38 @@ export default function AccountSecurityPassword() {
     setPattern([]);
     setFeedback("neutral");
     setErrorMessage("");
+  };
+
+  const patternNodeAtPoint = (x: number, y: number) => {
+    const element = document.elementFromPoint(x, y);
+    const nodeElement = element instanceof HTMLElement
+      ? element.closest<HTMLElement>("[data-pattern-node]")
+      : null;
+    if (!nodeElement || !patternGridRef.current?.contains(nodeElement)) return;
+    const node = Number(nodeElement.dataset.patternNode);
+    if (Number.isInteger(node) && node >= 1 && node <= 9) addPatternNode(node);
+  };
+
+  const startPatternDrawing = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (createPassword.isPending || step === "success") return;
+    event.preventDefault();
+    drawingPatternRef.current = true;
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture can be unavailable in a few embedded browser views.
+    }
+    patternNodeAtPoint(event.clientX, event.clientY);
+  };
+
+  const movePatternDrawing = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!drawingPatternRef.current) return;
+    event.preventDefault();
+    patternNodeAtPoint(event.clientX, event.clientY);
+  };
+
+  const stopPatternDrawing = () => {
+    drawingPatternRef.current = false;
   };
 
   const currentValue = format === "digital" ? entered : pattern.join("-");
@@ -320,7 +354,16 @@ export default function AccountSecurityPassword() {
                       />
                     )}
                   </svg>
-                  <div className="relative grid h-full w-full grid-cols-3 grid-rows-3">
+                  <div
+                    ref={patternGridRef}
+                    className="relative grid h-full w-full grid-cols-3 grid-rows-3 touch-none select-none"
+                    style={{ touchAction: "none" }}
+                    onPointerDown={startPatternDrawing}
+                    onPointerMove={movePatternDrawing}
+                    onPointerUp={stopPatternDrawing}
+                    onPointerCancel={stopPatternDrawing}
+                    onLostPointerCapture={stopPatternDrawing}
+                  >
                     {Array.from({ length: 9 }, (_, index) => {
                       const node = index + 1;
                       const selected = pattern.includes(node);
@@ -328,10 +371,10 @@ export default function AccountSecurityPassword() {
                         <button
                           key={node}
                           type="button"
-                          onClick={() => addPatternNode(node)}
-                          disabled={createPassword.isPending || pattern.length >= 9}
+                          data-pattern-node={node}
+                          disabled={createPassword.isPending}
                           aria-label={`Точка ${node}`}
-                          className="flex items-center justify-center rounded-xl disabled:cursor-default"
+                          className="flex items-center justify-center rounded-xl disabled:cursor-default touch-none select-none"
                         >
                           <span
                             className="flex h-7 w-7 items-center justify-center rounded-full border-2 transition-colors"
