@@ -14,11 +14,11 @@ const CURRENT_SHELL = "index.html";
 const LEGACY_SHELL = path.join("legacy", "index.html");
 
 /**
- * TEMPORARY OVERRIDE — set back to false to fetch the current build for every
- * visitor (used for a short preview window). While it is true the split below
- * is bypassed.
+ * Public rollout: serve the current application to every visitor.
+ * Set to false only if the legacy build needs to be restored for everyone
+ * except the explicitly allowlisted account.
  */
-const SERVE_CURRENT_BUILD_TO_EVERYONE = false;
+const SERVE_CURRENT_BUILD_TO_EVERYONE = true;
 
 export function serveStaticFiles(app: App) {
   const distPath = path.resolve(import.meta.dirname, "../dist/public");
@@ -29,10 +29,9 @@ export function serveStaticFiles(app: App) {
   };
 
   /**
-   * Two applications ship in this build. Only the private experimental account
-   * receives the current one; every other account — including visitors who are
-   * not signed in — receives the original build. The legacy bundle is missing
-   * (for example during `vite dev`) the current shell is served instead.
+   * Two applications ship in this build. During the public rollout, every
+   * visitor receives the current application. The legacy bundle remains
+   * available for a deliberate rollback if needed.
    */
   const shellFor = async (headers: Headers): Promise<string | null> => {
     const experimental =
