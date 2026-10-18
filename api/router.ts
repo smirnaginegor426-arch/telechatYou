@@ -7,6 +7,7 @@ import { profileRouter } from "./profile-router";
 import { settingsRouter } from "./settings-router";
 import { accountDataRouter } from "./account-data-router";
 import { storageRouter } from "./storage-router";
+import { linksRouter } from "./links-router";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
 import { isPrivateExperimentalTester } from "./lib/experimental-access";
 
@@ -17,8 +18,8 @@ export const appRouter = createRouter({
   })),
 
   /** Permission for the private experimental UI preview, derived from the active session. */
-  experimentalAccess: authedQuery.query(async ({ ctx }) => ({
-    enabled: await isPrivateExperimentalTester(ctx.user),
+  experimentalAccess: authedQuery.query(({ ctx }) => ({
+    enabled: isPrivateExperimentalTester(ctx.user),
   })),
   auth: authRouter,
   profile: profileRouter,
@@ -26,6 +27,7 @@ export const appRouter = createRouter({
   channels: channelsRouter,
   messages: messagesRouter,
   storage: storageRouter,
+  links: linksRouter,
   settings: settingsRouter,
   accountData: accountDataRouter,
   admin: adminRouter,
