@@ -13,6 +13,15 @@ const CURRENT_SHELL = "index.html";
 /** The frozen 10 Oct 2026 build, compiled by legacy/vite.config.ts. */
 const LEGACY_SHELL = path.join("legacy", "index.html");
 
+/**
+ * TEMPORARY OVERRIDE — set back to false to restore the split.
+ *
+ * While true every visitor receives the current build, so the new version can
+ * be opened without being signed in as the tester. Only the routing is affected;
+ * the experimental features still require the tester account.
+ */
+const SERVE_CURRENT_BUILD_TO_EVERYONE = true;
+
 export function serveStaticFiles(app: App) {
   const distPath = path.resolve(import.meta.dirname, "../dist/public");
 
@@ -28,8 +37,9 @@ export function serveStaticFiles(app: App) {
    * (for example during `vite dev`) the current shell is served instead.
    */
   const shellFor = async (headers: Headers): Promise<string | null> => {
-    const user = await getSessionUser(getSessionToken(headers));
-    const experimental = isPrivateExperimentalUser(user);
+    const experimental =
+      SERVE_CURRENT_BUILD_TO_EVERYONE ||
+      isPrivateExperimentalUser(await getSessionUser(getSessionToken(headers)));
     const preferred = experimental ? CURRENT_SHELL : LEGACY_SHELL;
     return readShell(preferred) ?? readShell(CURRENT_SHELL);
   };
