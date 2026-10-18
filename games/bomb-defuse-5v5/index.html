@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>Tactical 5v5 — бомба, демо</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { height:100%; background:#0b0d12; color:#e8ecf4; font-family:'Segoe UI', system-ui, sans-serif; overflow:hidden; }
+  #wrap { height:100%; display:flex; align-items:center; justify-content:center; }
+  #stage { position:relative; }
+  canvas#game { display:block; background:#14171f; border-radius:10px; box-shadow:0 12px 50px rgba(0,0,0,.55); cursor:none; touch-action:none; }
+  .hud { position:absolute; pointer-events:none; user-select:none; }
+  #topbar { top:10px; left:0; right:0; display:flex; justify-content:center; gap:18px; align-items:center; font-weight:700; font-size:15px; text-shadow:0 2px 6px #000; }
+  .score { padding:4px 12px; border-radius:9px; background:rgba(10,14,22,.72); border:1px solid rgba(255,255,255,.08); }
+  #scoreT { color:#ffb14f; }
+  #scoreCT { color:#5aa2ff; }
+  #timer { min-width:86px; text-align:center; padding:4px 12px; border-radius:9px; background:rgba(10,14,22,.72); border:1px solid rgba(255,255,255,.08); font-variant-numeric:tabular-nums; }
+  #timer.bomb { color:#ff5d5d; border-color:rgba(255,93,93,.5); animation:pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity:.55; } }
+  #roundTag { position:absolute; top:52px; left:0; right:0; text-align:center; font-size:12px; color:#9aa4b8; text-shadow:0 2px 4px #000; }
+  #killfeed { position:absolute; top:10px; left:12px; font-size:13px; }
+  #killfeed div { background:rgba(10,14,22,.72); border:1px solid rgba(255,255,255,.08); padding:3px 10px; border-radius:8px; margin-bottom:5px; display:inline-block; float:left; clear:both; }
+  #banner { position:absolute; top:38%; left:0; right:0; text-align:center; font-size:30px; font-weight:800; text-shadow:0 3px 12px #000; opacity:0; transition:opacity .25s; }
+  #banner.show { opacity:1; }
+  #hint { position:absolute; bottom:12px; left:0; right:0; text-align:center; font-size:12.5px; color:#8b93a6; text-shadow:0 2px 4px #000; }
+  #vitals { position:absolute; left:18px; bottom:14px; width:230px; }
+  #hpbar { height:10px; border-radius:6px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.1); overflow:hidden; }
+  #hpfill { height:100%; width:100%; background:linear-gradient(90deg,#57d977,#2fae4f); transition:width .15s; }
+  #hpnum { font-size:13px; font-weight:700; margin-top:4px; color:#cfe3d4; }
+  #ammo { position:absolute; right:18px; bottom:14px; text-align:right; }
+  #ammo .mag { font-size:26px; font-weight:800; font-variant-numeric:tabular-nums; }
+  #ammo .reserve { font-size:15px; color:#9aa4b8; margin-left:6px; }
+  #ammo .weapon { font-size:12px; color:#8b93a6; }
+  #progress { position:absolute; left:50%; transform:translateX(-50%); bottom:84px; width:230px; text-align:center; display:none; }
+  #progress .label { font-size:13px; font-weight:700; margin-bottom:5px; text-shadow:0 2px 4px #000; }
+  #progress .bar { height:8px; border-radius:5px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.14); overflow:hidden; }
+  #progress .fill { height:100%; width:0%; background:#ffcf5c; }
+  #overlay { position:absolute; inset:0; background:rgba(8,10,16,.82); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; border-radius:10px; backdrop-filter:blur(3px); z-index:5; }
+  #overlay h1 { font-size:40px; margin-bottom:10px; }
+  #overlay p { color:#b9c2d4; font-size:15px; line-height:1.6; margin-bottom:8px; }
+  #overlay .keys { font-size:14px; color:#9aa4b8; margin-bottom:22px; }
+  #overlay button { pointer-events:auto; cursor:pointer; font:inherit; font-weight:800; font-size:17px; color:#0b0d12; background:linear-gradient(180deg,#6ea8ff,#3f7de0); border:0; padding:13px 42px; border-radius:12px; box-shadow:0 6px 24px rgba(63,125,224,.4); }
+  #overlay button:hover { filter:brightness(1.1); }
+  .hidden { display:none !important; }
+  .tk { color:#ffb14f; font-weight:800; }
+  .tc { color:#ff7d6b; font-weight:800; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="game" width="1200" height="750"></canvas>
+
+    <div class="hud" id="topbar">
+      <span class="score" id="scoreT">0</span>
+      <span id="timer">1:00</span>
+      <span class="score" id="scoreCT">0</span>
+    </div>
+    <div class="hud" id="roundTag">Раунд 1 · до 5 побед</div>
+    <div class="hud" id="killfeed"></div>
+    <div class="hud" id="banner"></div>
+    <div class="hud" id="hint">WASD — движение · ЛКМ — огонь · R — перезарядка · E (держать) — закладка / обезвреживание</div>
+    <div class="hud" id="vitals">
+      <div id="hpbar"><div id="hpfill"></div></div>
+      <div id="hpnum">100</div>
+    </div>
+    <div class="hud" id="ammo">
+      <div><span class="mag">30</span><span class="reserve">/ 90</span></div>
+      <div class="weapon">ШТУРМОВАЯ ВИНТОВКА</div>
+    </div>
+    <div class="hud" id="progress">
+      <div class="label" id="progressLabel">Закладка…</div>
+      <div class="bar"><div class="fill" id="progressFill"></div></div>
+    </div>
+
+    <div id="overlay">
+      <h1>TACTICAL <span style="color:#6ea8ff">5v5</span></h1>
+      <p>Тактический шутер 5 на 5 в духе Counter-Strike: заложите бомбу на точке A или B<br>или уничтожьте всю команду врага. Раунд выигрывает и та, и другая сторона.</p>
+      <p class="keys">WASD — движение &nbsp;·&nbsp; мышь — прицел &nbsp;·&nbsp; ЛКМ — огонь &nbsp;·&nbsp; R — перезарядка &nbsp;·&nbsp; E (держать) — закладка/обезвреживание</p>
+      <button id="playBtn">ИГРАТЬ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+
+// ============================== КОНСТАНТЫ ==============================
+const W = 1200, H = 750;
+const PLAYER_SPEED = 168;
+const BOT_SPEED = 138;
+const RIFLE_DMG = 30, BOT_DMG = 13;
+const FIRE_INTERVAL = 0.105, BOT_FIRE_INTERVAL = 0.30;
+const MAG = 30, RESERVE = 90, RELOAD_TIME = 2.1;
+const BOT_RANGE = 430;
+const ROUND_TIME = 60, FREEZE_TIME = 3, BOMB_TIME = 40, PLANT_TIME = 3, DEFUSE_TIME = 5;
+const WIN_ROUNDS = 5;
+const BOT_NAMES_T = ["Дух", "Кобра", "Лис", "Волк", "Гром"];
+const BOT_NAMES_CT = ["Ворон", "Шакал", "Морж", "Ястреб", "Тень"];
+
+// ============================== КАРТА ==============================
+const WALLS = [
+  {x:0, y:0, w:1200, h:14}, {x:0, y:736, w:1200, h:14}, {x:0, y:0, w:14, h:750}, {x:1186, y:0, w:14, h:750},
+  {x:452, y:14, w:26, h:250},      // стена КТ-зоны (проход снизу)
+  {x:478, y:258, w:104, h:26},     // блок мида (S-путь)
+  {x:582, y:458, w:104, h:26},     // блок мида
+  {x:686, y:470, w:26, h:280},     // стенка справа снизу
+  {x:372, y:470, w:26, h:266},     // стенка Т-зоны (проход сверху)
+  {x:860, y:60, w:52, h:52},       // ящики
+  {x:560, y:120, w:56, h:56},
+  {x:940, y:300, w:56, h:56},
+  {x:240, y:540, w:56, h:56},
+  {x:780, y:580, w:64, h:48},
+  {x:560, y:620, w:56, h:56},
+];
+const SITES = {
+  A: {x:1000, y:130, r:74, name:"A"},
+  B: {x:92, y:596, r:74, name:"B"},
+};
+const T_SPAWNS = [{x:120,y:600},{x:180,y:650},{x:240,y:600},{x:300,y:650},{x:150,y:560}];
+const CT_SPAWNS = [{x:600,y:80},{x:700,y:120},{x:820,y:90},{x:940,y:140},{x:1040,y:90}];
+
+// ============================== СОСТОЯНИЕ ==============================
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const el = {
+  timer: document.getElementById("timer"),
+  roundTag: document.getElementById("roundTag"),
+  scoreT: document.getElementById("scoreT"),
+  scoreCT: document.getElementById("scoreCT"),
+  killfeed: document.getElementById("killfeed"),
+  banner: document.getElementById("banner"),
+  hpfill: document.getElementById("hpfill"),
+  hpnum: document.getElementById("hpnum"),
+  ammoMag: document.querySelector("#ammo .mag"),
+  ammoReserve: document.querySelector("#ammo .reserve"),
+  progress: document.getElementById("progress"),
+  progressLabel: document.getElementById("progressLabel"),
+  progressFill: document.getElementById("progressFill"),
+  overlay: document.getElementById("overlay"),
+  playBtn: document.getElementById("playBtn"),
+};
+
+const state = {
+  running: false,
+  phase: "freeze",          // freeze | live | over
+  phaseT: FREEZE_TIME,
+  roundTime: ROUND_TIME,
+  round: 1,
+  scoreT: 0, scoreCT: 0,
+  bomb: null,               // {x,y,t}
+  bombPlanter: null,
+  player: null,
+  bots: [],
+  tracers: [],
+  bodies: [],
+  killTexts: [],
+  shake: 0,
+  keys: {},
+  mouse: {x: W/2, y: H/2, down: false},
+  scale: 1, offX: 0, offY: 0,
+  winner: null,             // "T" | "CT"
+  tSite: "A",
+  freezeMsg: "Приготовьтесь…",
+};
+
+// ============================== АУДИО ==============================
+let AC = null;
+function audio() { if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } return AC; }
+function beep(freq, dur, type, vol, slide) {
+  const ac = audio(); if (!ac) return;
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || "square";
+  o.frequency.setValueAtTime(freq, ac.currentTime);
+  if (slide) o.frequency.exponentialRampToValueAtTime(slide, ac.currentTime + dur);
+  g.gain.setValueAtTime(vol || 0.08, ac.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + dur);
+  o.connect(g); g.connect(ac.destination);
+  o.start(); o.stop(ac.currentTime + dur);
+}
+function noiseBurst(dur, vol) {
+  const ac = audio(); if (!ac) return;
+  const n = Math.floor(ac.sampleRate * dur);
+  const buf = ac.createBuffer(1, n, ac.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  const src = ac.createBufferSource(); src.buffer = buf;
+  const g = ac.createGain(); g.gain.value = vol;
+  src.connect(g); g.connect(ac.destination); src.start();
+}
+const sfx = {
+  shoot: () => beep(190 + Math.random() * 40, 0.07, "square", 0.055, 90),
+  eshoot: () => beep(150 + Math.random() * 30, 0.06, "square", 0.028, 80),
+  kill: () => { beep(660, 0.09, "sine", 0.12); setTimeout(() => beep(880, 0.12, "sine", 0.1), 70); },
+  plant: () => beep(920, 0.07, "sine", 0.09),
+  defuse: () => beep(520, 0.07, "sine", 0.09),
+  boom: () => { noiseBurst(0.9, 0.5); beep(58, 0.9, "sine", 0.3, 30); },
+  roundEnd: () => { beep(520, 0.12, "sine", 0.1); setTimeout(() => beep(780, 0.16, "sine", 0.1), 120); },
+};
+
+// ============================== УТИЛИТЫ ==============================
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+const fmtTime = (s) => { s = Math.max(0, Math.ceil(s)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); };
+
+function rectsIntersect(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+function pointInWall(x, y, r) {
+  for (const w of WALLS) if (rectsIntersect({x: x - r, y: y - r, w: r * 2, h: r * 2}, w)) return true;
+  return false;
+}
+// пересечение отрезка с прямоугольником (метод полос)
+function segRect(x0, y0, x1, y1, r) {
+  const dx = x1 - x0, dy = y1 - y0;
+  let tmin = 0, tmax = 1;
+  for (const p of [[-dx, x0 - r.x], [dx, r.x + r.w - x0], [-dy, y0 - r.y], [dy, r.y + r.h - y0]]) {
+    if (Math.abs(p[0]) < 1e-9) { if (p[1] < 0) return -1; }
+    else {
+      const t = p[1] / p[0];
+      if (p[0] < 0) { if (t > tmax) return -1; if (t > tmin) tmin = t; }
+      else { if (t < tmin) return -1; if (t < tmax) tmax = t; }
+    }
+  }
+  return tmin;
+}
+function losClear(x0, y0, x1, y1) {
+  for (const w of WALLS) { const t = segRect(x0, y0, x1, y1, w); if (t >= 0) return false; }
+  return true;
+}
+// расстояние до первой стены по лучу
+function rayWallDist(x, y, ang, maxD) {
+  const dx = Math.cos(ang), dy = Math.sin(ang);
+  let best = maxD;
+  for (const w of WALLS) {
+    const t = segRect(x, y, x + dx * maxD, y + dy * maxD, w);
+    if (t >= 0) best = Math.min(best, t * maxD);
+  }
+  return best;
+}
+// пересечение луча с кругом
+function rayCircle(x, y, ang, c) {
+  const dx = Math.cos(ang), dy = Math.sin(ang);
+  const fx = x - c.x, fy = y - c.y;
+  const b = 2 * (fx * dx + fy * dy);
+  const cc = fx * fx + fy * fy - c.r * c.r;
+  const disc = b * b - 4 * cc;
+  if (disc < 0) return -1;
+  const t = (-b - Math.sqrt(disc)) / 2;
+  return t >= 0 ? t : -1;
+}
+
+// ============================== ПУТИ (BFS по сетке) ==============================
+const CELL = 30, COLS = Math.ceil(W / CELL), ROWS = Math.ceil(H / CELL);
+const blocked = [];
+for (let r = 0; r < ROWS; r++) { blocked.push(new Array(COLS).fill(false)); }
+for (const w of WALLS) {
+  const r0 = Math.max(0, Math.floor(w.y / CELL)), r1 = Math.min(ROWS - 1, Math.floor((w.y + w.h) / CELL));
+  const c0 = Math.max(0, Math.floor(w.x / CELL)), c1 = Math.min(COLS - 1, Math.floor((w.x + w.w) / CELL));
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) blocked[r][c] = true;
+}
+function cellOf(x, y) { return {c: clamp(Math.floor(x / CELL), 0, COLS - 1), r: clamp(Math.floor(y / CELL), 0, ROWS - 1)}; }
+function findPath(sx, sy, tx, ty) {
+  const s = cellOf(sx, sy), t = cellOf(tx, ty);
+  if (blocked[t.r][t.c] || blocked[s.r][s.c]) return null;
+  const key = (c, r) => r * COLS + c;
+  const prev = new Map();
+  const q = [[s.c, s.r]];
+  prev.set(key(s.c, s.r), null);
+  const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+  let found = false;
+  while (q.length && !found) {
+    const [c, r] = q.shift();
+    if (c === t.c && r === t.r) { found = true; break; }
+    for (const [dc, dr] of dirs) {
+      const nc = c + dc, nr = r + dr;
+      if (nc < 0 || nr < 0 || nc >= COLS || nr >= ROWS || blocked[nr][nc]) continue;
+      const k = key(nc, nr);
+      if (prev.has(k)) continue;
+      prev.set(k, [c, r]);
+      q.push([nc, nr]);
+    }
+  }
+  if (!found) return null;
+  const cells = [];
+  let cur = [t.c, t.r];
+  while (cur) { cells.push(cur); cur = prev.get(key(cur[0], cur[1])); }
+  cells.reverse();
+  const pts = cells.map(([c, r]) => ({x: c * CELL + CELL / 2, y: r * CELL + CELL / 2}));
+  pts[pts.length - 1] = {x: tx, y: ty};
+  // сглаживание: пропускаем точки, если видно следующую
+  const out = [];
+  let i = 0;
+  while (i < pts.length - 1) {
+    let j = pts.length - 1;
+    while (j > i + 1 && !losClear(pts[i].x, pts[i].y, pts[j].x, pts[j].y)) j--;
+    out.push(pts[i]);
+    i = j;
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+
+// ============================== СОЗДАНИЕ ПЕРСОНАЖЕЙ ==============================
+function makePlayer() {
+  return {x: 130, y: 610, r: 12, angle: -Math.PI / 2, hp: 100, alive: true,
+          ammo: MAG, reserve: RESERVE, reloading: 0, fireCd: 0, name: "Вы", team: "T", isPlayer: true};
+}
+function makeBot(team, i) {
+  const sp = team === "T" ? T_SPAWNS[i + 1] : CT_SPAWNS[i];
+  const b = {x: sp.x, y: sp.y, r: 12, angle: rand(0, Math.PI * 2), hp: 100, alive: true,
+             ammo: MAG, reserve: RESERVE, reloading: 0, fireCd: rand(0.2, 0.8), name: (team === "T" ? BOT_NAMES_T : BOT_NAMES_CT)[i],
+             team, isPlayer: false, path: null, pathIdx: 0, repath: 0, target: null, aimErr: 0,
+             react: 0, burstLeft: 0, think: rand(0, 0.3), goal: null, guardPos: null, site: null, channel: 0, channelKind: null, strafe: 0};
+  return b;
+}
+
+function resetRound() {
+  state.phase = "freeze";
+  state.phaseT = FREEZE_TIME;
+  state.roundTime = ROUND_TIME;
+  state.bomb = null;
+  state.tracers = [];
+  state.bodies = [];
+  state.killTexts = [];
+  state.winner = null;
+  state.freezeMsg = "Раунд " + state.round + " · приготовьтесь…";
+  state.tSite = Math.random() < 0.5 ? "A" : "B";
+  state.player = makePlayer();
+  state.bots = [];
+  for (let i = 0; i < 4; i++) state.bots.push(makeBot("T", i));
+  for (let i = 0; i < 5; i++) state.bots.push(makeBot("CT", i));
+}
+
+// ============================== БОЙ ==============================
+function aliveCount(team) {
+  let n = state.bots.filter(b => b.team === team && b.alive).length;
+  if (state.player.alive && state.player.team === team) n++;
+  return n;
+}
+function allEnemies(team) {
+  const out = state.bots.filter(b => b.team !== team && b.alive);
+  if (state.player.alive && state.player.team !== team) out.push(state.player);
+  return out;
+}
+
+function fire(shooter, ang, dmg, range, spreadRad) {
+  const a = ang + (Math.random() - 0.5) * spreadRad;
+  const maxD = rayWallDist(shooter.x, shooter.y, a, range);
+  let bestT = maxD, victim = null;
+  for (const e of allEnemies(shooter.team)) {
+    const t = rayCircle(shooter.x, shooter.y, a, e);
+    if (t >= 0 && t < bestT) { bestT = t; victim = e; }
+  }
+  const hx = shooter.x + Math.cos(a) * bestT, hy = shooter.y + Math.sin(a) * bestT;
+  state.tracers.push({x1: shooter.x + Math.cos(a) * 16, y1: shooter.y + Math.sin(a) * 16, x2: hx, y2: hy, t: 0.09, team: shooter.team});
+  if (victim) {
+    victim.hp -= dmg;
+    if (victim.hp <= 0 && victim.alive) {
+      victim.hp = 0;
+      victim.alive = false;
+      state.bodies.push({x: victim.x, y: victim.y, team: victim.team, t: 8});
+      addKill(shooter, victim);
+      if (victim.isPlayer) state.shake = Math.max(state.shake, 10);
+      sfx.kill();
+    }
+  } else {
+    state.bodies.push({x: hx, y: hy, spark: true, t: 0.18});
+  }
+  return victim;
+}
+function addKill(shooter, victim) {
+  const sk = shooter.isPlayer ? "Вы" : shooter.name;
+  const vk = victim.isPlayer ? "Вы" : victim.name;
+  state.killTexts.unshift({text: sk + "  ▸  " + vk, t: 5});
+  if (state.killTexts.length > 6) state.killTexts.pop();
+}
+function botVisibleEnemies(bot) {
+  return allEnemies(bot.team).filter(e => {
+    const d = dist(bot, e);
+    return d < BOT_RANGE && losClear(bot.x, bot.y, e.x, e.y);
+  });
+}
+function nearestVisible(list, bot) {
+  let best = null, bd = 1e9;
+  for (const e of list) { const d = dist(bot, e); if (d < bd) { bd = d; best = e; } }
+  return best;
+}
+
+function botThink(b, dt) {
+  b.think -= dt;
+  if (b.think <= 0) {
+    b.think = 0.18;
+    const vis = botVisibleEnemies(b);
+    if (vis.length) {
+      if (!b.target) b.react = 0.32;
+      b.target = nearestVisible(vis, b);
+    } else b.target = null;
+
+    // цели движения
+    let goal = null;
+    if (b.team === "T") {
+      if (state.bomb) {
+        // охраняем бомбу
+        if (!b.guardPos) b.guardPos = {x: state.bomb.x + rand(-90, 90), y: state.bomb.y + rand(-90, 90)};
+        goal = b.guardPos;
+      } else if (b === state.bots.find(x => x.team === "T" && x.alive) || !state.bots.find(x => x.team === "T" && x.alive)) {
+        // первый живой бот Т идёт закладывать
+        const site = SITES[state.tSite];
+        goal = {x: site.x + rand(-26, 26), y: site.y + rand(-26, 26)};
+        b.goalIsSite = true;
+      } else {
+        // остальные прикрывают
+        const site = SITES[state.tSite];
+        goal = {x: site.x + rand(-140, 140), y: site.y + rand(-120, 120)};
+        b.goalIsSite = false;
+      }
+    } else {
+      if (state.bomb) {
+        // ближайшие 2 обезвреживают, остальные держат
+        const sorted = state.bots.filter(x => x.team === "CT" && x.alive).sort((a, c) => dist(a, state.bomb) - dist(c, state.bomb));
+        const idx = sorted.indexOf(b);
+        goal = idx < 2 ? {x: state.bomb.x + rand(-40, 40), y: state.bomb.y + rand(-40, 40)} : null;
+        b.defuseDuty = idx < 2;
+      } else {
+        // патруль между точками
+        if (!b.guardPos || dist(b, b.guardPos) < 40) {
+          b.guardPos = Math.random() < 0.5 ? {x: SITES.A.x + rand(-120, 120), y: SITES.A.y + rand(-110, 110)}
+                                                : {x: SITES.B.x + rand(-130, 130), y: SITES.B.y + rand(-110, 110)};
+        }
+        goal = b.guardPos;
+        b.defuseDuty = false;
+      }
+    }
+    b.goal = goal;
+  }
+
+  // движение
+  if (b.target) {
+    b.angle = Math.atan2(b.target.y - b.y, b.target.x - b.x);
+    b.react -= dt;
+    if (b.react <= 0) {
+      const d = dist(b, b.target);
+      b.fireCd -= dt;
+      if (b.fireCd <= 0) {
+        b.fireCd = BOT_FIRE_INTERVAL;
+        b.ammo--;
+        const err = (10 + d / 45) * Math.PI / 180;
+        fire(b, b.angle, BOT_DMG, 640, err);
+        sfx.eshoot();
+        if (b.ammo <= 0) { b.reloading = RELOAD_TIME; b.ammo = 0; }
+      }
+      // лёгкое сближение при дальней дистанции
+      if (d > 300) moveAlongPath(b, 0.35, dt);
+    }
+  } else if (b.goal) {
+    followGoal(b, dt);
+  } else {
+    b.angle += dt * 0.3;
+  }
+
+  // перезарядка
+  if (b.reloading > 0) {
+    b.reloading -= dt;
+    if (b.reloading <= 0) { b.ammo = MAG; b.reserve -= MAG; }
+  }
+  // пересчёт пути
+  b.repath -= dt;
+  if (b.goal && b.repath <= 0) {
+    b.repath = rand(0.4, 0.7);
+    const p = findPath(b.x, b.y, b.goal.x, b.goal.y);
+    if (p && p.length) { b.path = p; b.pathIdx = 0; }
+    else if (p === null) b.path = null;
+  }
+}
+
+function followGoal(b, dt) {
+  if (!b.path || b.pathIdx >= b.path.length) {
+    const p = findPath(b.x, b.y, b.goal.x, b.goal.y);
+    if (p && p.length) { b.path = p; b.pathIdx = 0; }
+    else if (p === null) { b.path = null; return; }
+  }
+  const wp = b.path[b.pathIdx];
+  if (dist(b, wp) < 10) { b.pathIdx++; return; }
+  const a = Math.atan2(wp.y - b.y, wp.x - b.x);
+  b.angle = a;
+  const sp = BOT_SPEED;
+  b.x += Math.cos(a) * sp * dt;
+  b.y += Math.sin(a) * sp * dt;
+}
+function moveAlongPath(b, mult, dt) {
+  if (!b.path || b.pathIdx >= b.path.length) return;
+  const wp = b.path[b.pathIdx];
+  if (dist(b, wp) < 10) { b.pathIdx++; return; }
+  const a = Math.atan2(wp.y - b.y, wp.x - b.x);
+  b.x += Math.cos(a) * BOT_SPEED * mult * dt;
+  b.y += Math.sin(a) * BOT_SPEED * mult * dt;
+}
+
+function updatePlayer(dt) {
+  const p = state.player;
+  if (!p.alive) return;
+  let dx = 0, dy = 0;
+  if (state.keys["KeyW"] || state.keys["ArrowUp"]) dy -= 1;
+  if (state.keys["KeyS"] || state.keys["ArrowDown"]) dy += 1;
+  if (state.keys["KeyA"] || state.keys["ArrowLeft"]) dx -= 1;
+  if (state.keys["KeyD"] || state.keys["ArrowRight"]) dx += 1;
+  if (dx || dy) {
+    const len = Math.hypot(dx, dy);
+    const nx = p.x + (dx / len) * PLAYER_SPEED * dt;
+    const ny = p.y + (dy / len) * PLAYER_SPEED * dt;
+    if (!pointInWall(nx, p.y, p.r)) p.x = nx;
+    if (!pointInWall(p.x, ny, p.r)) p.y = ny;
+  }
+  const wx = state.mouse.x, wy = state.mouse.y;
+  p.angle = Math.atan2(wy - p.y, wx - p.x);
+
+  if (p.fireCd > 0) p.fireCd -= dt;
+  if (p.reloading > 0) {
+    p.reloading -= dt;
+    if (p.reloading <= 0) { p.ammo = MAG; p.reserve -= MAG; }
+  }
+  if (state.keys["KeyR"] && p.reloading <= 0 && p.ammo < MAG && p.reserve > 0) {
+    p.reloading = RELOAD_TIME;
+  }
+  if (state.mouse.down && p.fireCd <= 0 && p.reloading <= 0) {
+    if (p.ammo <= 0) { p.reloading = RELOAD_TIME; }
+    else {
+      p.ammo--;
+      p.fireCd = FIRE_INTERVAL;
+      fire(p, p.angle, RIFLE_DMG, 700, 0.012);
+      state.shake = Math.max(state.shake, 2.5);
+      sfx.shoot();
+      if (p.ammo === 0) p.reloading = RELOAD_TIME;
+    }
+  }
+}
+
+// ============================== БОМБА ==============================
+function tryChannel(dt) {
+  const p = state.player;
+  if (!p.alive) return;
+  // закладка
+  if (!state.bomb && p.team === "T") {
+    for (const key of Object.keys(SITES)) {
+      const s = SITES[key];
+      if (dist(p, s) < s.r && state.keys["KeyE"] && !p.channel) {
+        p.channel = PLANT_TIME;
+        p.channelKind = "plant";
+        el.progressLabel.textContent = "Закладка бомбы…";
+        el.progress.style.display = "block";
+      }
+    }
+  }
+  // обезвреживание
+  if (state.bomb && p.team === "CT" && dist(p, state.bomb) < 46 && state.keys["KeyE"] && !p.channel) {
+    p.channel = DEFUSE_TIME;
+    p.channelKind = "defuse";
+    el.progressLabel.textContent = "Обезвреживание…";
+    el.progress.style.display = "block";
+  }
+  if (p.channel) {
+    p.channel -= dt;
+    el.progressFill.style.width = ((1 - p.channel / (p.channelKind === "plant" ? PLANT_TIME : DEFUSE_TIME)) * 100) + "%";
+    if (p.channel <= 0) {
+      el.progress.style.display = "none";
+      if (p.channelKind === "plant") plantBomb(p);
+      else defuseBomb(p);
+      p.channel = 0;
+      p.channelKind = null;
+    }
+    if (!state.keys["KeyE"]) { p.channel = 0; p.channelKind = null; el.progress.style.display = "none"; }
+  }
+}
+function plantBomb(bot) {
+  state.bomb = {x: bot.x + 10, y: bot.y + 14, t: BOMB_TIME};
+  state.bombPlanter = bot;
+  state.bots.forEach(b => { b.guardPos = null; });
+  showBanner("💣 Бомба заложена на точке " + state.tSite + "!", "#ffb14f");
+  sfx.plant();
+}
+function defuseBomb(bot) {
+  state.bomb = null;
+  showBanner("Бомба обезврежена!", "#5aa2ff");
+  sfx.defuse();
+  endRound("CT", "бомба обезврежена");
+}
+
+// ============================== РАУНД ==============================
+function endRound(winner, reason) {
+  if (state.phase === "over") return;
+  state.phase = "over";
+  state.phaseT = 3.6;
+  state.winner = winner;
+  if (winner === "T") state.scoreT++; else state.scoreCT++;
+  el.scoreT.textContent = state.scoreT;
+  el.scoreCT.textContent = state.scoreCT;
+  showBanner((winner === "T" ? "Раунд за вами · " : "Раунд за врагами · ") + reason, winner === "T" ? "#ffb14f" : "#5aa2ff");
+  sfx.roundEnd();
+}
+function endMatch() {
+  state.running = false;
+  const won = state.scoreT >= WIN_ROUNDS;
+  el.overlay.classList.remove("hidden");
+  el.overlay.innerHTML = won
+    ? "<h1>ПОБЕДА!</h1><p>Вы выиграли матч со счётом " + state.scoreT + ":" + state.scoreCT + ".</p><button id='againBtn'>ИГРАТЬ СНОВА</button>"
+    : "<h1>ПОРАЖЕНИЕ</h1><p>Счёт матча " + state.scoreT + ":" + state.scoreCT + ".</p><button id='againBtn'>ЕЩЁ РАЗ</button>";
+  document.getElementById("againBtn").onclick = startMatch;
+}
+
+// ============================== ОБНОВЛЕНИЕ ==============================
+function update(dt) {
+  if (!state.running) return;
+
+  // фаза раунда
+  if (state.phase === "freeze") {
+    state.phaseT -= dt;
+    if (state.phaseT <= 0) {
+      state.phase = "live";
+      showBanner("В БОЙ!", "#7dff8a");
+    }
+  } else if (state.phase === "live") {
+    state.roundTime -= dt;
+    if (state.roundTime <= 0 && !state.bomb) {
+      endRound("CT", "время вышло");
+    }
+    if (state.bomb) {
+      state.bomb.t -= dt;
+      el.timer.classList.add("bomb");
+      if (state.bomb.t <= 0) {
+        state.bomb = null;
+        state.shake = 26;
+        sfx.boom();
+        state.bodies.push({x: state.player.x, y: state.player.y, boom: true, t: 0.9});
+        endRound("T", "бомба взорвалась");
+      }
+    }
+  } else if (state.phase === "over") {
+    state.phaseT -= dt;
+    if (state.phaseT <= 0) {
+      if (state.scoreT >= WIN_ROUNDS || state.scoreCT >= WIN_ROUNDS) { endMatch(); return; }
+      state.round++;
+      resetRound();
+    }
+  }
+
+  // игроки
+  updatePlayer(dt);
+  for (const b of state.bots) {
+    if (!b.alive) continue;
+    botThink(b, dt);
+    // лёгкое расталкивание
+    for (const o of state.bots) {
+      if (o === b || !o.alive) continue;
+      const d = dist(b, o);
+      if (d > 0 && d < 24) {
+        const push = (24 - d) / 2;
+        const a = Math.atan2(b.y - o.y, b.x - o.x);
+        const nx = b.x + Math.cos(a) * push, ny = b.y + Math.sin(a) * push;
+        if (!pointInWall(nx, b.y, b.r)) b.x = nx;
+        if (!pointInWall(b.x, ny, b.r)) b.y = ny;
+      }
+    }
+  }
+
+  // победа по уничтожению
+  if (state.phase === "live") {
+    if (aliveCount("CT") === 0 && !state.bomb) endRound("T", "все враги уничтожены");
+    else if (aliveCount("T") === 0) endRound("CT", "ваша команда уничтожена");
+  }
+
+  // эффекты
+  for (const t of state.tracers) t.t -= dt;
+  state.tracers = state.tracers.filter(t => t.t > 0);
+  for (const b of state.bodies) b.t -= dt;
+  state.bodies = state.bodies.filter(b => b.t > 0);
+  for (const k of state.killTexts) k.t -= dt;
+  state.killTexts = state.killTexts.filter(k => k.t > 0);
+  state.shake = Math.max(0, state.shake - dt * 30);
+  tryChannel(dt);
+
+  // HUD
+  const tLeft = state.bomb ? state.bomb.t : state.roundTime;
+  el.timer.textContent = state.bomb ? "💣 " + fmtTime(tLeft) : fmtTime(tLeft);
+  el.hpfill.style.width = (state.player.hp) + "%";
+  el.hpnum.textContent = Math.ceil(state.player.hp);
+  el.ammoMag.textContent = state.player.reloading > 0 ? "—" : state.player.ammo;
+  el.ammoReserve.textContent = "/ " + state.player.reserve;
+  el.roundTag.textContent = "Раунд " + state.round + " · счёт " + state.scoreT + ":" + state.scoreCT + " · до " + WIN_ROUNDS + " побед";
+  el.killfeed.innerHTML = state.killTexts.map(k => "<div>" + k.text + "</div>").join("");
+}
+
+// ============================== РЕНДЕР ==============================
+function draw() {
+  ctx.save();
+  if (state.shake > 0) ctx.translate(rand(-state.shake, state.shake), rand(-state.shake, state.shake));
+
+  // пол
+  ctx.fillStyle = "#181b23";
+  ctx.fillRect(-20, -20, W + 40, H + 40);
+  ctx.strokeStyle = "rgba(255,255,255,0.025)";
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= W; x += CELL) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = 0; y <= H; y += CELL) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+  // точки закладки
+  for (const key of Object.keys(SITES)) {
+    const s = SITES[key];
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,177,79,0.07)"; ctx.fill();
+    ctx.strokeStyle = "rgba(255,177,79,0.4)"; ctx.setLineDash([8, 7]); ctx.lineWidth = 2; ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(255,177,79,0.75)";
+    ctx.font = "800 26px 'Segoe UI', sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(s.name, s.x, s.y);
+  }
+
+  // стены
+  for (const w of WALLS) {
+    ctx.fillStyle = "#2a2f3c";
+    ctx.fillRect(w.x, w.y, w.w, w.h);
+    ctx.fillStyle = "#3a4152";
+    ctx.fillRect(w.x, w.y, w.w, Math.min(4, w.h));
+  }
+
+  // тела
+  for (const b of state.bodies) {
+    if (b.boom) {
+      const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 160 * b.t);
+      g.addColorStop(0, "rgba(255,240,180,0.95)");
+      g.addColorStop(0.5, "rgba(255,140,60,0.6)");
+      g.addColorStop(1, "rgba(255,120,40,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(b.x, b.y, 160 * b.t + 10, 0, Math.PI * 2); ctx.fill();
+      continue;
+    }
+    if (b.spark) {
+      ctx.strokeStyle = "rgba(255,220,130," + (b.t / 0.18) + ")";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(b.x - 4, b.y - 4); ctx.lineTo(b.x + 4, b.y + 4);
+      ctx.moveTo(b.x + 4, b.y - 4); ctx.lineTo(b.x - 4, b.y + 4); ctx.stroke();
+      continue;
+    }
+    ctx.strokeStyle = b.team === "T" ? "rgba(255,177,79," + Math.min(1, b.t / 2) + ")" : "rgba(120,160,255," + Math.min(1, b.t / 2) + ")";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(b.x, b.y, 11, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(b.x - 7, b.y - 7); ctx.lineTo(b.x + 7, b.y + 7);
+    ctx.moveTo(b.x + 7, b.y - 7); ctx.lineTo(b.x - 7, b.y + 7); ctx.stroke();
+  }
+
+  // бомба
+  if (state.bomb) {
+    const blink = Math.floor(state.bomb.t * 4) % 2 === 0;
+    ctx.fillStyle = blink ? "#ff5d5d" : "#8a1f1f";
+    ctx.beginPath(); ctx.arc(state.bomb.x, state.bomb.y, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#ff5d5d"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(state.bomb.x, state.bomb.y, 12 + Math.sin(state.bomb.t * 6) * 3, 0, Math.PI * 2); ctx.stroke();
+  }
+
+  // боты
+  for (const b of state.bots) {
+    if (!b.alive) continue;
+    const isT = b.team === "T";
+    ctx.fillStyle = isT ? "#ffb14f" : "#6f9dff";
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(0,0,0,0.5)"; ctx.lineWidth = 2; ctx.stroke();
+    // ствол
+    ctx.strokeStyle = isT ? "#ffd9a0" : "#a9c6ff"; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(b.x, b.y);
+    ctx.lineTo(b.x + Math.cos(b.angle) * 20, b.y + Math.sin(b.angle) * 20); ctx.stroke();
+    // hp
+    if (b.hp < 100) {
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(b.x - 12, b.y - 20, 24, 4);
+      ctx.fillStyle = "#6ee87f";
+      ctx.fillRect(b.x - 12, b.y - 20, 24 * (b.hp / 100), 4);
+    }
+  }
+
+  // игрок
+  const p = state.player;
+  if (p && p.alive) {
+    ctx.fillStyle = "#7dff8a";
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#0b0d12"; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.strokeStyle = "#d9ffe0"; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + Math.cos(p.angle) * 22, p.y + Math.sin(p.angle) * 22); ctx.stroke();
+    // кольцо закладки
+    if (p.channel) {
+      ctx.strokeStyle = "#ffcf5c"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 18, -Math.PI / 2, -Math.PI / 2 + (1 - p.channel / (p.channelKind === "plant" ? PLANT_TIME : DEFUSE_TIME)) * Math.PI * 2); ctx.stroke();
+    }
+  }
+
+  // трассеры
+  for (const t of state.tracers) {
+    ctx.strokeStyle = "rgba(255,240,180," + (t.t / 0.09) + ")";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(t.x1, t.y1); ctx.lineTo(t.x2, t.y2); ctx.stroke();
+  }
+
+  // прицел
+  if (state.running && p && p.alive) {
+    const m = state.mouse;
+    ctx.strokeStyle = "rgba(125,255,138,0.9)";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(m.x, m.y, 9, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(m.x - 14, m.y); ctx.lineTo(m.x - 5, m.y);
+    ctx.moveTo(m.x + 5, m.y); ctx.lineTo(m.x + 14, m.y);
+    ctx.moveTo(m.x, m.y - 14); ctx.lineTo(m.x, m.y - 5);
+    ctx.moveTo(m.x, m.y + 5); ctx.lineTo(m.x, m.y + 14);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// ============================== HUD ПОМОЩНИКИ ==============================
+let bannerTimer = null;
+function showBanner(text, color) {
+  el.banner.textContent = text;
+  el.banner.style.color = color || "#fff";
+  el.banner.classList.add("show");
+  if (bannerTimer) clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(() => el.banner.classList.remove("show"), 2400);
+}
+
+// ============================== УПРАВЛЕНИЕ ==============================
+window.addEventListener("keydown", (e) => {
+  state.keys[e.code] = true;
+  if (["KeyW","KeyA","KeyS","KeyD","Space","ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault();
+});
+window.addEventListener("keyup", (e) => { state.keys[e.code] = false; });
+canvas.addEventListener("mousemove", (e) => {
+  const r = canvas.getBoundingClientRect();
+  state.mouse.x = (e.clientX - r.left) * (W / r.width);
+  state.mouse.y = (e.clientY - r.top) * (H / r.height);
+});
+canvas.addEventListener("mousedown", (e) => { if (e.button === 0) state.mouse.down = true; });
+window.addEventListener("mouseup", () => { state.mouse.down = false; });
+canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+function fitCanvas() {
+  const pad = 10;
+  const s = Math.min((window.innerWidth - pad) / W, (window.innerHeight - pad) / H);
+  state.scale = s;
+  canvas.style.width = (W * s) + "px";
+  canvas.style.height = (H * s) + "px";
+}
+window.addEventListener("resize", fitCanvas);
+fitCanvas();
+
+// ============================== ЗАПУСК ==============================
+function startMatch() {
+  audio();
+  state.scoreT = 0; state.scoreCT = 0; state.round = 1;
+  state.running = true;
+  el.scoreT.textContent = "0";
+  el.scoreCT.textContent = "0";
+  el.overlay.classList.add("hidden");
+  resetRound();
+}
+el.playBtn.onclick = startMatch;
+
+// ============================== ГЛАВНЫЙ ЦИКЛ ==============================
+let last = performance.now();
+function loop(now) {
+  let dt = (now - last) / 1000;
+  last = now;
+  dt = Math.min(dt, 0.05);
+  update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// автостарт для автотеста через ?auto=1
+if (new URLSearchParams(location.search).get("auto")) {
+  setTimeout(() => startMatch(), 300);
+}
+// тестовая промотка: ?warp=секунд — быстро прогоняет матч
+if (new URLSearchParams(location.search).get("warp")) {
+  startMatch();
+  const secs = parseFloat(new URLSearchParams(location.search).get("warp"));
+  const steps = Math.floor(secs * 60);
+  for (let i = 0; i < steps; i++) update(1 / 60);
+}
+})();
+</script>
+</body>
+</html>
