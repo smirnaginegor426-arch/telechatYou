@@ -2,13 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { TeleChatYouIcon } from "@/components/TeleChatYouIcon";
 import { TcButton } from "@/components/TcButton";
+import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
 const APP_VERSION = "1.0.0";
 
 export default function SystemUpdate() {
   const navigate = useNavigate();
   const [checkRequested, setCheckRequested] = useState(false);
+  const { enabled: experimentalUI } = useExperimentalUI();
 
   return (
     <div className="h-full flex flex-col overflow-y-auto no-scrollbar">
@@ -25,9 +28,15 @@ export default function SystemUpdate() {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-12 text-center">
-        <div className="w-24 h-24 rounded-[28px] border tcy-line tcy-card flex items-center justify-center">
-          <Logo size={68} />
-        </div>
+        {experimentalUI ? (
+          <div className="h-[112px] w-[112px] overflow-hidden rounded-[28px] tcy-shadow-accent">
+            <TeleChatYouIcon size={112} />
+          </div>
+        ) : (
+          <div className="w-24 h-24 rounded-[28px] border tcy-line tcy-card flex items-center justify-center">
+            <Logo size={68} />
+          </div>
+        )}
 
         <h2 className="mt-5 text-[25px] font-extrabold tcy-text">TeleChatYou</h2>
         <p className="mt-1 text-[14px] tcy-dim">Версия {APP_VERSION}</p>
