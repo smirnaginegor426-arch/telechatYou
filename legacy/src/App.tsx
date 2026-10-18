@@ -16,6 +16,7 @@ import UserView from "@/pages/UserView";
 import Settings from "@/pages/Settings";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
+import SystemUpdate from "@/pages/SystemUpdate";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 
@@ -72,6 +73,7 @@ function AuthedApp() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/system-update" element={<SystemUpdate />} />
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
             <Route path="*" element={<NotFound />} />

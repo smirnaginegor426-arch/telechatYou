@@ -13,7 +13,9 @@ const tabs = [
 export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const location = useLocation();
   const hidden =
-    location.pathname.startsWith("/chat/") || location.pathname.startsWith("/setup");
+    location.pathname.startsWith("/chat/") ||
+    location.pathname.startsWith("/setup") ||
+    location.pathname.startsWith("/system-update");
   if (hidden) return null;
 
   return (

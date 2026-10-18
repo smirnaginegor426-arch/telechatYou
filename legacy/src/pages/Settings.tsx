@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
 import {
   Bell,
   Check,
@@ -11,6 +12,7 @@ import {
   Keyboard,
   Moon,
   Palette,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
   Sun,
@@ -29,6 +31,7 @@ import { formatFileSize } from "@/lib/format";
 
 export default function Settings() {
   const { theme, accent, setTheme, setAccent } = useTheme();
+  const navigate = useNavigate();
   const utils = trpc.useUtils();
   const me = trpc.profile.me.useQuery();
   const settingsQuery = trpc.settings.get.useQuery();
@@ -218,6 +221,12 @@ export default function Settings() {
       </SettingsGroup>
 
       <SettingsGroup title="О приложении">
+        <SettingsRow
+          icon={<RefreshCw size={17} />}
+          title="Системное обновление"
+          subtitle="Версия приложения и состояние обновлений"
+          onClick={() => navigate("/system-update")}
+        />
         <SettingsRow
           icon={<Info size={17} />}
           title="О TeleChatYou"
