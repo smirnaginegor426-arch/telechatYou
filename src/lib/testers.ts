@@ -8,9 +8,8 @@ const TESTERS = [
 ] as const;
 
 /**
- * The single private account that sees experimental interface changes
- * (calm chat refresh, new wallpapers, tabbed settings).
- * Kept separate from the public tester badge list on purpose.
+ * Previous private-rollout target, retained as metadata for reference.
+ * The experimental interface is now enabled for everyone.
  */
 export const PRIVATE_EXPERIMENTAL_USER = {
   username: "teste",
@@ -42,18 +41,12 @@ export function isTesterUsername(
 }
 
 /**
- * True only for the private experimental-UI account.
+ * Public rollout: the current interface is enabled for every account.
+ * Tester-badge checks remain separate in isTesterUsername().
  */
 export function isPrivateExperimentalUser(
-  username?: string | null,
-  userId?: number | string | null,
+  _username?: string | null,
+  _userId?: number | string | null,
 ): boolean {
-  const normalized = normalizeUsername(username);
-  const normalizedUserId = normalizeUserId(userId);
-
-  return (
-    normalized === PRIVATE_EXPERIMENTAL_USER.username &&
-    Number.isSafeInteger(normalizedUserId) &&
-    normalizedUserId === PRIVATE_EXPERIMENTAL_USER.userId
-  );
+  return true;
 }
