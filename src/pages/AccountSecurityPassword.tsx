@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, Check, Delete, Grid3X3, KeyRound, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Delete, Fingerprint, KeyRound, ShieldCheck } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 
 type PasswordFormat = "digital" | "graphical";
@@ -169,7 +169,7 @@ export default function AccountSecurityPassword() {
               className="tcy-press flex items-center gap-4 rounded-[22px] border tcy-line tcy-card p-4 text-left"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] tcy-card-strong">
-                <Grid3X3 size={23} className="tcy-accent" />
+                <Fingerprint size={23} className="tcy-accent" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-[15px] font-bold tcy-text">Графический</span>
