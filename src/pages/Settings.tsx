@@ -353,12 +353,12 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
     <>
       <SettingsRow
         icon={<KeyRound size={17} />}
-        title="Создать пароль"
+        title={accountSecurityPasswordStatus.data?.configured ? "Сменить пароль" : "Создать пароль"}
         subtitle={
           accountSecurityPasswordStatus.isLoading
             ? "Проверяем пароль…"
             : accountSecurityPasswordStatus.data?.configured
-              ? `Пароль создан · ${accountSecurityPasswordStatus.data.format === "digital" ? "Цифровой" : "Графический"}`
+              ? `Текущий пароль: ${accountSecurityPasswordStatus.data.format === "digital" ? "цифровой" : "графический"} · нажми, чтобы сменить`
               : "Выбери цифровой или графический пароль"
         }
         onClick={() => navigate("/settings/security/create-password")}
