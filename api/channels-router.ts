@@ -4,7 +4,7 @@ import { and, desc, eq, like } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { channels, chatMembers, chats, profiles } from "@db/schema";
-import { getChatMembers, getMembership } from "./queries/telechat";
+import { getChatMembers, getMembership, touchChat } from "./queries/telechat";
 import { makeInviteToken, readInviteToken } from "./lib/invite";
 
 const channelUsername = z.string().trim().toLowerCase().min(3).max(32).regex(
@@ -152,6 +152,69 @@ export const channelsRouter = createRouter({
       }
 
       return { chatId, username, inviteToken: input.isPublic ? null : makeInviteToken(chatId) };
+    }),
+
+  /** Update a group/channel profile. Only its owner (or a group admin) may edit it. */
+  updateDetails: authedQuery
+    .input(z.object({
+      chatId: z.number(),
+      title: z.string().trim().min(1).max(96),
+      avatarKey: z.string().max(255).nullable().optional(),
+      isPublic: z.boolean(),
+      username: z.string().trim().toLowerCase().max(32).optional().nullable(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const community = await getDb().query.channels.findFirst({
+        where: eq(channels.chatId, input.chatId),
+      });
+      if (!community) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Группа или канал не найдены" });
+      }
+
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member || (member.role !== "owner" && member.role !== "admin")) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Недостаточно прав для редактирования" });
+      }
+      if (community.kind === "channel" && (member.role !== "owner" || community.ownerId !== ctx.user.id)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Изменять настройки канала может только владелец" });
+      }
+
+      let username: string | null = null;
+      if (input.isPublic) {
+        const parsed = channelUsername.safeParse(input.username ?? community.username ?? "");
+        if (!parsed.success) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Для публичного канала нужен username от 3 до 32 символов: латиница, цифры и _",
+          });
+        }
+        username = parsed.data;
+        const existing = await getDb().query.channels.findFirst({
+          where: eq(channels.username, username),
+        });
+        if (existing && existing.chatId !== input.chatId) {
+          throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят" });
+        }
+        const existingProfile = await getDb().query.profiles.findFirst({
+          where: eq(profiles.username, username),
+        });
+        if (existingProfile) {
+          throw new TRPCError({ code: "CONFLICT", message: "Этот username уже занят пользователем" });
+        }
+      }
+
+      const chatPatch: { title: string; avatarKey?: string | null } = {
+        title: input.title,
+      };
+      if (input.avatarKey !== undefined) chatPatch.avatarKey = input.avatarKey;
+      await getDb().update(chats).set(chatPatch).where(eq(chats.id, input.chatId));
+      await getDb().update(channels).set({
+        isPublic: input.isPublic,
+        username,
+      }).where(eq(channels.chatId, input.chatId));
+      await touchChat(input.chatId);
+
+      return { ok: true, username, isPublic: input.isPublic };
     }),
 
   /** Public channels can be joined by username. Private channels need an invite from an owner/admin. */
