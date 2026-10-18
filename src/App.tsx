@@ -33,6 +33,7 @@ import EmailBinding from "@/pages/EmailBinding";
 import Halloween from "@/pages/Halloween";
 import AccentSettings from "@/pages/Accent";
 import FontSettings from "@/pages/FontSettings";
+import ScreenColorSettings from "@/pages/ScreenColor";
 import StickerPackCreate from "@/pages/StickerPackCreate";
 import ChatFolders from "@/pages/ChatFolders";
 import CustomLanguage from "@/pages/CustomLanguage";
@@ -135,7 +136,7 @@ useEffect(() => {
       ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
     : path.startsWith("/profile") || path.startsWith("/user/")
       ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
-      : ["/settings", "/halloween", "/accent", "/font", "/stickers", "/language", "/system-update", "/rename-chat"].some((route) => path.startsWith(route))
+      : ["/settings", "/halloween", "/accent", "/font", "/screen-color", "/stickers", "/language", "/system-update", "/rename-chat"].some((route) => path.startsWith(route))
         ? { origin: "0% 100%", x: -26, y: 22, exitX: -18, exitY: 16 }
         : path.startsWith("/chat/")
           ? { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 }
@@ -221,6 +222,7 @@ useEffect(() => {
             <Route path="/halloween" element={<Halloween />} />
             <Route path="/accent" element={<AccentSettings />} />
             <Route path="/font" element={<FontSettings />} />
+            <Route path="/screen-color" element={<ScreenColorSettings />} />
             <Route path="/stickers/new" element={<StickerPackCreate />} />
             <Route path="/folders/new" element={<ChatFolders />} />
             <Route path="/folders/:folderId" element={<ChatFolders />} />
