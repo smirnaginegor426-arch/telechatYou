@@ -27,7 +27,7 @@ import RenameChat from "@/pages/RenameChat";
 import Contacts from "@/pages/Contacts";
 import Profile from "@/pages/Profile";
 import UserView from "@/pages/UserView";
-import Settings from "@/pages/Settings";
+import Settings, { SettingsSectionScreen } from "@/pages/Settings";
 import EmailBinding from "@/pages/EmailBinding";
 import Halloween from "@/pages/Halloween";
 import AccentSettings from "@/pages/Accent";
@@ -190,6 +190,7 @@ useEffect(() => {
             <Route path="/:username" element={<UserView />} />
             <Route path="/user/:id" element={<UserView />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/:section" element={<SettingsSectionScreen />} />
             <Route path="/email-binding" element={<EmailBinding />} />
             <Route path="/halloween" element={<Halloween />} />
             <Route path="/accent" element={<AccentSettings />} />

@@ -37,6 +37,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
     location.pathname.startsWith("/setup") ||
     location.pathname.startsWith("/email-binding") ||
     location.pathname.startsWith("/folders") ||
+    location.pathname.startsWith("/settings/") ||
     location.pathname.startsWith("/invite") ||
     location.pathname.startsWith("/stickers");
   const hidden = location.pathname.startsWith("/create") || (deviceMode !== "desktop" && hiddenOnMobile);

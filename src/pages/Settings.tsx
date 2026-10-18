@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useEffect, useState, type ReactNode } from "react";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowLeft,
   Bell,
   Check,
   ChevronDown,
@@ -74,7 +75,7 @@ const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: strin
   { id: "about", title: "О приложении", subtitle: "Версия 1.0.0", icon: Info },
 ];
 
-export default function Settings() {
+function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const { theme, setTheme, accent } = useTheme();
@@ -94,7 +95,6 @@ export default function Settings() {
   const [mediaPreferences, setMediaPreferences] = useState<MediaSendPreferences>(getMediaSendPreferences);
   const [emailPanelOpen, setEmailPanelOpen] = useState(false);
   const [unlinkMessage, setUnlinkMessage] = useState("");
-  const [section, setSection] = useState<SettingsSectionId | null>(null);
   const { enabled: experimentalUI } = useExperimentalUI();
 
   useEffect(() => {
@@ -660,6 +660,59 @@ export default function Settings() {
     </p>
   );
 
+  const sectionRows: Record<SettingsSectionId, ReactNode> = {
+    appearance: appearanceRows,
+    notifications: notificationsRows,
+    email: emailRows,
+    security: securityRows,
+    privacy: privacyRows,
+    chats: chatsRows,
+    data: dataRows,
+    seasonal: seasonalRows,
+    about: aboutRows,
+  };
+
+  /* Separate screen for one section — opened from the list above */
+  if (sectionId) {
+    if (!experimentalUI) return <Navigate to="/settings" replace />;
+    const meta = SETTINGS_SECTIONS.find((item) => item.id === sectionId);
+
+    return (
+      <div className="tcy-settings-page relative h-full overflow-y-auto no-scrollbar pb-32">
+        <motion.div
+          key={"settings-screen-" + sectionId}
+          initial={{ opacity: 0, x: 26 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.22, ease: "easeOut" }}
+        >
+          <header className="relative z-10 flex items-center gap-3 px-5 pt-5 safe-top pb-4">
+            <button
+              type="button"
+              onClick={() => navigate("/settings")}
+              aria-label="Назад к настройкам"
+              className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full tcy-card border tcy-line tcy-dim"
+            >
+              <ArrowLeft size={19} />
+            </button>
+            <div className="min-w-0">
+              <h1 className="text-[22px] font-extrabold tcy-text truncate">
+                {meta?.title ?? "Настройки"}
+              </h1>
+              {meta?.subtitle && (
+                <p className="text-[12.5px] tcy-faint truncate">{meta.subtitle}</p>
+              )}
+            </div>
+          </header>
+
+          <SettingsGroup>{sectionRows[sectionId]}</SettingsGroup>
+
+          {footer}
+        </motion.div>
+        {bottomSheets}
+      </div>
+    );
+  }
+
   /* Flat list — the stable settings screen, unchanged for everyone */
   /* except the private experimental account. */
   if (!experimentalUI) {
@@ -739,63 +792,27 @@ export default function Settings() {
         </div>
 
         <div className="mx-4 mb-5 flex flex-col gap-[1mm]">
-          {SETTINGS_SECTIONS.map(({ id, title, subtitle, icon: Icon }, index) => {
-            const open = section === id;
-            return (
-              <div key={id} id={"settings-section-" + id}>
-                {/* кнопка раздела — как обычные пункты настроек; фигурный блок:
-                    1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх */}
-                <SettingsRow
-                  style={{
-                    borderRadius: sectionShapes[index % sectionShapes.length],
-                    padding: "10px 15px",
-                  }}
-                  icon={<Icon size={17} />}
-                  title={title}
-                  subtitle={subtitle}
-                  onClick={() => setSection(open ? null : id)}
-                  right={
-                    <motion.span
-                      animate={{ rotate: open ? 90 : 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="flex"
-                      style={{ color: "var(--tcy-faint)" }}
-                    >
-                      <ChevronRight size={17} />
-                    </motion.span>
-                  }
-                />
-
-                {/* раскрытие: кнопки с функциями раздела */}
-                <AnimatePresence initial={false}>
-                  {open && (
-                    <motion.div
-                      key={"section-rows-" + id}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.22, ease: "easeInOut" }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pt-2.5">
-                        <SettingsGroup>
-                          {id === "appearance" && appearanceRows}
-                          {id === "notifications" && notificationsRows}
-                          {id === "email" && emailRows}
-                          {id === "security" && securityRows}
-                          {id === "privacy" && privacyRows}
-                          {id === "chats" && chatsRows}
-                          {id === "data" && dataRows}
-                          {id === "seasonal" && seasonalRows}
-                          {id === "about" && aboutRows}
-                        </SettingsGroup>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
+          {SETTINGS_SECTIONS.map(({ id, title, subtitle, icon: Icon }, index) => (
+            <div key={id} id={"settings-section-" + id}>
+              {/* кнопка раздела — как обычные пункты настроек; фигурный блок:
+                  1-я — прямой низ, 2-я — слегка прямоугольная, 3-я — прямой верх */}
+              <SettingsRow
+                style={{
+                  borderRadius: sectionShapes[index % sectionShapes.length],
+                  padding: "10px 15px",
+                }}
+                icon={<Icon size={17} />}
+                title={title}
+                subtitle={subtitle}
+                onClick={() => navigate("/settings/" + id)}
+                right={
+                  <span className="flex" style={{ color: "var(--tcy-faint)" }}>
+                    <ChevronRight size={17} />
+                  </span>
+                }
+              />
+            </div>
+          ))}
         </div>
 
         {footer}
@@ -803,4 +820,16 @@ export default function Settings() {
       {bottomSheets}
     </div>
   );
+}
+
+export default function Settings() {
+  return <SettingsInner />;
+}
+
+/** Separate screen for one settings section: /settings/:section */
+export function SettingsSectionScreen() {
+  const params = useParams();
+  const known = SETTINGS_SECTIONS.some((item) => item.id === params.section);
+  if (!known) return <Navigate to="/settings" replace />;
+  return <SettingsInner sectionId={params.section as SettingsSectionId} />;
 }
