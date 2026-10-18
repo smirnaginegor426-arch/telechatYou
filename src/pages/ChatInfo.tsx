@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
 import {
@@ -34,7 +34,6 @@ import { isTesterUsername } from "@/lib/testers";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { BottomSheet } from "@/components/BottomSheet";
 import { TcButton } from "@/components/TcButton";
-import { TcInput } from "@/components/TcInput";
 import { useFileUrl } from "@/hooks/useFileUrl";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 import { fileToBase64, formatFileSize, isOnline } from "@/lib/format";
@@ -115,6 +114,12 @@ export default function ChatInfo() {
   const [chatMenuOpen, setChatMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [title, setTitle] = useState("");
+  const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
+  const [editAvatarPreviewUrl, setEditAvatarPreviewUrl] = useState<string | null>(null);
+  const [editIsPublic, setEditIsPublic] = useState(false);
+  const [editUsername, setEditUsername] = useState("");
+  const [editorSaving, setEditorSaving] = useState(false);
+  const editFileRef = useRef<HTMLInputElement>(null);
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(() => readWallpaper(chatId));
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(() => readWallpaperImage(chatId));
@@ -139,6 +144,7 @@ export default function ChatInfo() {
       setEditOpen(false);
     },
   });
+  const updateCommunityDetails = trpc.channels.updateDetails.useMutation();
   const addMembers = trpc.chats.addMembers.useMutation({
     onSuccess: () => {
       invalidate();
@@ -179,7 +185,9 @@ export default function ChatInfo() {
   const name = isGroup ? chat?.title ?? (channel ? "Канал" : "Группа") : (peer ? contactNamesQuery.data?.names[String(peer.userId)] : undefined) ?? peer?.displayName ?? "…";
   const myRole = data?.me.role;
   const canEdit = isGroup && (myRole === "owner" || myRole === "admin");
+  const canEditProfile = canEdit && (!channel || myRole === "owner");
   const canManageChannel = !!channel && myRole === "owner";
+  const hasCommunitySettings = Boolean(channel || publicGroup);
 
   const shareUrl = channel?.isPublic && channel.username
     ? profileShareUrl(channel.username)
@@ -218,6 +226,70 @@ export default function ChatInfo() {
       folder: "avatars",
     });
     await updateGroup.mutateAsync({ chatId, avatarKey: res.key });
+  };
+
+  useEffect(() => {
+    if (!editAvatarFile) {
+      setEditAvatarPreviewUrl(null);
+      return;
+    }
+    const previewUrl = URL.createObjectURL(editAvatarFile);
+    setEditAvatarPreviewUrl(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [editAvatarFile]);
+
+  const saveEditor = async () => {
+    const cleanTitle = title.trim();
+    if (!cleanTitle) {
+      toast.error("Введите название");
+      return;
+    }
+    if (hasCommunitySettings && editIsPublic && !editUsername.trim()) {
+      toast.error("Для публичного канала укажите username");
+      return;
+    }
+
+    try {
+      setEditorSaving(true);
+      let avatarKey: string | undefined;
+      if (editAvatarFile) {
+        const uploaded = await upload.mutateAsync({
+          name: editAvatarFile.name,
+          contentBase64: await fileToBase64(editAvatarFile),
+          contentType: editAvatarFile.type || "image/jpeg",
+          folder: "avatars",
+        });
+        avatarKey = uploaded.key;
+      }
+
+      if (hasCommunitySettings) {
+        await updateCommunityDetails.mutateAsync({
+          chatId,
+          title: cleanTitle,
+          ...(avatarKey ? { avatarKey } : {}),
+          isPublic: editIsPublic,
+          username: editUsername.trim(),
+        });
+      } else {
+        await updateGroup.mutateAsync({
+          chatId,
+          title: cleanTitle,
+          ...(avatarKey ? { avatarKey } : {}),
+        });
+      }
+
+      await Promise.all([
+        utils.chats.info.invalidate({ chatId }),
+        utils.chats.list.invalidate(),
+      ]);
+      setEditOpen(false);
+      setEditAvatarFile(null);
+      toast.success("Изменения сохранены");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Не удалось сохранить изменения");
+    } finally {
+      setEditorSaving(false);
+    }
   };
 
   const notifyWallpaperChange = (next: string, image: string | null) => {
@@ -300,6 +372,26 @@ export default function ChatInfo() {
         }}
       />
       <input
+        ref={editFileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (!file) return;
+          if (!file.type.startsWith("image/")) {
+            toast.error("Выберите файл изображения");
+            return;
+          }
+          if (file.size > 20 * 1024 * 1024) {
+            toast.error("Аватар слишком большой. Максимальный размер — 20 МБ.");
+            return;
+          }
+          setEditAvatarFile(file);
+        }}
+      />
+      <input
         ref={wallpaperFileRef}
         type="file"
         accept="image/*"
@@ -319,10 +411,13 @@ export default function ChatInfo() {
           <ArrowLeft size={19} />
         </button>
         <div className="flex items-center gap-2">
-          {canEdit && (
+          {canEditProfile && (
             <button
               onClick={() => {
                 setTitle(chat?.title ?? "");
+                setEditAvatarFile(null);
+                setEditIsPublic(channel?.isPublic ?? publicGroup?.isPublic ?? false);
+                setEditUsername(channel?.username ?? publicGroup?.username ?? "");
                 setEditOpen(true);
               }}
               className="tcy-press h-10 px-4 rounded-full tcy-card border tcy-line text-[13px] font-bold tcy-accent"
@@ -746,20 +841,181 @@ export default function ChatInfo() {
         </div>
       </BottomSheet>
 
-      {/* edit group */}
-      <BottomSheet open={editOpen} onClose={() => setEditOpen(false)} title={channel ? "Название канала" : "Название группы"}>
-        <div className="px-5 space-y-4">
-          <TcInput value={title} onChange={(e) => setTitle(e.target.value)} maxLength={96} />
-          <TcButton
-            size="lg"
-            disabled={!title.trim()}
-            loading={updateGroup.isPending}
-            onClick={() => updateGroup.mutate({ chatId, title })}
-          >
-            <Check size={17} /> Сохранить
-          </TcButton>
-        </div>
-      </BottomSheet>
+      {/* full-screen editor for group/channel details */}
+      {editOpen && (
+        <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label={channel ? "Редактор канала" : "Редактор группы"}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 12 }}
+          transition={{ type: "spring", stiffness: 420, damping: 36 }}
+          className="fixed inset-0 z-[200] flex flex-col tcy-solid"
+          style={{ background: "var(--tcy-bg)" }}
+        >
+          <header className="safe-top shrink-0 flex items-center gap-3 px-4 py-3 border-b tcy-line">
+            <button
+              type="button"
+              aria-label="Закрыть редактор"
+              onClick={() => {
+                setEditOpen(false);
+                setEditAvatarFile(null);
+              }}
+              className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full tcy-card border tcy-line tcy-dim"
+            >
+              <ArrowLeft size={19} />
+            </button>
+            <div className="min-w-0">
+              <h2 className="text-[17px] font-extrabold tcy-text">
+                {channel ? "Редактор канала" : publicGroup ? "Редактор группы" : "Редактор группы"}
+              </h2>
+              <p className="text-[12px] tcy-faint">Аватарка и основные настройки</p>
+            </div>
+          </header>
+
+          <input
+            ref={editFileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              if (!file.type.startsWith("image/")) {
+                toast.error("Выберите файл изображения");
+                return;
+              }
+              if (file.size > 20 * 1024 * 1024) {
+                toast.error("Аватар слишком большой. Максимальный размер — 20 МБ.");
+                return;
+              }
+              setEditAvatarFile(file);
+            }}
+          />
+
+          <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-6">
+            <div className="mx-auto w-full max-w-[480px] space-y-6">
+              <section className="flex flex-col items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => editFileRef.current?.click()}
+                  className="tcy-press relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-full border tcy-line"
+                  style={{ background: "var(--tcy-card)" }}
+                  aria-label="Изменить аватарку"
+                >
+                  {editAvatarPreviewUrl ? (
+                    <img src={editAvatarPreviewUrl} alt="Предпросмотр аватарки" className="h-full w-full object-cover" />
+                  ) : (
+                    <Avatar name={title || name} avatarKey={chat?.avatarKey} size={112} showOnline={false} />
+                  )}
+                  <span
+                    className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full tcy-gradient-accent"
+                    style={{ color: "var(--tcy-on-accent)" }}
+                  >
+                    <Camera size={15} />
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => editFileRef.current?.click()}
+                  className="text-[13px] font-bold tcy-accent"
+                >
+                  {editAvatarFile ? "Выбрать другую аватарку" : "Изменить аватарку"}
+                </button>
+              </section>
+
+              <section className="space-y-2">
+                <label htmlFor="tcy-edit-community-title" className="block text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
+                  Название
+                </label>
+                <input
+                  id="tcy-edit-community-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={96}
+                  placeholder={channel ? "Название канала" : "Название группы"}
+                  className="w-full rounded-[18px] border tcy-line tcy-card px-4 py-3.5 text-[15px] tcy-text outline-none focus:border-[color:var(--tcy-accent)]"
+                />
+              </section>
+
+              {hasCommunitySettings && (
+                <section className="space-y-3">
+                  <div>
+                    <h3 className="text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
+                      {channel ? "Тип канала" : "Тип группы"}
+                    </h3>
+                    <p className="mt-1 text-[12px] tcy-faint">Выбери, кто сможет найти сообщество</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      aria-pressed={editIsPublic}
+                      onClick={() => setEditIsPublic(true)}
+                      className="tcy-press rounded-[17px] border px-3 py-3 text-[13px] font-bold"
+                      style={{
+                        borderColor: editIsPublic ? "var(--tcy-accent)" : "var(--tcy-line)",
+                        background: editIsPublic ? "var(--tcy-card-strong)" : "var(--tcy-card)",
+                        color: editIsPublic ? "var(--tcy-accent)" : "var(--tcy-text)",
+                      }}
+                    >
+                      Публичный
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={!editIsPublic}
+                      onClick={() => setEditIsPublic(false)}
+                      className="tcy-press rounded-[17px] border px-3 py-3 text-[13px] font-bold"
+                      style={{
+                        borderColor: !editIsPublic ? "var(--tcy-accent)" : "var(--tcy-line)",
+                        background: !editIsPublic ? "var(--tcy-card-strong)" : "var(--tcy-card)",
+                        color: !editIsPublic ? "var(--tcy-accent)" : "var(--tcy-text)",
+                      }}
+                    >
+                      Приватный
+                    </button>
+                  </div>
+
+                  {editIsPublic && (
+                    <div className="space-y-2">
+                      <label htmlFor="tcy-edit-community-username" className="block text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">
+                        Публичная ссылка / username
+                      </label>
+                      <div className="flex items-center gap-2 rounded-[18px] border tcy-line tcy-card px-4">
+                        <span className="text-[14px] font-bold tcy-faint">@</span>
+                        <input
+                          id="tcy-edit-community-username"
+                          value={editUsername}
+                          onChange={(e) => setEditUsername(e.target.value.replace(/^@/, "").toLowerCase())}
+                          maxLength={32}
+                          placeholder="my_channel"
+                          autoCapitalize="none"
+                          autoCorrect="off"
+                          className="min-w-0 flex-1 bg-transparent py-3.5 text-[14px] tcy-text outline-none"
+                        />
+                      </div>
+                      <p className="text-[11.5px] tcy-faint">От 3 до 32 символов: латинские буквы, цифры и _</p>
+                    </div>
+                  )}
+                </section>
+              )}
+            </div>
+          </div>
+
+          <footer className="safe-bottom shrink-0 border-t tcy-line px-4 py-3">
+            <button
+              type="button"
+              disabled={!title.trim() || editorSaving || upload.isPending || updateGroup.isPending || updateCommunityDetails.isPending}
+              onClick={() => void saveEditor()}
+              className="tcy-press mx-auto flex h-12 w-full max-w-[480px] items-center justify-center gap-2 rounded-full tcy-gradient-accent text-[14px] font-extrabold disabled:opacity-50"
+              style={{ color: "var(--tcy-on-accent)" }}
+            >
+              <Check size={18} /> {editorSaving ? "Сохранение…" : "Сохранить"}
+            </button>
+          </footer>
+        </motion.div>
+      )}
       <AvatarEditor
         file={avatarToEdit}
         onCancel={() => setAvatarToEdit(null)}
