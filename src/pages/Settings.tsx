@@ -94,15 +94,7 @@ function SectionBlock({
         <span className="mt-0.5 block truncate text-[14px] font-bold tcy-faint">{subtitle}</span>
       </span>
 
-      <span
-        className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full"
-        style={{
-          background: "color-mix(in srgb, var(--tcy-selected-accent) 16%, var(--tcy-card-strong))",
-          color: "var(--tcy-selected-accent)",
-        }}
-      >
-        <ChevronRight size={24} strokeWidth={2.4} />
-      </span>
+      <ChevronRight size={17} className="shrink-0" style={{ color: "var(--tcy-faint)" }} />
     </button>
   );
 }

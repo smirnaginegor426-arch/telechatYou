@@ -59,6 +59,7 @@ function SimpleChannelWizard() {
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [step, setStep] = useState<"name" | "type">("name");
+  const [kind, setKind] = useState<CommunityKind>("channel");
   const [title, setTitle] = useState("");
   const [choice, setChoice] = useState<WizardChoice | null>(null);
   const [username, setUsername] = useState("");
@@ -68,6 +69,8 @@ function SimpleChannelWizard() {
   const createChannel = trpc.channels.create.useMutation();
 
   const trimmedTitle = title.trim();
+  const isChannel = kind === "channel";
+  const kindRole = isChannel ? "подписчики" : "участники";
   const normalizedUsername = username.trim().replace(/^@/, "").toLowerCase();
   const usernameIsValid = /^[a-z0-9_]{3,32}$/.test(normalizedUsername);
   const usernameCheck = trpc.channels.usernameAvailable.useQuery(
@@ -100,7 +103,7 @@ function SimpleChannelWizard() {
   const copyInvite = async (url: string) => {
     try {
       await navigator.clipboard.writeText(url);
-      toast.success("Ссылка на канал скопирована");
+      toast.success(isChannel ? "Ссылка на канал скопирована" : "Ссылка на группу скопирована");
     } catch {
       toast.error("Не удалось скопировать ссылку. Выдели её и скопируй вручную.");
     }
@@ -112,7 +115,7 @@ function SimpleChannelWizard() {
     setChoice("private");
     try {
       const result = await createChannel.mutateAsync({
-        kind: "channel",
+        kind,
         title: trimmedTitle,
         description: "",
         isPublic: false,
@@ -126,7 +129,7 @@ function SimpleChannelWizard() {
       });
     } catch (cause) {
       setChoice(null);
-      setError(cause instanceof Error ? cause.message : "Не удалось создать канал. Попробуй ещё раз.");
+      setError(cause instanceof Error ? cause.message : isChannel ? "Не удалось создать канал. Попробуй ещё раз." : "Не удалось создать группу. Попробуй ещё раз.");
     }
   };
 
@@ -143,7 +146,7 @@ function SimpleChannelWizard() {
     }
     try {
       const result = await createChannel.mutateAsync({
-        kind: "channel",
+        kind,
         title: trimmedTitle,
         description: "",
         isPublic: true,
@@ -152,7 +155,7 @@ function SimpleChannelWizard() {
       await utils.chats.list.invalidate();
       navigate(`/chat/${result.chatId}`, { replace: true });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Не удалось создать канал. Попробуй ещё раз.");
+      setError(cause instanceof Error ? cause.message : isChannel ? "Не удалось создать канал. Попробуй ещё раз." : "Не удалось создать группу. Попробуй ещё раз.");
     }
   };
 
@@ -191,7 +194,7 @@ function SimpleChannelWizard() {
             </span>
             <span className="block text-[11.5px] tcy-faint">
               {creating
-                ? "Создаём канал…"
+                ? (isChannel ? "Создаём канал…" : "Создаём группу…")
                 : isPrivate
                   ? "Только по ссылке-приглашению"
                   : "Найдётся по Username"}
@@ -219,8 +222,8 @@ function SimpleChannelWizard() {
           style={{
             transform: "rotate(-22deg)",
             transformOrigin: "center",
-            opacity: 0.05,
-            filter: "blur(16px)",
+            opacity: 0.16,
+            filter: "blur(7px)",
           }}
         >
           {[...Array(16)].map((_, row) => (
@@ -270,12 +273,32 @@ function SimpleChannelWizard() {
         <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-[0.16em] font-extrabold tcy-faint">TeleChat You</p>
           <h1 className="text-[18px] font-extrabold tcy-text">
-            {step === "name" ? "Новый канал" : "Тип канала"}
+            {step === "name"
+              ? (isChannel ? "Новый канал" : "Новая группа")
+              : (isChannel ? "Тип канала" : "Тип группы")}
           </h1>
         </div>
       </header>
 
       <div className="relative z-10 min-h-0 flex-1 overflow-y-auto no-scrollbar px-4 pb-8">
+        {/* выбор: Канал или Группа */}
+        <div className="mx-auto mt-1 mb-4 flex w-full max-w-[560px] gap-1 rounded-full border tcy-line tcy-card p-1">
+          {(["channel", "group"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              disabled={busy || Boolean(done)}
+              onClick={() => { setError(""); setKind(option); }}
+              className="tcy-press flex-1 rounded-full py-2 text-[13px] font-extrabold transition-colors disabled:opacity-60"
+              style={{
+                background: kind === option ? "var(--tcy-selected-accent)" : "transparent",
+                color: kind === option ? "var(--tcy-selected-on-accent)" : "var(--tcy-dim)",
+              }}
+            >
+              {option === "channel" ? "Канал" : "Группа"}
+            </button>
+          ))}
+        </div>
         <AnimatePresence mode="wait" initial={false}>
           {step === "name" && (
             <motion.section
@@ -293,11 +316,13 @@ function SimpleChannelWizard() {
                   color: "var(--tcy-selected-accent)",
                 }}
               >
-                <Radio size={40} strokeWidth={2} />
+                {isChannel ? <Radio size={40} strokeWidth={2} /> : <Users size={40} strokeWidth={2} />}
               </span>
-              <h2 className="mt-7 text-[27px] leading-tight font-black tcy-text">Как назовем канал?</h2>
+              <h2 className="mt-7 text-[27px] leading-tight font-black tcy-text">
+                {isChannel ? "Как назовем канал?" : "Как назовем группу?"}
+              </h2>
               <p className="mt-2.5 max-w-[320px] text-[13.5px] leading-relaxed tcy-dim">
-                Название увидят подписчики — его можно будет изменить в любой момент.
+                Название увидят {kindRole} — его можно будет изменить в любой момент.
               </p>
             </motion.section>
           )}
@@ -312,7 +337,7 @@ function SimpleChannelWizard() {
               className="mx-auto w-full max-w-[560px] pt-2"
             >
               <h2 className="text-[25px] leading-tight font-black tcy-text">
-                Каким ты хочешь сделать канал?
+                {isChannel ? "Каким ты хочешь сделать канал?" : "Каким ты хочешь сделать группу?"}
               </h2>
               <p className="mt-1.5 text-[13px] tcy-dim">
                 Название: «{trimmedTitle}» — позже можно поменять.
@@ -330,7 +355,9 @@ function SimpleChannelWizard() {
                   transition={{ duration: 0.2 }}
                   className="mt-3.5 rounded-[22px] border tcy-line tcy-card p-4 space-y-2"
                 >
-                  <span className="block text-[12px] font-bold tcy-dim">Ссылка канала (Username)</span>
+                  <span className="block text-[12px] font-bold tcy-dim">
+                    {isChannel ? "Ссылка канала" : "Ссылка группы"} (Username)
+                  </span>
                   <div className="flex h-12 items-center rounded-[16px] tcy-card border tcy-line px-3.5 focus-within:border-[color:var(--tcy-accent)]">
                     <span className="text-[14px] tcy-faint">@</span>
                     <input
@@ -339,7 +366,7 @@ function SimpleChannelWizard() {
                         setUsername(event.target.value.replace(/[^a-zA-Z0-9_@]/g, "").replace(/^@+/, "").slice(0, 32))
                       }
                       maxLength={32}
-                      placeholder="my_channel"
+                      placeholder={isChannel ? "my_channel" : "my_group"}
                       autoCapitalize="none"
                       autoCorrect="off"
                       spellCheck={false}
@@ -357,7 +384,7 @@ function SimpleChannelWizard() {
                       : usernameCheck.isFetching || usernameCheck.data?.username !== normalizedUsername
                         ? "Проверяем доступность Username…"
                         : usernameCheck.data.available
-                          ? "Имя свободно — по нему откроется канал."
+                          ? (isChannel ? "Имя свободно — по нему откроется канал." : "Имя свободно — по нему откроется группа.")
                           : "Такое имя уже занято. Попробуй другое."}
                   </span>
                 </motion.div>
@@ -381,7 +408,9 @@ function SimpleChannelWizard() {
                       <Link2 size={18} />
                     </span>
                     <div className="min-w-0 flex-1 text-left">
-                      <p className="text-[14px] font-extrabold tcy-text">Канал создан!</p>
+                      <p className="text-[14px] font-extrabold tcy-text">
+                        {isChannel ? "Канал создан!" : "Группа создана!"}
+                      </p>
                       <p className="text-[11.5px] tcy-faint">Ссылка-приглашение для подписки</p>
                     </div>
                   </div>
@@ -407,7 +436,9 @@ function SimpleChannelWizard() {
                     </div>
                   )}
                   <p className="text-left text-[11.5px] leading-relaxed tcy-faint">
-                    Отправь ссылку друзьям — по ней они сразу подпишутся на закрытый канал.
+                    {isChannel
+                      ? "Отправь ссылку друзьям — по ней они сразу подпишутся на закрытый канал."
+                      : "Отправь ссылку друзьям — по ней они сразу присоединятся к закрытой группе."}
                   </p>
                 </motion.div>
               )}
@@ -437,7 +468,7 @@ function SimpleChannelWizard() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value.slice(0, 96))}
                 maxLength={96}
-                placeholder="Название канала"
+                placeholder={isChannel ? "Название канала" : "Название группы"}
                 autoFocus
                 autoComplete="off"
                 onKeyDown={(e) => { if (e.key === "Enter" && trimmedTitle) setStep("type"); }}
