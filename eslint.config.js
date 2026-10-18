@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // legacy/ is a frozen snapshot of the first shipped version: it is built by
+  // legacy/vite.config.ts and must not be modernised or linted.
+  globalIgnores(['dist', 'legacy']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

@@ -7,6 +7,9 @@ dist/
 build/
 *.dist
 
+# Frozen snapshot of the first shipped version (built by legacy/vite.config.ts)
+legacy/
+
 # Generated files
 *.tsbuildinfo
 coverage/
