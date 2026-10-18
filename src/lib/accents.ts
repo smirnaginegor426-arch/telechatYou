@@ -47,9 +47,16 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
       ? `color-mix(in srgb, ${selected.deep} 52%, #71717a)`
       : `color-mix(in srgb, ${selected.deep} 40%, #d4d4d8)`,
     "--tcy-selected-on-accent": selected.onAccent,
+    /* Base island tokens keep the accent treatment available when a screen tint is active. */
+    "--tcy-selected-header-base": dark
+      ? mix(8, "rgba(5, 5, 6, 0.90)")
+      : mix(4, "rgba(250, 250, 252, 0.92)"),
     "--tcy-selected-header": dark
       ? mix(8, "rgba(5, 5, 6, 0.90)")
       : mix(4, "rgba(250, 250, 252, 0.92)"),
+    "--tcy-selected-glass-line-base": dark
+      ? mix(18, "rgba(255, 255, 255, 0.19)")
+      : mix(12, "rgba(24, 24, 27, 0.14)"),
     "--tcy-selected-glass-line": dark
       ? mix(18, "rgba(255, 255, 255, 0.19)")
       : mix(12, "rgba(24, 24, 27, 0.14)"),
