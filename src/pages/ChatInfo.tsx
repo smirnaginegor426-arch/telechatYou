@@ -33,7 +33,6 @@ import { TesterBadge } from "@/components/TesterBadge";
 import { isTesterUsername } from "@/lib/testers";
 import { AvatarEditor } from "@/components/AvatarEditor";
 import { BottomSheet } from "@/components/BottomSheet";
-import { TcButton } from "@/components/TcButton";
 import { useFileUrl } from "@/hooks/useFileUrl";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 import { fileToBase64, formatFileSize, isOnline } from "@/lib/format";
