@@ -94,6 +94,18 @@ export function LinkPreview({
     { enabled: appLink?.kind === "channel", retry: false, staleTime: 1000 * 60 * 5 },
   );
 
+  // A shared /@username URL can point to either a user profile or a public channel.
+  // Resolve both; the app's normal route will open the right destination.
+  const profile = trpc.profile.byUsername.useQuery(
+    { username: appLink?.kind === "channel" ? appLink.username : "tcy" },
+    { enabled: appLink?.kind === "channel", retry: false, staleTime: 1000 * 60 * 5 },
+  );
+
+  const userProfile = trpc.profile.byId.useQuery(
+    { userId: appLink?.kind === "user" ? appLink.userId : 0 },
+    { enabled: appLink?.kind === "user", retry: false, staleTime: 1000 * 60 * 5 },
+  );
+
   const chats = trpc.chats.list.useQuery(undefined, { enabled: appLink?.kind === "chat" });
 
   if (!url) return null;
@@ -125,6 +137,15 @@ export function LinkPreview({
         };
       }
       if (appLink.kind === "channel") {
+        const person = profile.data;
+        if (person) {
+          return {
+            chip: "Профиль",
+            title: person.displayName,
+            subtitle: `@${person.username} · профиль TeleChat You`,
+          };
+        }
+
         const data = channel.data;
         return {
           chip: data ? (data.kind === "group" ? "Группа" : "Канал") : "Канал",
@@ -140,7 +161,12 @@ export function LinkPreview({
           subtitle: "Чат в TeleChatYou",
         };
       }
-      return { chip: "Профиль", title: "Профиль пользователя", subtitle: "Открыть в TeleChatYou" };
+      const person = userProfile.data;
+      return {
+        chip: "Профиль",
+        title: person?.displayName ?? "Профиль пользователя",
+        subtitle: person ? `@${person.username} · открыть в TeleChatYou` : "Открыть в TeleChatYou",
+      };
     })();
 
     return (
