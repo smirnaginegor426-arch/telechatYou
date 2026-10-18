@@ -14,11 +14,10 @@ const CURRENT_SHELL = "index.html";
 const LEGACY_SHELL = path.join("legacy", "index.html");
 
 /**
- * Public rollout: serve the current application to every visitor.
- * Set to false only if the legacy build needs to be restored for everyone
- * except the explicitly allowlisted account.
+ * Roll out the frozen 10 Oct build to everyone except the approved private
+ * account. Keep false so the current build is never globally exposed.
  */
-const SERVE_CURRENT_BUILD_TO_EVERYONE = true;
+const SERVE_CURRENT_BUILD_TO_EVERYONE = false;
 
 export function serveStaticFiles(app: App) {
   const distPath = path.resolve(import.meta.dirname, "../dist/public");
@@ -29,16 +28,16 @@ export function serveStaticFiles(app: App) {
   };
 
   /**
-   * Two applications ship in this build. During the public rollout, every
-   * visitor receives the current application. The legacy bundle remains
-   * available for a deliberate rollback if needed.
+   * Only the server-verified private account receives the current application.
+   * Everyone else, including signed-out visitors, receives the frozen legacy
+   * build. Fail closed if the requested shell was not produced by the build.
    */
   const shellFor = async (headers: Headers): Promise<string | null> => {
     const experimental =
       SERVE_CURRENT_BUILD_TO_EVERYONE ||
       isPrivateExperimentalUser(await getSessionUser(getSessionToken(headers)));
     const preferred = experimental ? CURRENT_SHELL : LEGACY_SHELL;
-    return readShell(preferred) ?? readShell(CURRENT_SHELL);
+    return readShell(preferred);
   };
 
   /**
@@ -62,7 +61,7 @@ export function serveStaticFiles(app: App) {
       username: user?.username ?? null,
       sessionCookieFound: Boolean(token),
       accountSwitcherActive: Boolean(getActiveAccountSlotId(headers)),
-      configuredTesterId: process.env.TCY_PRIVATE_TESTER_USER_ID?.trim() || null,
+      privateTesterUserId: 1633623,
       shells: {
         current: readShell(CURRENT_SHELL) !== null,
         legacy: readShell(LEGACY_SHELL) !== null,
@@ -79,7 +78,10 @@ export function serveStaticFiles(app: App) {
     if (!(c.req.header("accept") ?? "").includes("text/html")) return next();
 
     const shell = await shellFor(c.req.raw.headers);
-    if (!shell) return next();
+    if (!shell) {
+      c.header("Cache-Control", "no-store");
+      return c.text("The requested TeleChat You build is unavailable. Please try again later.", 503);
+    }
 
     // The shell depends on who is asking, so it must never be cached.
     c.header("Cache-Control", "no-store");
@@ -95,7 +97,10 @@ export function serveStaticFiles(app: App) {
     }
 
     const shell = await shellFor(c.req.raw.headers);
-    if (!shell) return c.json({ error: "Not Found" }, 404);
+    if (!shell) {
+      c.header("Cache-Control", "no-store");
+      return c.text("The requested TeleChat You build is unavailable. Please try again later.", 503);
+    }
 
     c.header("Cache-Control", "no-store");
     return c.html(shell);
