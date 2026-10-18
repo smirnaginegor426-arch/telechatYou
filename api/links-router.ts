@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { createRouter, testerProcedure } from "./middleware";
+import { createRouter, authedQuery } from "./middleware";
 
 /**
- * Link previews for the private experimental interface.
+ * Link previews for authenticated TeleChat You users.
  *
- * The server fetches the page once, extracts Open Graph metadata and caches the
- * result. Requests to private/loopback hosts are rejected so a link inside a
- * chat can never be used to probe the internal network (SSRF).
+ * The server fetches external pages once, extracts Open Graph metadata and
+ * caches the result. Requests to private/loopback hosts are rejected so a link
+ * inside a chat cannot be used to probe the internal network (SSRF).
  */
 
 export type LinkPreview = {
@@ -155,7 +155,7 @@ async function fetchPage(parsed: URL): Promise<LinkPreview> {
 }
 
 export const linksRouter = createRouter({
-  preview: testerProcedure
+  preview: authedQuery
     .input(z.object({ url: z.string().trim().min(4).max(2048) }))
     .query(async ({ input }): Promise<LinkPreview> => {
       let parsed: URL;
