@@ -184,6 +184,40 @@ export default function ScreenColorSettings() {
               </motion.div>
             </AnimatePresence>
           </div>
+          <div className="flex items-center justify-center gap-4 py-3">
+            <button
+              type="button"
+              aria-label="Предыдущий пример"
+              onClick={() => movePreview(-1)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border tcy-line tcy-card-strong tcy-dim"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <div className="flex items-center gap-1.5">
+              {PREVIEWS.map((preview, index) => (
+                <button
+                  key={preview.id}
+                  type="button"
+                  aria-label={preview.title}
+                  aria-current={previewIndex === index ? "true" : undefined}
+                  onClick={() => setPreviewIndex(index)}
+                  className="h-1.5 rounded-full transition-all"
+                  style={{
+                    width: previewIndex === index ? 18 : 6,
+                    background: previewIndex === index ? "var(--tcy-selected-accent)" : "var(--tcy-line-strong)",
+                  }}
+                />
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-label="Следующий пример"
+              onClick={() => movePreview(1)}
+              className="flex h-8 w-8 items-center justify-center rounded-full border tcy-line tcy-card-strong tcy-dim"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
         <div className="mb-3 mt-6 flex items-center justify-between gap-3 px-1">
           <div>
