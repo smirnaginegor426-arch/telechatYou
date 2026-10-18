@@ -1,5 +1,5 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { Navigate, useLocation, useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check, Delete, Fingerprint, KeyRound, ShieldCheck } from "lucide-react";
 import { trpc } from "@/providers/trpc";
@@ -31,6 +31,8 @@ function Header({ title, subtitle, onBack }: { title: string; subtitle?: string;
 
 export default function AccountSecurityPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isChangingPassword = new URLSearchParams(location.search).get("changing") === "1";
   const { format: formatParam } = useParams<{ format?: string }>();
   const format: PasswordFormat | null =
     formatParam === "digital" || formatParam === "graphical" ? formatParam : null;
@@ -166,7 +168,7 @@ export default function AccountSecurityPassword() {
   if (!format) {
     return (
       <div className="relative flex h-full flex-col tcy-solid" style={{ background: "var(--tcy-bg)" }}>
-        <Header title="Создать пароль" subtitle="Выбери формат защиты" onBack={returnToSecurity} />
+        <Header title={status.data?.configured ? "Сменить пароль" : "Создать пароль"} subtitle="Выбери формат защиты" onBack={returnToSecurity} />
         <div className="flex-1 overflow-y-auto px-5 py-6">
           <div className="mx-auto flex w-full max-w-[440px] flex-col gap-4">
             <div className="py-4 text-center">
@@ -185,7 +187,7 @@ export default function AccountSecurityPassword() {
             </div>
             <button
               type="button"
-              onClick={() => navigate("/settings/security/create-password/digital")}
+              onClick={() => navigate(`/settings/security/create-password/digital${status.data?.configured ? "?changing=1" : ""}`)}
               className="tcy-press flex items-center gap-4 rounded-[22px] border tcy-line tcy-card p-4 text-left"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] tcy-card-strong">
@@ -199,7 +201,7 @@ export default function AccountSecurityPassword() {
             </button>
             <button
               type="button"
-              onClick={() => navigate("/settings/security/create-password/graphical")}
+              onClick={() => navigate(`/settings/security/create-password/graphical${status.data?.configured ? "?changing=1" : ""}`)}
               className="tcy-press flex items-center gap-4 rounded-[22px] border tcy-line tcy-card p-4 text-left"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[16px] tcy-card-strong">
@@ -244,7 +246,7 @@ export default function AccountSecurityPassword() {
               ))}
             </div>
           )}
-          <h2 className="text-[21px] font-extrabold tcy-text">Вы успешно создали пароль!</h2>
+          <h2 className="text-[21px] font-extrabold tcy-text">{isChangingPassword ? "Вы успешно сменили пароль!" : "Вы успешно создали пароль!"}</h2>
           <p className="mt-2 max-w-[310px] text-[13px] leading-relaxed tcy-dim">
             Пароль сохранён для твоего аккаунта. Не передавай его другим людям.
           </p>
@@ -292,7 +294,7 @@ export default function AccountSecurityPassword() {
             <p className="mx-auto mt-2 max-w-[300px] text-[12.5px] leading-relaxed tcy-dim">
               {format === "digital"
                 ? "Нажимай цифры на панели ниже."
-                : "Выбери не менее 4 точек из сетки. Порядок важен."}
+                : "Проведи пальцем по точкам, не отпуская экран. Выбери не менее 4 точек."}
             </p>
           </div>
 
