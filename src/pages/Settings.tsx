@@ -89,6 +89,7 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
   const me = trpc.profile.me.useQuery();
   const settingsQuery = trpc.settings.get.useQuery();
   const recoverySecretStatus = trpc.auth.recoverySecretStatus.useQuery();
+  const accountSecurityPasswordStatus = trpc.auth.accountSecurityPasswordStatus.useQuery();
   const emailStatus = trpc.auth.emailStatus.useQuery();
   const myFiles = trpc.storage.mine.useQuery();
   const [recoverySecretValue, setRecoverySecretValue] = useState("");
@@ -350,6 +351,23 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
 
   const securityRows = (
     <>
+      <SettingsRow
+        icon={<KeyRound size={17} />}
+        title="Создать пароль"
+        subtitle={
+          accountSecurityPasswordStatus.isLoading
+            ? "Проверяем пароль…"
+            : accountSecurityPasswordStatus.data?.configured
+              ? `Пароль создан · ${accountSecurityPasswordStatus.data.format === "digital" ? "Цифровой" : "Графический"}`
+              : "Выбери цифровой или графический пароль"
+        }
+        onClick={() => navigate("/settings/security/create-password")}
+        right={
+          accountSecurityPasswordStatus.data?.configured
+            ? <ShieldCheck size={18} style={{ color: "#2eae78" }} />
+            : <ChevronRight size={17} className="tcy-faint" />
+        }
+      />
       <SettingsRow
         icon={<KeyRound size={17} />}
         title="Резервный секрет"
