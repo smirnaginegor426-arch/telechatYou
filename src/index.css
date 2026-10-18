@@ -779,6 +779,26 @@ html[data-tcy-experimental="true"] [contenteditable="true"] * {
   -webkit-touch-callout: default;
 }
 
+/* Tester-only: the chosen font weight really is global. Message bodies and
+   headings follow it exactly (no lighter/heavier drift), so «Тонкий» means thin
+   everywhere and «Жирный» means bold everywhere. */
+html[data-tcy-experimental="true"] #root .tcy-msg-body,
+html[data-tcy-experimental="true"] #root h1,
+html[data-tcy-experimental="true"] #root h2,
+html[data-tcy-experimental="true"] #root h3,
+html[data-tcy-experimental="true"] #root [role="heading"] {
+  font-weight: var(--tcy-font-weight, 750) !important;
+  letter-spacing: -0.006em;
+}
+
+/* Tester-only: bottom sheets, menus and the selection toolbar are portalled
+   outside #root, so they never saw the weight rule. Apply it to them too. */
+html[data-tcy-experimental="true"] body > *:not(#root),
+html[data-tcy-experimental="true"] body > *:not(#root) * {
+  font-weight: var(--tcy-font-weight, 750) !important;
+  letter-spacing: -0.006em;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html, body, .tcy-app-shell, .tcy-bg, .tcy-bg-2,
   .tcy-card, .tcy-card-strong, .tcy-solid, .tcy-solid-2,
