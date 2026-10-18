@@ -53,12 +53,6 @@ export default function AccountSecurityPassword() {
   }
 
   const title = format === "digital" ? "Цифровой пароль" : "Графический пароль";
-  const circleColor = feedback === "error"
-    ? "var(--tcy-danger)"
-    : feedback === "success"
-      ? "#2eae78"
-      : "var(--tcy-selected-accent)";
-
   const addDigit = (digit: string) => {
     if (step === "success" || entered.length >= 6 || createPassword.isPending) return;
     setEntered((current) => current + digit);
@@ -86,7 +80,6 @@ export default function AccountSecurityPassword() {
   };
 
   const currentValue = format === "digital" ? entered : pattern.join("-");
-  const currentLength = format === "digital" ? entered.length : pattern.length;
   const canContinue = step === "create"
     ? (format === "digital" ? entered.length === 6 : pattern.length >= 4)
     : step === "confirm"
