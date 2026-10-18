@@ -374,6 +374,7 @@ export default function AccountSecurityPassword() {
                           key={node}
                           type="button"
                           data-pattern-node={node}
+                          onClick={() => addPatternNode(node)}
                           disabled={createPassword.isPending}
                           aria-label={`Точка ${node}`}
                           className="flex items-center justify-center rounded-xl disabled:cursor-default touch-none select-none"
