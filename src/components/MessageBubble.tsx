@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
-import { AudioFilePlayer } from "./AudioFilePlayer";
+import { DownloadableMediaPlayer } from "./DownloadableMediaPlayer";
 import {
   useFileUrl,
   refreshFileUrl,
@@ -96,9 +96,22 @@ function FileAttachment({
   own: boolean;
 }) {
   const url = useFileUrl(m.attachmentKey);
-  const attachmentName = m.attachmentName ?? "Аудиофайл";
-  const isAudio = (m.attachmentMime ?? "").startsWith("audio/") || /\.(mp3|m4a|wav|ogg|opus|aac|flac|wma)$/i.test(attachmentName);
-  if (isAudio) return <AudioFilePlayer url={url} name={attachmentName} size={m.attachmentSize} own={own} />;
+  const attachmentName = m.attachmentName ?? "Медиафайл";
+  const attachmentMime = m.attachmentMime ?? "";
+  const isAudio = attachmentMime.startsWith("audio/") || /\.(mp3|m4a|wav|ogg|opus|aac|flac|wma|weba|amr|aiff?|caf)$/i.test(attachmentName);
+  const isVideo = attachmentMime.startsWith("video/") || /\.(mp4|m4v|mov|webm|mkv|avi|3gp|ogv|mpeg|mpg|flv|ts)$/i.test(attachmentName);
+  if (isAudio || isVideo) {
+    return (
+      <DownloadableMediaPlayer
+        url={url}
+        name={attachmentName}
+        size={m.attachmentSize}
+        own={own}
+        video={isVideo}
+        mime={attachmentMime}
+      />
+    );
+  }
 
   return (
     <a
