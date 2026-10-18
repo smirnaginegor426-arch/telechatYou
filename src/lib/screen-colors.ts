@@ -57,6 +57,27 @@ export function applyScreenColor(theme: "dark" | "light", colorId: string) {
   root.style.setProperty("--tcy-solid", mix(base.solid, dark ? 88 : 87));
   root.style.setProperty("--tcy-solid-2", mix(base.solid2, dark ? 83 : 81));
 
+  // Tint the navigation island too, while preserving its selected accent.
+  // Always blend from stable base tokens so repeated color changes never stack.
+  const headerBase = getComputedStyle(root).getPropertyValue("--tcy-selected-header-base").trim();
+  const glassLineBase = getComputedStyle(root).getPropertyValue("--tcy-selected-glass-line-base").trim();
+  if (headerBase) {
+    root.style.setProperty(
+      "--tcy-selected-header",
+      selected.id === "default"
+        ? headerBase
+        : `color-mix(in srgb, ${headerBase} 84%, ${selected.color} 16%)`,
+    );
+  }
+  if (glassLineBase) {
+    root.style.setProperty(
+      "--tcy-selected-glass-line",
+      selected.id === "default"
+        ? glassLineBase
+        : `color-mix(in srgb, ${glassLineBase} 82%, ${selected.color} 18%)`,
+    );
+  }
+
   try {
     localStorage.setItem("tcy-screen-color", selected.id);
   } catch {
