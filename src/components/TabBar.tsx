@@ -181,9 +181,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
         className="tcy-island mx-auto mb-2 rounded-full border tcy-line tcy-header-blur"
         style={{
           width: `min(${islandPreferences.width}px, calc(100vw - 56px))`,
-          transform: activeTo === "/settings" ? "rotate(180deg)" : "rotate(0deg)",
-          transformOrigin: "center center",
-          transition: "width 250ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1)",
+          transition: "width 250ms ease",
         }}
       >
         <div className="grid grid-cols-4 h-[54px]">
