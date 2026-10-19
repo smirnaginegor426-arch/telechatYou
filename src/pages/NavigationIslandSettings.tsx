@@ -7,7 +7,6 @@ import {
   MessageCircle,
   RotateCcw,
   Settings2,
-  SlidersHorizontal,
   UserRound,
   Users,
 } from "lucide-react";
