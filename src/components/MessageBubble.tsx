@@ -153,7 +153,7 @@ function FileAttachment({
         )}
         <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15">
           {!videoPreviewReady && !videoPreviewFailed ? (
-            <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-sm">
+            <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm">
               <LoaderCircle size={25} className="animate-spin" />
             </span>
           ) : (
