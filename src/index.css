@@ -448,7 +448,7 @@
 }
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
   body {
-    background: #020203;
+    background: #0e0e11;
   }
   .tcy-app-shell {
     height: min(92dvh, 900px);
@@ -1062,7 +1062,7 @@ html[data-theme="light"] .tcy-wallpaper-bg--cocoa {
     overflow: hidden;
     background:
       radial-gradient(ellipse at 15% 0%, rgba(123, 97, 155, .13), transparent 38%),
-      #030305;
+      #0e0e11;
   }
 
   .tcy-app-shell {
