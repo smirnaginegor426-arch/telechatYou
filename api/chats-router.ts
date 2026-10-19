@@ -12,6 +12,7 @@ import {
   getUnreadCount,
   touchChat,
 } from "./queries/telechat";
+import { getChannelCommentsEnabled } from "./lib/channel-comments";
 
 const directKey = (a: number, b: number) => [a, b].sort((x, y) => x - y).join(":");
 
@@ -177,7 +178,9 @@ export const chatsRouter = createRouter({
       const community = await getDb().query.channels.findFirst({
         where: eq(channels.chatId, chat.id),
       }) ?? null;
-      const channel = community?.kind === "channel" ? community : null;
+      const channel = community?.kind === "channel"
+        ? { ...community, commentsEnabled: await getChannelCommentsEnabled(chat.id) }
+        : null;
       const publicGroup = community?.kind === "group" ? community : null;
       let peer: typeof profiles.$inferSelect | null = null;
       if (chat.type === "direct") {
