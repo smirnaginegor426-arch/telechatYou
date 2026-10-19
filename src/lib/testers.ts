@@ -8,13 +8,16 @@ const TESTERS = [
 ] as const;
 
 /**
- * Account reserved for the current experimental interface.
- * UI release access is based on numeric account ID, not mutable usernames.
+ * Accounts receiving the current experimental interface.
+ * UI release access is based on numeric account IDs, not mutable usernames.
  */
-export const PRIVATE_EXPERIMENTAL_USER = {
-  username: "teste",
-  userId: 1633623,
-} as const;
+export const PRIVATE_EXPERIMENTAL_USERS = [
+  { username: "teste", userId: 1633623 },
+  { username: "artemizzz", userId: 848009 },
+] as const;
+
+/** Backwards-compatible export for code that expects the original account. */
+export const PRIVATE_EXPERIMENTAL_USER = PRIVATE_EXPERIMENTAL_USERS[0];
 
 function normalizeUsername(username?: string | null) {
   return username?.trim().replace(/^@/, "").toLowerCase();
@@ -41,7 +44,7 @@ export function isTesterUsername(
 }
 
 /**
- * The current interface is enabled only for the designated account ID.
+ * The current interface is enabled only for approved account IDs.
  * Tester-badge checks remain separate in isTesterUsername().
  */
 export function isPrivateExperimentalUser(
@@ -50,5 +53,5 @@ export function isPrivateExperimentalUser(
 ): boolean {
   const normalizedUserId = normalizeUserId(userId);
   return Number.isSafeInteger(normalizedUserId) &&
-    normalizedUserId === PRIVATE_EXPERIMENTAL_USER.userId;
+    PRIVATE_EXPERIMENTAL_USERS.some((user) => user.userId === normalizedUserId);
 }
