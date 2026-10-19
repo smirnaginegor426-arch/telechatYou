@@ -82,8 +82,8 @@ const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
   { heading: "Прочее", ids: ["data", "seasonal", "about"] },
 ];
 
-/** Фигурные блоки вкладок: 1-я — прямой низ, средние — прямые и стыкуются с соседями, последняя — прямой верх. */
-const sectionShapes = ["22px 22px 0px 0px", "0px", "0px 0px 22px 22px"];
+/** Фигурные блоки вкладок: 1-я — «язычок» вверх, средние — прямые и стыкуются с соседями, последняя тоже свёрнута вверх, низ группы прямой. */
+const sectionShapes = ["22px 22px 0px 0px", "0px", "22px 22px 0px 0px"];
 
 function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
   const navigate = useNavigate();

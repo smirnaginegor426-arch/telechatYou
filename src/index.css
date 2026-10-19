@@ -1316,7 +1316,7 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
   border-radius: 27px 27px 0 0 !important;
 }
 .tcy-settings-panel > .tcy-settings-item:last-child {
-  border-radius: 0 0 27px 27px !important;
+  border-radius: 27px 27px 0 0 !important;
 }
 .tcy-settings-panel > .tcy-settings-item:only-child {
   border-radius: 27px !important;
