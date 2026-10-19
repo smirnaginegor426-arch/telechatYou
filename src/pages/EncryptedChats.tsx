@@ -221,7 +221,7 @@ export default function EncryptedChats() {
     event.preventDefault();
     if (!client || !roomName.trim()) return;
     const invite = inviteUser.trim();
-    if (invite && !/^@[^\s:]+:.+$/.test(invite)) {
+    if (invite && !/^@[^\s:]+:\S+$/.test(invite)) {
       setError("Matrix ID собеседника должен выглядеть так: @имя:сервер");
       return;
     }
