@@ -384,6 +384,10 @@ export function MessageBubble({
 
   const reactions = groupReactions(m.reactions, myId);
   const isImage = m.kind === "image";
+  const isVideoAttachment = m.kind === "file" && (
+    (m.attachmentMime ?? "").startsWith("video/") ||
+    /\.(mp4|m4v|mov|webm|mkv|avi|3gp|ogv|mpeg|mpg|flv|ts)$/i.test(m.attachmentName ?? "")
+  );
   const isStickerAttachment = isImage && !!m.attachmentName?.startsWith("tcy-sticker:");
   const isPoll = !!m.poll;
   const isStickerMessage = m.kind === "text" && !isPoll && isStandaloneEmoji(m.body ?? "");
@@ -497,18 +501,18 @@ export function MessageBubble({
           onDoubleClick={() => { if (!selectionMode) onReaction(m, "❤️"); }}
           className={cn(
             "relative select-none cursor-default tcy-no-select",
-            isImage || isPoll || isStickerMessage || hasMediaCaption
+            isImage || isPoll || isStickerMessage || hasMediaCaption || isVideoAttachment
               ? "p-0 border-0 bg-transparent shadow-none"
               : experimental
                 ? "px-4 py-2.5"
                 : "px-3.5 py-2.5",
-            !isImage && !isPoll && !isStickerMessage && !hasMediaCaption &&
+            !isImage && !isPoll && !isStickerMessage && !hasMediaCaption && !isVideoAttachment &&
               (own
                 ? "tcy-glass-own rounded-[22px] rounded-br-[8px]"
                 : "tcy-glass-peer rounded-[22px] rounded-bl-[8px] border tcy-line"),
           )}
           style={
-            isImage || isPoll || isStickerMessage || hasMediaCaption
+            isImage || isPoll || isStickerMessage || hasMediaCaption || isVideoAttachment
               ? {
                   background: "transparent",
                   color: "var(--tcy-text)",
@@ -712,8 +716,8 @@ export function MessageBubble({
           {m.kind === "file" && (
             <div
               ref={hasMediaCaption ? measureAttachment : undefined}
-              className={hasMediaCaption ? "w-fit max-w-full rounded-[18px] border tcy-line px-3.5 py-2.5" : undefined}
-              style={hasMediaCaption
+              className={hasMediaCaption && !isVideoAttachment ? "w-fit max-w-full rounded-[18px] border tcy-line px-3.5 py-2.5" : undefined}
+              style={hasMediaCaption && !isVideoAttachment
                 ? own
                   ? { background: "var(--tcy-bubble-own-bg)", color: "var(--tcy-bubble-own-fg)" }
                   : { background: "var(--tcy-bubble-in)", color: "var(--tcy-text)" }
