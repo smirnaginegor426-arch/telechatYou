@@ -1,61 +1,57 @@
-# TeleChat You security and E2EE plan
+# TeleChat You — security and Matrix E2EE rollout
 
-## Current status
+## Existing TeleChat You security controls
 
-This repository is a web messenger served inside the Android WebView. HTTPS is provided by the hosting platform in production, but HTTPS alone is not end-to-end encryption.
-
-Existing protections observed during the audit:
-- User passwords are hashed with scrypt and a per-password random salt.
-- Session tokens are random and only an HMAC-SHA-256 hash is stored in the database.
-- Session cookies are HttpOnly, SameSite=Lax, and Secure except for localhost development.
-- Uploaded-file access is checked per account: owner, current members of chats containing the attachment, recipients of shared sticker-pack manifests, profile avatars and eligible group/public-channel avatars. Signed media URLs use the same authorization helper.
-- Private file responses are marked no-store to avoid retaining chat media in the browser cache after access changes.
-- Sending a message with an attachment is rejected if the sender cannot already read that file.
+The current app and API have the following protections in the repository:
+- Account passwords are hashed with scrypt and per-password random salts.
+- Database sessions store HMAC-SHA-256 hashes of random session tokens.
+- Session cookies are HttpOnly and SameSite=Lax, and Secure outside localhost development.
 - Login attempts are rate-limited by source hint and username.
-- Server responses now include clickjacking, MIME-sniffing, referrer, permissions and base/form policy headers; API responses are no-store.
-- Cross-origin API writes with a mismatching Origin or Sec-Fetch-Site: cross-site are rejected.
+- API responses are no-store and include security headers; cross-origin API writes with a mismatching Origin or cross-site Fetch Metadata are rejected.
+- Uploaded-file routes and signed media URLs check account/chat access; attachment sends verify the sender can read the file.
 
-## Important current limitation
+These controls reduce several risks but do not make all parts of the messenger secure by themselves. Hosting, TLS, account recovery, access control, device security and dependency updates still matter.
 
-Messages are currently persisted in `messages.body` as ordinary text. Server-side message search uses SQL `LIKE`, and chat previews/replies/features read message bodies. Message attachments are also uploaded before client-side encryption. Therefore **TeleChat You does not currently have end-to-end encrypted messaging**. Do not advertise it as E2EE yet.
+## Critical limitation of existing chats
 
-## Selected implementation and E2EE rollout plan
+The original TeleChat You chat stack stores message content in `messages.body` as ordinary text and uses the backend for previews, replies and SQL search. **Those existing chats are not end-to-end encrypted.** They remain online and unchanged during the migration; do not mark their history as encrypted or silently migrate it.
 
-The Matrix client SDK is already a project dependency (`matrix-js-sdk` 44.0.0). The experimental screen initializes Rust/WASM crypto with `initRustCrypto()`, which uses the browser IndexedDB store by default. Its access token is stored only in `sessionStorage` for the current browser session; the password is never stored. This is a pilot foundation, not yet a complete integration of existing TeleChat accounts.
+## Matrix integration now staged in the current client
 
-Implement in stages; do not encrypt only one field or use a custom static shared-key scheme and call it secure.
+The current main app includes an experimental `/encrypted` screen, linked from Settings → Chats and media → Сквозное шифрование, and pins `matrix-js-sdk` to a specific version in the npm dependency tree.
 
-1. **Selected protocol and threat model**
-   - Use the existing pinned `matrix-js-sdk` package and its Rust/WASM E2EE implementation. Do not implement Olm/Megolm or key exchange manually.
-   - The experimental UI currently connects to a separately configured Matrix homeserver; TeleChat You's own API and legacy chat database are not used as a substitute homeserver.
-   - The homeserver URL is build-time public configuration (`VITE_MATRIX_HOMESERVER_URL`) and must be HTTPS in production.
-   - Before launch, document key verification, device replacement, account recovery, lost-device and multi-device behavior.
+The new section is separate from the original TeleChat API. It:
+- connects directly from the browser/WebView to a Matrix homeserver over HTTPS (localhost HTTP is allowed for development);
+- uses Matrix account credentials, separate from the TeleChat You username/password;
+- initializes the Matrix SDK's Rust/WASM E2EE support;
+- stores the short-lived Matrix session token in sessionStorage rather than sending it to the TeleChat API;
+- stores Matrix cryptographic state in the browser's IndexedDB, namespaced by Matrix account and device;
+- lists encrypted Matrix rooms and only attempts to send text when the selected room has an encryption state event;
+- configures Matrix to withhold encryption keys from unverified devices by default.
 
-2. **Device identities and key distribution**
-   - Each device generates private keys locally using a cryptographic library.
-   - The server stores only public identity/prekey material and routes encrypted key bundles.
-   - Provide device verification/fingerprint comparison to detect key substitution.
-   - Never send private identity keys to the API or store them in plaintext on the server.
+Only Matrix rooms created/received as encrypted rooms are shown in this beta section. A separate Matrix homeserver and Matrix accounts are required. This is not an automatic bridge between existing TeleChat You accounts and Matrix IDs.
 
-3. **Opt-in Matrix pilot rooms, then chat integration**
-   - The experimental screen can connect to a configured Matrix homeserver and create a private room with `m.room.encryption` set to `m.megolm.v1.aes-sha2`.
-   - Next, verify the room and encrypted event flow between two different Matrix accounts/devices. Do not infer that a room is fully verified merely because creation succeeded.
-   - Only after that test should we add account linking and a new-chat choice for Matrix E2EE. Existing chats and history remain on the current TeleChat backend and must keep working unchanged.
-   - Matrix E2EE messages must travel through Matrix APIs, never through the existing plaintext `messages.send` API.
+## Beta limitations — do not describe this as a finished security feature yet
 
-4. **Features that need E2EE-aware redesign**
-   - Search becomes device-local; the server cannot SQL-search ciphertext.
-   - Chat previews, replies, pinned message content and notifications must avoid server-side plaintext.
-   - Photos, files and voice messages must be encrypted locally before upload, with a separate random content key delivered inside the encrypted message.
-   - Group encryption needs a group protocol and explicit membership/key rotation handling; it is a later stage.
-   - Forwarding, edits, deletes, polls and sticker packs must preserve encrypted-message semantics instead of copying plaintext.
+Before using the new screen for sensitive conversations, the following are still required:
+1. Complete Matrix device/identity verification UX in TeleChat You, including a user-visible way to start and finish verification and clearly show trust status.
+2. Secret storage and encrypted key backup/recovery UX; test recovery after reinstall and when moving to another device.
+3. Test the complete flow against two real Matrix test accounts on separate browsers/devices, including messages in both directions, wrong credentials, network loss, device replacement and missing room keys.
+4. Verify the installed Android WebView's IndexedDB/WASM behavior with the released APK, not just desktop browser builds.
+5. Decide on a trusted Matrix homeserver. The current form lets a tester enter a homeserver; no TeleChat-operated Matrix deployment or automatic TCY-to-Matrix account provisioning is configured by these code changes.
+6. Encrypt media locally before upload and handle attachments/voice, message previews, reactions, pins, notifications and local-only search. The first screen implements text-only encrypted messages.
+7. Review hosting/CSP and supply-chain risks. Web E2EE cannot protect keys from malicious JavaScript delivered by a compromised site. Device verification helps with identity, but a compromised client can still expose plaintext on that device.
 
-5. **Verification and rollout**
-   - Add protocol test vectors and tests for tampering, wrong keys, replay, concurrent sends, key rotation and device loss.
-   - Use test accounts on separate devices and verify that the database stores only ciphertext.
-   - Run a security review before enabling by default.
-   - Keep HTTPS and server security controls even after E2EE ships.
+Do not silently fall back to plaintext if Matrix login, Rust crypto initialization, room encryption or key distribution fails. Existing TeleChat You chats should remain visibly distinct from the Matrix E2EE section.
 
-## Web client limitation
+## Recommended migration phases
 
-A web application downloads JavaScript from its hosting server. A compromised host could serve modified client code that steals plaintext or private keys, even if the normal message protocol is E2EE. For stronger guarantees, key verification and a signed/trusted native client distribution are important parts of the threat model.
+- **Phase 0 — keep compatibility:** leave the original chats/API and legacy UI unchanged.
+- **Phase 1 — isolated Matrix beta:** use the new Matrix section only for test accounts and encrypted Matrix rooms.
+- **Phase 2 — trust and recovery:** add device verification, cross-signing/secret storage and tested recovery before inviting non-technical users.
+- **Phase 3 — media and product integration:** encrypt file bytes on-device; decide how Matrix users map to TeleChat You accounts and how notifications, search, previews and exports should work.
+- **Phase 4 — optional rollout:** use opt-in encrypted rooms, show encryption status prominently, and keep existing chat history labelled accurately. Any future account migration must be explicit and reversible; never re-label plaintext history as E2EE.
+
+## Matrix SDK implementation notes
+
+The Matrix JavaScript SDK uses the Rust Matrix crypto implementation via WebAssembly for E2EE. Its documentation warns against multiple concurrent MatrixClient instances sharing the same IndexedDB crypto store because the crypto stack is not thread-safe. The current integration keeps one active client per app runtime, uses a stable database prefix by Matrix user/device, and removes component event listeners when the E2EE screen unmounts. The SDK's verification, backup, media and multi-device flows still need end-to-end testing before production use.
