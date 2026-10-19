@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Check, CheckCheck, CornerUpLeft, FileText, Forward, Pencil } from "lucide-react";
+import { Check, CheckCheck, CornerUpLeft, Download, FileText, Forward, LoaderCircle, Pencil } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
 import { DownloadableMediaPlayer } from "./DownloadableMediaPlayer";
@@ -195,6 +195,8 @@ export function MessageBubble({
 }) {
   const imgUrl = useFileUrl(m.kind === "image" ? m.attachmentKey : null);
   const [imageUnavailable, setImageUnavailable] = useState(false);
+  const [imageDownloaded, setImageDownloaded] = useState(false);
+  const [imageDownloading, setImageDownloading] = useState(false);
   const [attachmentWidth, setAttachmentWidth] = useState<number | null>(null);
   const imageRetryKeyRef = useRef<string | null>(null);
   const rowRef = useRef<HTMLDivElement | null>(null);
@@ -519,7 +521,7 @@ export function MessageBubble({
             >
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 if (!m.attachmentKey) return;
                 if (imageUnavailable) {
                   imageRetryKeyRef.current = null;
@@ -530,6 +532,28 @@ export function MessageBubble({
                 if (m.attachmentName?.startsWith("tcy-sticker:")) {
                   onStickerOpen?.(m);
                   return;
+                }
+                if (!imageDownloaded) {
+                  setImageDownloading(true);
+                  try {
+                    const response = await fetch(imgUrl ?? "");
+                    if (!response.ok) throw new Error("download failed");
+                    const blob = await response.blob();
+                    if (!blob.size) throw new Error("empty image");
+                    const objectUrl = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = objectUrl;
+                    link.download = m.attachmentName || "photo";
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+                    setImageDownloaded(true);
+                  } catch {
+                    // Open the viewer even if the browser blocks saving the file.
+                  } finally {
+                    setImageDownloading(false);
+                  }
                 }
                 onImageOpen(m.attachmentKey);
               }}
