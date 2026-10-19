@@ -558,7 +558,7 @@ export function MessageBubble({
                 onImageOpen(m.attachmentKey);
               }}
               className={cn(
-                "block max-w-full p-0 border-0 bg-transparent appearance-none text-left",
+                "relative block max-w-full p-0 border-0 bg-transparent appearance-none text-left",
                 isStickerAttachment ? "rounded-[18px]" : "rounded-none",
               )}
               aria-label={imageUnavailable ? "Повторить загрузку фотографии" : isStickerAttachment ? "Открыть действия стикера" : "Открыть фотографию"}
@@ -568,10 +568,11 @@ export function MessageBubble({
                   src={imgUrl}
                   alt={m.attachmentName ?? "Фото"}
                   className={cn(
-                    "block",
+                    "block transition-[filter] duration-300",
                     isStickerAttachment
                       ? "h-[180px] w-[180px] object-contain"
                       : "max-w-[240px] max-h-[300px] rounded-b-[14px] object-cover",
+                    !isStickerAttachment && !imageDownloaded && "blur-md scale-[1.03]",
                   )}
                   loading="lazy"
                   decoding="async"
@@ -605,6 +606,14 @@ export function MessageBubble({
                 </div>
               ) : (
                 <div className={cn("tcy-skeleton rounded-[13px]", isStickerAttachment ? "w-[180px] h-[180px]" : "w-[220px] h-[160px]")} />
+              )}
+              {!isStickerAttachment && imgUrl && !imageUnavailable && !imageDownloaded && (
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className="absolute inset-0 bg-black/10" />
+                  <span className="relative z-[1] flex h-[54px] w-[54px] items-center justify-center rounded-full border border-white/45 bg-black/45 text-white shadow-lg backdrop-blur-md">
+                    {imageDownloading ? <LoaderCircle size={23} className="animate-spin" /> : <Download size={23} strokeWidth={2.5} />}
+                  </span>
+                </span>
               )}
             </button>
             {hasMediaCaption && (
