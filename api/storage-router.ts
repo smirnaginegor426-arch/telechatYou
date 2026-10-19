@@ -5,6 +5,7 @@ import { createRouter, authedQuery } from "./middleware";
 import { storage } from "./lib/storage";
 import { getDb } from "./queries/connection";
 import { files } from "@db/schema";
+import { canReadFileKey } from "./lib/file-access";
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024; // 20 MB per attachment
 
@@ -37,12 +38,26 @@ export const storageRouter = createRouter({
       return { key: saved.key, size: saved.size, contentType: saved.contentType };
     }),
 
-  /** authenticated render URLs for a batch of keys; URLs are stable and access remains session-guarded */
+  /** Issue render URLs only for files the current account is allowed to read. */
   urls: authedQuery
-    .input(z.object({ keys: z.array(z.string()).max(50) }))
-    .query(async ({ input }) => {
+    .input(z.object({ keys: z.array(z.string().max(255)).max(50) }))
+    .query(async ({ ctx, input }) => {
       if (!input.keys.length) return { urls: {} as Record<string, string> };
-      const { urls } = await storage.getPresignedUrls({ keys: input.keys });
+      const uniqueKeys = [...new Set(input.keys)];
+      const allowedKeys: string[] = [];
+
+      // Bound DB concurrency even when a page requests the maximum 50 URLs.
+      for (let i = 0; i < uniqueKeys.length; i += 5) {
+        const batch = uniqueKeys.slice(i, i + 5);
+        const results = await Promise.all(batch.map(async (key) => ({
+          key,
+          allowed: await canReadFileKey(key, ctx.user.id),
+        })));
+        allowedKeys.push(...results.filter((entry) => entry.allowed).map((entry) => entry.key));
+      }
+
+      if (!allowedKeys.length) return { urls: {} as Record<string, string> };
+      const { urls } = await storage.getPresignedUrls({ keys: allowedKeys });
       const map: Record<string, string> = {};
       for (const u of urls) map[u.key] = u.url;
       return { urls: map };
