@@ -131,17 +131,17 @@ export default function SystemUpdate() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="tester-alpha-title"
-            className="w-full max-w-md rounded-[28px] border tcy-line tcy-card p-5 text-left shadow-2xl"
+            className="w-full max-w-md rounded-[28px] border border-white/10 bg-[#171717] p-5 text-left text-white shadow-2xl"
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl tcy-card-strong tcy-accent">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-[#242424] text-white">
                 <KeyRound size={21} />
               </div>
               <div className="min-w-0 flex-1 pr-1">
                 <h2 id="tester-alpha-title" className="text-[18px] font-extrabold tcy-text">
                   Альфа версия TeleChat YouV2.0 Только для Тестеров
                 </h2>
-                <p className="mt-2 text-[13px] leading-5 tcy-dim">
+                <p className="mt-2 text-[13px] leading-5 text-white/60">
                   Введи выданный ключ доступа, чтобы продолжить скачивание тестовой версии.
                 </p>
               </div>
@@ -149,14 +149,14 @@ export default function SystemUpdate() {
                 type="button"
                 onClick={closeTesterDialog}
                 aria-label="Закрыть"
-                className="tcy-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card-strong tcy-dim"
+                className="tcy-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#242424] text-white/70"
               >
                 <X size={18} />
               </button>
             </div>
 
             <form onSubmit={submitTesterKey} className="mt-5">
-              <label htmlFor="tester-alpha-key" className="mb-2 block text-[13px] font-semibold tcy-text">
+              <label htmlFor="tester-alpha-key" className="mb-2 block text-[13px] font-semibold text-white/85">
                 Ключ доступа
               </label>
               <input
@@ -172,26 +172,26 @@ export default function SystemUpdate() {
                 autoComplete="off"
                 autoCapitalize="characters"
                 spellCheck={false}
-                placeholder="TCY-NEW-XXXX-XXXX"
-                className="h-12 w-full rounded-2xl border tcy-line tcy-card-strong px-4 text-[14px] tcy-text outline-none focus:border-[var(--tcy-accent)]"
+                placeholder="Введи ключ доступа"
+                className="h-12 w-full rounded-2xl border border-white/15 bg-[#222222] px-4 text-[14px] text-white placeholder:text-white/35 outline-none focus:border-white/40"
                 aria-invalid={Boolean(keyError)}
                 aria-describedby={keyError ? "tester-alpha-error" : undefined}
               />
 
               {keyError && (
-                <p id="tester-alpha-error" role="alert" className="mt-2 flex items-start gap-2 text-[13px] tcy-danger">
+                <p id="tester-alpha-error" role="alert" className="mt-2 flex items-start gap-2 text-[13px] text-red-400">
                   <AlertCircle size={17} className="mt-0.5 shrink-0" />
                   {keyError}
                 </p>
               )}
 
               {keyAccepted && !V2_DOWNLOAD_URL && (
-                <div role="status" className="mt-3 rounded-2xl border tcy-line px-3 py-3">
-                  <p className="flex items-center gap-2 text-[13px] font-bold tcy-text">
+                <div role="status" className="mt-3 rounded-2xl border border-white/10 bg-[#222222] px-3 py-3">
+                  <p className="flex items-center gap-2 text-[13px] font-bold text-white">
                     <CheckCircle2 size={17} className="tcy-accent" />
                     Ключ принят
                   </p>
-                  <p className="mt-1 text-[12px] leading-5 tcy-dim">
+                  <p className="mt-1 text-[12px] leading-5 text-white/60">
                     APK-файл Альфа V2.0 пока не опубликован. Скачивание станет доступно, когда файл будет добавлен.
                   </p>
                 </div>
