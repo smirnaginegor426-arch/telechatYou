@@ -1,10 +1,13 @@
 /**
  * Server-side allowlist for the private current TeleChat You build.
- * Only the account ID verified from the active server session is trusted.
+ * Only account IDs verified from the active server session are trusted.
  */
 import type { PublicUser } from "./session";
 
-const PRIVATE_EXPERIMENTAL_USER_ID = 1633623;
+const PRIVATE_EXPERIMENTAL_USER_IDS = new Set<number>([
+  1633623,
+  848009, // @artemizzz — tester ID 848009
+]);
 
 export type PrivateExperimentalMatch = "user-id" | "none";
 
@@ -14,7 +17,7 @@ type CandidateUser = Pick<PublicUser, "id"> | null | undefined;
 export function privateExperimentalMatch(user: CandidateUser): PrivateExperimentalMatch {
   return user &&
     Number.isSafeInteger(user.id) &&
-    user.id === PRIVATE_EXPERIMENTAL_USER_ID
+    PRIVATE_EXPERIMENTAL_USER_IDS.has(user.id)
     ? "user-id"
     : "none";
 }
