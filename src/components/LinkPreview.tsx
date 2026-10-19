@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { ChevronRight } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Logo } from "./Logo";
+import { Avatar } from "./Avatar";
 
 const URL_PATTERN = /https?:\/\/[^\s<>"'`]+/i;
 
@@ -119,11 +120,62 @@ export function LinkPreview({
     if (!appLink) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault();
-    if (appLink.kind === "channel") navigate(`${appLink.path}?open=1`);
+    if (appLink.kind === "channel" && !profile.data) navigate(`${appLink.path}?open=1`);
     else navigate(appLink.path);
   };
 
   if (appLink) {
+    const linkedProfile =
+      appLink.kind === "channel"
+        ? profile.data
+        : appLink.kind === "user"
+          ? userProfile.data
+          : undefined;
+
+    if (linkedProfile) {
+      const description = linkedProfile.bio?.trim() || "Описание не добавлено";
+      return (
+        <a
+          href={url}
+          onClick={openInApp}
+          className="mt-2 block w-[280px] max-w-full overflow-hidden rounded-[14px] border tcy-line no-underline"
+          style={{ background: surface, color: frontColor }}
+        >
+          <span className="block px-3 py-3">
+            <span className="flex min-w-0 items-center gap-3">
+              <Avatar
+                name={linkedProfile.displayName}
+                avatarKey={linkedProfile.avatarKey}
+                size={56}
+                className="shrink-0"
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13.5px] leading-snug font-bold">
+                  {linkedProfile.displayName}
+                </span>
+                <span className="mt-1 block truncate text-[11.5px]" style={{ color: mutedColor }}>
+                  @{linkedProfile.username}
+                </span>
+              </span>
+            </span>
+            <span
+              className="mt-2.5 block text-[11.5px] leading-snug"
+              style={{
+                color: mutedColor,
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                overflowWrap: "anywhere",
+              }}
+            >
+              {description}
+            </span>
+          </span>
+        </a>
+      );
+    }
+
     const info = (() => {
       if (appLink.kind === "invite") {
         const data = invite.data;
