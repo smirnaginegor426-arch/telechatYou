@@ -189,6 +189,27 @@
   .safe-top { padding-top: env(safe-area-inset-top, 0px); }
 }
 
+/* Matte-grey transition layer shown briefly before the dark theme settles in. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  background: rgba(118, 120, 126, .90);
+  -webkit-backdrop-filter: blur(18px) grayscale(.68) saturate(.28);
+  backdrop-filter: blur(18px) grayscale(.68) saturate(.28);
+  transition: opacity 420ms ease, visibility 0s linear 420ms;
+}
+
+html[data-theme-transition="matte"] body::after {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 180ms ease, visibility 0s;
+}
+
 /* ---- ambient aurora background ---- */
 .tcy-aurora {
   position: fixed;
