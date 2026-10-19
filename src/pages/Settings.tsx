@@ -82,8 +82,12 @@ const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
   { heading: "Прочее", ids: ["data", "seasonal", "about"] },
 ];
 
-/** Фигурные блоки вкладок: 1-я — «язычок» вверх, средние — прямые и стыкуются с соседями, последняя тоже свёрнута вверх, низ группы прямой. */
-const sectionShapes = ["22px 22px 0px 0px", "0px", "22px 22px 0px 0px"];
+/** Top corners are rounded on the first row and bottom corners on the last row of each group. */
+function sectionRadius(index: number, count: number): string {
+  if (index === 0) return "22px 22px 0px 0px";
+  if (index === count - 1) return "0px 0px 22px 22px";
+  return "0px";
+}
 
 function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
   const navigate = useNavigate();
@@ -868,7 +872,7 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
                     <div key={id} id={"settings-section-" + id}>
                       <SettingsRow
                         style={{
-                          borderRadius: sectionShapes[index % sectionShapes.length],
+                          borderRadius: sectionRadius(index, ids.length),
                           padding: "10px 15px",
                           // Верхний блок задаёт линию стыка; у соседей верхняя граница убрана,
                           // чтобы блоки стыковались в одну фигуру без двойной линии.
