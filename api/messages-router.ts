@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { and, asc, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { channels, chatMembers, chats, messages, personalPinnedMessages, pinnedMessages, pollOptions, polls, pollVotes, reactions, userBlocks } from "@db/schema";
+import { channelMessageViews, channels, chatMembers, chats, messages, personalPinnedMessages, pinnedMessages, pollOptions, polls, pollVotes, reactions, userBlocks } from "@db/schema";
 import { getMembership, getProfilesByIds, searchMessages, touchChat } from "./queries/telechat";
 
 const PAGE = 40;
@@ -109,10 +109,21 @@ async function hydrate(rows: (typeof messages.$inferSelect)[], viewerId: number)
     });
   }
 
+  const viewRows = await getDb()
+    .select({
+      messageId: channelMessageViews.messageId,
+      viewCount: sql<number>`count(*)`,
+    })
+    .from(channelMessageViews)
+    .where(inArray(channelMessageViews.messageId, msgIds))
+    .groupBy(channelMessageViews.messageId);
+  const viewCountMap = new Map(viewRows.map((row) => [row.messageId, Number(row.viewCount)]));
+
   return rows.map((m) => {
     const reply = m.replyToId ? replyMap.get(m.replyToId) : null;
     return {
       ...m,
+      viewCount: viewCountMap.get(m.id) ?? 0,
       sender: senderMap.get(m.senderId) ?? null,
       replyTo: reply
         ? { ...reply, sender: replySenderMap.get(reply.senderId) ?? null }
@@ -262,6 +273,57 @@ export const messagesRouter = createRouter({
       const hasMore = rows.length > PAGE;
       const page = rows.slice(0, PAGE).reverse();
       return { items: await hydrate(page, ctx.user.id), hasMore };
+    }),
+
+  /** Record one view per signed-in account for posts that become visible in a channel. */
+  markChannelViews: authedQuery
+    .input(z.object({
+      chatId: z.number().int().positive(),
+      messageIds: z.array(z.number().int().positive()).min(1).max(100),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const channel = await getDb().query.channels.findFirst({
+        where: eq(channels.chatId, input.chatId),
+      });
+      if (!channel || channel.kind !== "channel") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Просмотры доступны только для публикаций каналов." });
+      }
+
+      const rows = await getDb()
+        .select({ id: messages.id })
+        .from(messages)
+        .where(and(
+          eq(messages.chatId, input.chatId),
+          inArray(messages.id, input.messageIds),
+          sql`${messages.deletedAt} IS NULL`,
+          sql`${messages.kind} <> 'system'`,
+        ));
+      if (!rows.length) return { ok: true, views: [] };
+
+      await getDb()
+        .insert(channelMessageViews)
+        .values(rows.map((row) => ({ messageId: row.id, userId: ctx.user.id })))
+        .onDuplicateKeyUpdate({ set: { viewedAt: sql`CURRENT_TIMESTAMP` } });
+
+      const counts = await getDb()
+        .select({
+          messageId: channelMessageViews.messageId,
+          viewCount: sql<number>`count(*)`,
+        })
+        .from(channelMessageViews)
+        .where(inArray(channelMessageViews.messageId, rows.map((row) => row.id)))
+        .groupBy(channelMessageViews.messageId);
+
+      return {
+        ok: true,
+        views: counts.map((row) => ({
+          messageId: row.messageId,
+          viewCount: Number(row.viewCount),
+        })),
+      };
     }),
 
   send: authedQuery
