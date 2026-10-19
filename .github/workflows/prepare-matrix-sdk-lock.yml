@@ -1,0 +1,41 @@
+name: Prepare Matrix SDK lockfile
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+
+permissions:
+  contents: write
+
+jobs:
+  lock-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Resolve the exact npm dependency tree
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit refreshed lockfile
+        run: |
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "Update npm lockfile for Matrix SDK"
+            git push
+          fi
+      - name: Install exactly what the lockfile specifies
+        run: npm ci --no-audit --no-fund
+      - name: TypeScript check
+        run: npm run check
+      - name: Build web and server bundles
+        run: npm run build
