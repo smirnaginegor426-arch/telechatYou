@@ -12,6 +12,7 @@ import {
   FileText,
   Image as ImageIcon,
   LogOut,
+  MessageCircle,
   MoreVertical,
   Volume2,
   VolumeX,
@@ -118,6 +119,7 @@ export default function ChatInfo() {
   const [editAvatarFile, setEditAvatarFile] = useState<File | null>(null);
   const [editAvatarPreviewUrl, setEditAvatarPreviewUrl] = useState<string | null>(null);
   const [editIsPublic, setEditIsPublic] = useState(false);
+  const [editCommentsEnabled, setEditCommentsEnabled] = useState(false);
   const [editUsername, setEditUsername] = useState("");
   const [editorSaving, setEditorSaving] = useState(false);
   const editFileRef = useRef<HTMLInputElement>(null);
@@ -271,6 +273,7 @@ export default function ChatInfo() {
           isPublic: editIsPublic,
           username: editUsername.trim(),
           description: editDescription.trim(),
+          ...(channel ? { commentsEnabled: editCommentsEnabled } : {}),
         });
       } else {
         await updateGroup.mutateAsync({
@@ -419,6 +422,7 @@ export default function ChatInfo() {
                 setTitle(chat?.title ?? "");
                 setEditAvatarFile(null);
                 setEditIsPublic(channel?.isPublic ?? publicGroup?.isPublic ?? false);
+                setEditCommentsEnabled(channel?.commentsEnabled ?? false);
                 setEditUsername(channel?.username ?? publicGroup?.username ?? "");
                 setEditDescription(channel?.description ?? publicGroup?.description ?? "");
                 setEditOpen(true);
@@ -927,6 +931,37 @@ export default function ChatInfo() {
                   <label htmlFor="tcy-edit-community-description" className="block text-[12px] font-bold uppercase tracking-[0.08em] tcy-faint">Описание</label>
                   <textarea id="tcy-edit-community-description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} maxLength={280} rows={4} placeholder={channel ? "Описание канала" : "Описание группы"} className="w-full resize-none rounded-[18px] border tcy-line tcy-card px-4 py-3.5 text-[14px] leading-relaxed tcy-text outline-none focus:border-[color:var(--tcy-accent)]" />
                   <p className="text-right text-[11px] tcy-faint">{editDescription.length}/280</p>
+                </section>
+              )}
+
+              {channel && (
+                <section className="flex items-center gap-3 rounded-[20px] border tcy-line tcy-card p-4">
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px]"
+                    style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 14%, var(--tcy-card))", color: "var(--tcy-selected-accent)" }}
+                  >
+                    <MessageCircle size={18} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-[14px] font-bold tcy-text">Комментарии</h3>
+                    <p className="mt-1 text-[11.5px] leading-relaxed tcy-faint">
+                      Разрешить подписчикам оставлять комментарии под публикациями
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={editCommentsEnabled}
+                    aria-label="Разрешить комментарии к публикациям"
+                    onClick={() => setEditCommentsEnabled((enabled) => !enabled)}
+                    className="relative h-[27px] w-[46px] shrink-0 rounded-full transition-colors duration-200"
+                    style={{ background: editCommentsEnabled ? "var(--tcy-selected-accent)" : "var(--tcy-card-strong)" }}
+                  >
+                    <span
+                      className="absolute left-[3px] top-[3px] h-[21px] w-[21px] rounded-full bg-white transition-transform duration-200"
+                      style={{ transform: editCommentsEnabled ? "translateX(19px)" : "translateX(0)", boxShadow: "0 2px 6px rgba(0,0,0,0.25)" }}
+                    />
+                  </button>
                 </section>
               )}
 
