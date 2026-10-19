@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Check, CheckCheck, CornerUpLeft, Download, FileText, Forward, LoaderCircle, Pencil, Play } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
-import { DownloadableMediaPlayer } from "./DownloadableMediaPlayer";
+import { MusicFilePlayer } from "./MusicFilePlayer";
 import {
   useFileUrl,
   refreshFileUrl,
@@ -156,12 +156,10 @@ function FileAttachment({
 
   if (isAudio) {
     return (
-      <DownloadableMediaPlayer
+      <MusicFilePlayer
         url={url}
         name={attachmentName}
-        size={m.attachmentSize}
         own={own}
-        video={false}
         mime={attachmentMime}
       />
     );
