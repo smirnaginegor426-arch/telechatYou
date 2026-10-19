@@ -65,6 +65,7 @@ export function PhotoEditor({
   const [imageRevision, setImageRevision] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [tool, setTool] = useState<Tool>("draw");
+  const [brushPanelOpen, setBrushPanelOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("original");
   const [brushColor, setBrushColor] = useState("#ffffff");
   const [brushSize, setBrushSize] = useState(7);
@@ -323,14 +324,18 @@ export function PhotoEditor({
           <div className="mb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
             <button
               type="button"
-              onClick={() => { setTool("draw"); setTextPanelOpen(false); }}
-              className={`tcy-press flex h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-[12px] font-bold ${tool === "draw" ? "border-white/40 bg-white text-[#15151a]" : "border-white/10 bg-white/[0.06] text-white/75"}`}
+              onClick={() => {
+                setTool("draw");
+                setTextPanelOpen(false);
+                setBrushPanelOpen((open) => tool === "draw" ? !open : true);
+              }}
+              className={`tcy-press flex h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-[12px] font-bold ${tool === "draw" && brushPanelOpen ? "border-white/40 bg-white text-[#15151a]" : "border-white/10 bg-white/[0.06] text-white/75"}`}
             >
               <Brush size={15} /> Кисть
             </button>
             <button
               type="button"
-              onClick={() => { setTool("text"); setTextPanelOpen((value) => !value); }}
+              onClick={() => { setTool("text"); setBrushPanelOpen(false); setTextPanelOpen((value) => !value); }}
               className={`tcy-press flex h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-[12px] font-bold ${tool === "text" ? "border-white/40 bg-white text-[#15151a]" : "border-white/10 bg-white/[0.06] text-white/75"}`}
             >
               <Type size={15} /> Текст
@@ -393,7 +398,8 @@ export function PhotoEditor({
             </div>
           </div>
 
-          <div className="mb-2 flex items-center gap-3">
+          {brushPanelOpen && (
+            <div className="mb-2 flex items-center gap-3">
             <span className="text-[11px] font-semibold text-white/55">Цвет</span>
             <div className="flex items-center gap-2">
               {BRUSH_COLORS.map((color) => (
@@ -426,7 +432,8 @@ export function PhotoEditor({
                 className="w-[76px] accent-white"
               />
             </div>
-          </div>
+            </div>
+          )}
         </footer>
       </motion.div>
     </AnimatePresence>
