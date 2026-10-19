@@ -386,11 +386,13 @@ export function Composer({
     try {
       const preparedFiles: PendingAttachment[] = [];
       for (const file of files) {
-        const prepared = preferences.compressPhotos ? await compressPhoto(file) : file;
+        const isVideo = file.type.toLowerCase().startsWith("video/") ||
+          /\.(3gp|avi|flv|m4v|mkv|mov|mp4|mpeg|mpg|ogv|ts|webm)$/i.test(file.name);
+        const prepared = !isVideo && preferences.compressPhotos ? await compressPhoto(file) : file;
         preparedFiles.push({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           file: prepared,
-          kind: "image",
+          kind: isVideo ? "file" : "image",
         });
       }
       setPendingAttachments((current) => [...current, ...preparedFiles]);
