@@ -33,7 +33,7 @@ export default function Wallpapers() {
     window.dispatchEvent(
       new CustomEvent(GLOBAL_CHAT_WALLPAPER_CHANGE_EVENT, { detail: { wallpaper: selected } }),
     );
-    // Migrate an older wallpaper selection to the first generated wallpaper once.
+    // Migrate an older wallpaper selection to the first Telegram-style pattern once.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
