@@ -177,7 +177,15 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
       aria-label="Основная навигация"
       className="tcy-main-nav absolute bottom-0 left-0 right-0 z-30 safe-bottom tcy-no-select"
     >
-      <div className="tcy-island mx-auto mb-2 rounded-full border tcy-line tcy-header-blur" style={{ width: `min(${islandPreferences.width}px, calc(100vw - 56px))` }}>
+      <div
+        className="tcy-island mx-auto mb-2 rounded-full border tcy-line tcy-header-blur"
+        style={{
+          width: `min(${islandPreferences.width}px, calc(100vw - 56px))`,
+          transform: activeTo === "/settings" ? "rotate(180deg)" : "rotate(0deg)",
+          transformOrigin: "center center",
+          transition: "width 250ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
+      >
         <div className="grid grid-cols-4 h-[54px]">
           {orderedTabs.map(({ to, label, plushLabel, icon: Icon, plushEmoji }) => {
             const active = activeTo === to;
