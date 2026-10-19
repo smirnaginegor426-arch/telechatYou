@@ -19,9 +19,9 @@ export const CHAT_WALLPAPERS = [
   { id: "pattern-sunset", name: "Закат", description: "Узор как в Telegram" },
   { id: "pattern-coral", name: "Коралл", description: "Узор как в Telegram" },
   { id: "pattern-teal", name: "Бирюза", description: "Узор как в Telegram" },
-  { id: "generated-1", name: "Telegram · 1", description: "Тёмный фирменный узор" },
-  { id: "generated-2", name: "Telegram · 2", description: "Тёмный фирменный узор" },
-  { id: "generated-3", name: "Telegram · 3", description: "Тёмный фирменный узор" },
+  { id: "generated-1", name: "Классические", description: "Классический узор" },
+  { id: "generated-2", name: "Классические", description: "Классический узор" },
+  { id: "generated-3", name: "Классические", description: "Классический узор" },
 ] as const;
 
 export type ChatWallpaperId = (typeof CHAT_WALLPAPERS)[number]["id"];
