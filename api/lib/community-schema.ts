@@ -62,18 +62,9 @@ export async function ensureCommunitySchema(): Promise<void> {
       KEY channel_message_views_message_idx (messageId),
       KEY channel_message_views_user_idx (userId)
     ) ENGINE=InnoDB`,
-    `CREATE TABLE IF NOT EXISTS channel_message_views (
-      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      messageId BIGINT UNSIGNED NOT NULL,
-      userId BIGINT UNSIGNED NOT NULL,
-      viewedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE KEY channel_message_views_unique (messageId, userId),
-      KEY channel_message_views_message_idx (messageId),
-      KEY channel_message_views_user_idx (userId)
-    ) ENGINE=InnoDB`,
   ];
 
-  for (const statement of statements {
+  for (const statement of statements) {
     await getDb().execute(sql.raw(statement));
   }
 
