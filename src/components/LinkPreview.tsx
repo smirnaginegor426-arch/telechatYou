@@ -132,8 +132,14 @@ export function LinkPreview({
           ? userProfile.data
           : undefined;
 
-    if (linkedProfile) {
-      const description = linkedProfile.bio?.trim() || "Описание не добавлено";
+    // Keep profile links in the same avatar + name + username + bio layout
+    // even while the profile query is loading or the account has no photo.
+    const isProfileLink = appLink.kind === "user" || appLink.kind === "channel";
+    const isKnownChannel = appLink.kind === "channel" && !linkedProfile && !!channel.data;
+    if (isProfileLink && !isKnownChannel) {
+      const username = linkedProfile?.username ?? (appLink.kind === "channel" ? appLink.username : "");
+      const displayName = linkedProfile?.displayName ?? (username ? `@${username}` : "Профиль пользователя");
+      const description = linkedProfile?.bio?.trim() || "Описание не добавлено";
       return (
         <a
           href={url}
@@ -142,19 +148,19 @@ export function LinkPreview({
           style={{ background: surface, color: frontColor }}
         >
           <span className="block px-3 py-3">
-            <span className="flex min-w-0 items-start gap-3">
+            <span className="flex min-w-0 items-center gap-3">
               <Avatar
-                name={linkedProfile.displayName}
-                avatarKey={linkedProfile.avatarKey}
+                name={displayName}
+                avatarKey={linkedProfile?.avatarKey}
                 size={56}
                 className="shrink-0"
               />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13.5px] leading-snug font-bold">
-                  {linkedProfile.displayName}
+                  {displayName}
                 </span>
                 <span className="mt-1 block truncate text-[11.5px]" style={{ color: mutedColor }}>
-                  @{linkedProfile.username}
+                  {username ? `@${username}` : " "}
                 </span>
               </span>
             </span>
