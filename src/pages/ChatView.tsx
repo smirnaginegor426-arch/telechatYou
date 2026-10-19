@@ -148,6 +148,11 @@ export default function ChatView() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
   const myIdRef = useRef<number>(0);
+  const seenChannelPostIdsRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => {
+    seenChannelPostIdsRef.current.clear();
+  }, [chatId]);
 
   useLayoutEffect(() => {
     if (selectedMessageIds.length === 0) {
@@ -347,6 +352,23 @@ export default function ChatView() {
     },
   });
   const react = trpc.messages.toggleReaction.useMutation();
+  const markChannelViews = trpc.messages.markChannelViews.useMutation({
+    onSuccess: (result) => {
+      if (!result.views.length) return;
+      const counts = new Map(result.views.map((view) => [view.messageId, view.viewCount]));
+      const updateWithViews = (message: MessageItem): MessageItem => {
+        const count = counts.get(message.id);
+        return count === undefined ? message : { ...message, viewCount: count };
+      };
+      setMessages((current) => current.map(updateWithViews));
+      utils.messages.list.setData({ chatId }, (current) => current
+        ? { ...current, items: current.items.map(updateWithViews) }
+        : current);
+    },
+    onError: (_error, variables) => {
+      variables.messageIds.forEach((messageId) => seenChannelPostIdsRef.current.delete(messageId));
+    },
+  });
   const upload = trpc.storage.upload.useMutation();
   const createPoll = trpc.messages.createPoll.useMutation({
     onSuccess: async () => {
@@ -508,7 +530,34 @@ export default function ChatView() {
             : peer
               ? formatLastSeen(peer.lastSeenAt)
               : "";
-  const visibleMessages = isChannel ? messages.filter((message) => message.kind !== "system") : messages;
+  const visibleMessages = useMemo(
+    () => isChannel ? messages.filter((message) => message.kind !== "system") : messages,
+    [isChannel, messages],
+  );
+
+  useEffect(() => {
+    if (!isChannel || !myId || typeof IntersectionObserver === "undefined") return;
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const newlyVisible: number[] = [];
+      for (const entry of entries) {
+        if (!entry.isIntersecting || entry.intersectionRatio < 0.15) continue;
+        const messageId = Number((entry.target as HTMLElement).dataset.channelPostId);
+        if (!Number.isSafeInteger(messageId) || messageId <= 0 || seenChannelPostIdsRef.current.has(messageId)) continue;
+        seenChannelPostIdsRef.current.add(messageId);
+        newlyVisible.push(messageId);
+      }
+      if (newlyVisible.length) {
+        markChannelViews.mutate({ chatId, messageIds: newlyVisible.slice(0, 100) });
+      }
+    }, { root: scroller, threshold: [0.15] });
+
+    scroller.querySelectorAll<HTMLElement>("[data-channel-post-id]").forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [chatId, isChannel, myId, visibleMessages, markChannelViews.mutate]);
+
   const activePinnedMessage = localPinned ?? personalPinned.data?.message ?? sharedPinned.data?.message ?? null;
   const activePinnedId = activePinnedMessage?.id ?? null;
 
@@ -888,7 +937,7 @@ export default function ChatView() {
               const showSender =
                 isGroup && (isChannel || (!own && (!prev || prev.senderId !== m.senderId || sameDay(prev.createdAt, m.createdAt) === false)));
               return (
-                <div key={m.id}>
+                <div key={m.id} data-channel-post-id={isChannel ? m.id : undefined}>
                   {dayBreak && (
                     <div className={experimentalUI ? "flex justify-center my-4" : "flex justify-center my-3"}>
                       <span className={experimentalUI
