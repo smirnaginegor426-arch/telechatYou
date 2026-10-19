@@ -365,6 +365,17 @@
 }
 
 
+.tcy-wallpaper-bg--telechatyou {
+  background-color: #08111f;
+  background-image:
+    url("/telechatyou-wallpaper.svg"),
+    radial-gradient(ellipse at 50% 0%, rgba(38, 67, 106, .38), transparent 62%),
+    linear-gradient(160deg, #0b1628, #050912 78%);
+  background-size: 360px 360px, auto, auto;
+  background-position: center, center, center;
+  background-repeat: repeat, no-repeat, no-repeat;
+}
+
 /* ---- skeleton shimmer ---- */
 @keyframes tcy-shimmer {
   from { background-position: 200% 0; }
