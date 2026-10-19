@@ -18,9 +18,21 @@ let activeClient: MatrixClient | null = null;
 let activeSessionKey: string | null = null;
 let initializedClient: MatrixClient | null = null;
 let startedClient: MatrixClient | null = null;
+let initializingPromise: Promise<MatrixClient> | null = null;
 
 function sessionIdentity(session: MatrixSession): string {
   return `${session.baseUrl}|${session.userId}|${session.deviceId}`;
+}
+
+/** Public build-time configuration. The login form never accepts an arbitrary homeserver URL. */
+export function getConfiguredMatrixHomeserver(): string | null {
+  const raw = import.meta.env.VITE_MATRIX_HOMESERVER_URL?.trim();
+  if (!raw) return null;
+  try {
+    return normalizeHomeserverUrl(raw);
+  } catch {
+    return null;
+  }
 }
 
 export function normalizeHomeserverUrl(raw: string): string {
@@ -59,8 +71,15 @@ export function readMatrixSession(): MatrixSession | null {
       sessionStorage.removeItem(SESSION_KEY);
       return null;
     }
+    const baseUrl = normalizeHomeserverUrl(value.baseUrl);
+    // A saved token is valid only for the homeserver chosen in this app build.
+    // Never restore a session if the homeserver has changed or is not configured.
+    if (baseUrl !== getConfiguredMatrixHomeserver()) {
+      sessionStorage.removeItem(SESSION_KEY);
+      return null;
+    }
     return {
-      baseUrl: normalizeHomeserverUrl(value.baseUrl),
+      baseUrl,
       userId: value.userId,
       deviceId: value.deviceId,
       accessToken: value.accessToken,
@@ -85,12 +104,14 @@ export async function initializeMatrixClient(session: MatrixSession): Promise<Ma
   if (activeClient && activeSessionKey !== identity) {
     throw new Error("Сначала выйди из текущего Matrix-аккаунта, затем подключай другой.");
   }
-  if (activeClient && initializedClient !== activeClient) {
+  // React StrictMode may invoke the restore effect twice; share the same init promise.
+  if (activeClient && activeSessionKey === identity && initializingPromise) {
+    return initializingPromise;
+  }
+  if (activeClient && activeSessionKey === identity) {
     throw new Error("Matrix-клиент уже инициализируется. Подожди завершения операции.");
   }
 
-  const dbUser = session.userId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 96);
-  const dbDevice = session.deviceId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 96);
   const client = createClient({
     baseUrl: session.baseUrl,
     accessToken: session.accessToken,
@@ -100,38 +121,55 @@ export async function initializeMatrixClient(session: MatrixSession): Promise<Ma
   activeClient = client;
   activeSessionKey = identity;
 
+  initializingPromise = (async () => {
+    try {
+      // Hash account+device identity into a stable per-device IndexedDB namespace.
+      // This prevents different Matrix accounts from sharing local private-key state.
+      const input = new TextEncoder().encode(identity);
+      const digest = await crypto.subtle.digest("SHA-256", input);
+      const suffix = Array.from(new Uint8Array(digest))
+        .slice(0, 20)
+        .map((byte) => byte.toString(16).padStart(2, "0"))
+        .join("");
+      await client.initRustCrypto({ cryptoDatabasePrefix: `tcy-matrix-${suffix}` });
+      initializedClient = client;
+      return client;
+    } catch (error) {
+      client.stopClient();
+      if (activeClient === client) {
+        activeClient = null;
+        activeSessionKey = null;
+        initializedClient = null;
+      }
+      throw error;
+    }
+  })();
+
   try {
-    // Isolate persistent Rust crypto state by Matrix account and device on this origin.
-    await client.initRustCrypto({ cryptoDatabasePrefix: `tcy-matrix-${dbUser}-${dbDevice}` });
-    const crypto = client.getCrypto();
-    if (!crypto) throw new Error("Matrix E2EE не инициализирован. Подключение остановлено.");
-    // Fail closed for unverified recipient devices. They will not receive room keys.
-    crypto.globalBlacklistUnverifiedDevices = true;
-    initializedClient = client;
-    return client;
-  } catch (error) {
-    client.stopClient();
-    activeClient = null;
-    activeSessionKey = null;
-    initializedClient = null;
-    throw error;
+    return await initializingPromise;
+  } finally {
+    initializingPromise = null;
   }
 }
 
 export async function loginMatrix(
-  homeserverInput: string,
   username: string,
   password: string,
 ): Promise<{ session: MatrixSession; client: MatrixClient }> {
-  const baseUrl = normalizeHomeserverUrl(homeserverInput);
+  const baseUrl = getConfiguredMatrixHomeserver();
+  if (!baseUrl) {
+    throw new Error("Matrix homeserver не настроен. Задай VITE_MATRIX_HOMESERVER_URL в окружении сборки и пересобери приложение.");
+  }
   const cleanUsername = username.trim();
   if (!cleanUsername || !password) {
     throw new Error("Введи Matrix ID и пароль Matrix-аккаунта.");
   }
-  if (activeClient) {
+  if (activeClient || initializingPromise) {
     throw new Error("Сначала выйди из уже подключённого Matrix-аккаунта.");
   }
 
+  // Authentication goes only to the operator-configured Matrix homeserver.
+  // TeleChat You's API never receives this password or the Matrix access token.
   const loginClient = createClient({ baseUrl });
   const response = await loginClient.loginRequest({
     type: "m.login.password",
@@ -186,12 +224,13 @@ export async function logoutMatrix(client?: MatrixClient | null): Promise<void> 
   try {
     // Revoke the Matrix token on its own homeserver; local state is cleared even
     // if the remote server is temporarily unavailable.
-    await target.logout(true);
+    await target.logout(false);
   } finally {
     if (activeClient === target) {
       activeClient = null;
       activeSessionKey = null;
       initializedClient = null;
+      initializingPromise = null;
     }
   }
 }
