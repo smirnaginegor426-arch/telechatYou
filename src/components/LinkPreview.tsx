@@ -224,20 +224,29 @@ export function LinkPreview({
       <a
         href={url}
         onClick={openInApp}
-        className="mt-2 block w-[264px] max-w-full overflow-hidden rounded-[14px] border tcy-line no-underline"
+        className="mt-2 block w-[280px] max-w-full overflow-hidden rounded-[14px] border tcy-line no-underline"
         style={{ background: surface, color: frontColor }}
       >
-        <span className="flex items-center gap-2.5 px-3 py-2.5">
-          <span
-            className="grid size-[36px] shrink-0 place-items-center rounded-[11px]"
-            style={{
-              background: own
-                ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 12%, transparent)"
-                : "color-mix(in srgb, var(--tcy-accent) 14%, transparent)",
-            }}
-          >
-            <Logo size={24} />
-          </span>
+        <span className="flex items-start gap-3 px-3 py-3">
+          {(appLink.kind === "channel" || appLink.kind === "user") ? (
+            <Avatar
+              name={linkedProfile?.displayName ?? (appLink.kind === "channel" ? appLink.username : "Профиль")}
+              avatarKey={linkedProfile?.avatarKey}
+              size={56}
+              className="shrink-0"
+            />
+          ) : (
+            <span
+              className="grid size-[36px] shrink-0 place-items-center rounded-[11px]"
+              style={{
+                background: own
+                  ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 12%, transparent)"
+                  : "color-mix(in srgb, var(--tcy-accent) 14%, transparent)",
+              }}
+            >
+              <Logo size={24} />
+            </span>
+          )}
           <span className="min-w-0 flex-1">
             <span className="flex min-w-0 items-center gap-1.5">
               <span className="shrink-0 text-[12px] font-black tracking-tight">TeleChatYou</span>
