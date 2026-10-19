@@ -8,12 +8,6 @@ function clock(seconds: number) {
   return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, "0")}`;
 }
 
-const WAVEFORM = [
-  0.22, 0.42, 0.65, 0.34, 0.52, 0.79, 0.48, 0.29, 0.57, 0.87,
-  0.45, 0.32, 0.68, 0.94, 0.54, 0.38, 0.74, 0.46, 0.26, 0.61,
-  0.83, 0.43, 0.31, 0.67, 0.91, 0.5, 0.37, 0.72, 0.44, 0.25,
-];
-
 export function DownloadableMediaPlayer({
   url,
   name,
@@ -157,6 +151,32 @@ export function DownloadableMediaPlayer({
         />
       )}
 
+      {!video && (
+        <div className="mb-3 flex min-w-0 items-center gap-3">
+          <span
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px]"
+            style={{
+              color: own ? main : "var(--tcy-accent)",
+              background: own
+                ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 13%, transparent)"
+                : "color-mix(in srgb, var(--tcy-accent) 12%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--tcy-line) 75%, transparent)",
+            }}
+          >
+            <Music2 size={21} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-1.5">
+              <span className="rounded-full border px-2 py-0.5 text-[9px] font-extrabold tracking-[0.08em]" style={{ borderColor: "var(--tcy-line)", color: muted }}>
+                {ext}
+              </span>
+              <span className="text-[9px] font-bold uppercase tracking-[0.12em]" style={{ color: muted }}>Музыкальный файл</span>
+            </div>
+            <div className="truncate text-[13px] font-extrabold leading-snug" title={name}>{name}</div>
+          </div>
+        </div>
+      )}
+
       <div className="flex min-w-0 items-center gap-2.5">
         <button
           type="button"
@@ -185,16 +205,31 @@ export function DownloadableMediaPlayer({
                   : <Play size={16} fill="currentColor" className="ml-0.5" />}
         </button>
 
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[12.5px] font-bold" title={name}>{name}</div>
-          <div className="mt-0.5 flex items-center gap-1.5 text-[10px] font-bold" style={{ color: muted }}>
-            {video ? <Film size={12} /> : <Music2 size={12} />}
-            <span>{ext}</span><span>·</span><span>{formatFileSize(size)}</span>
-          </div>
-        </div>
-        <div className="shrink-0 text-right text-[10px] font-semibold" style={{ color: muted }}>
-          {downloading ? "Скачивание…" : isDownloaded ? "Скачано" : "Скачать"}
-        </div>
+        {video ? (
+          <>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[12.5px] font-bold" title={name}>{name}</div>
+              <div className="mt-0.5 flex items-center gap-1.5 text-[10px] font-bold" style={{ color: muted }}>
+                <Film size={12} />
+                <span>{ext}</span><span>·</span><span>{formatFileSize(size)}</span>
+              </div>
+            </div>
+            <div className="shrink-0 text-right text-[10px] font-semibold" style={{ color: muted }}>
+              {downloading ? "Скачивание…" : isDownloaded ? "Скачано" : "Скачать"}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[12px] font-bold">
+                {downloading ? "Скачиваем аудио…" : isDownloaded ? (playing ? "Сейчас играет" : "Готово к прослушиванию") : "Скачать и слушать"}
+              </div>
+              <div className="mt-0.5 truncate text-[10px] font-medium" style={{ color: muted }}>
+                {formatFileSize(size)}{duration > 0 ? ` · ${clock(duration)}` : ""}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {video && isDownloaded && localUrl && (
@@ -209,33 +244,10 @@ export function DownloadableMediaPlayer({
       )}
 
       {!video && isDownloaded && (
-        <div className="mt-3 flex items-center gap-2.5">
-          <div className="flex h-8 flex-1 items-center gap-[2.5px] overflow-hidden">
-            {WAVEFORM.map((height, index) => (
-              <span
-                key={index}
-                className="min-w-[2px] flex-1 rounded-full"
-                style={{
-                  height: `${Math.max(4, height * 28)}px`,
-                  background: duration > 0 && index / WAVEFORM.length <= current / duration
-                    ? main
-                    : muted,
-                  opacity: duration > 0 && index / WAVEFORM.length <= current / duration ? 0.95 : 0.65,
-                }}
-              />
-            ))}
-          </div>
-          <span className="min-w-[54px] text-right text-[10px] font-semibold tabular-nums" style={{ color: muted }}>
-            {clock(current)} / {clock(duration)}
-          </span>
-        </div>
-      )}
-
-      {!video && isDownloaded && (
-        <div className="mt-1.5">
+        <div className="mt-3">
           <input
-            aria-label="Позиция воспроизведения"
-            className="tcy-audio-range w-full"
+            aria-label="Перемотка музыки"
+            className="tcy-audio-range block h-1.5 w-full cursor-pointer rounded-full"
             type="range"
             min={0}
             max={duration || 1}
@@ -248,6 +260,10 @@ export function DownloadableMediaPlayer({
             }}
             style={{ accentColor: "var(--tcy-accent)" }}
           />
+          <div className="mt-1.5 flex items-center justify-between text-[10px] font-semibold tabular-nums" style={{ color: muted }}>
+            <span>{clock(current)}</span>
+            <span>{clock(duration)}</span>
+          </div>
         </div>
       )}
 
