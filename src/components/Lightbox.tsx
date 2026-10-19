@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { LoaderCircle, X } from "lucide-react";
 import { Avatar } from "@/components/Avatar";
 import { useFileUrl } from "@/hooks/useFileUrl";
 import { formatFileSize } from "@/lib/format";
@@ -24,6 +25,13 @@ export function Lightbox({
   const url = useFileUrl(imageKey);
   const videoUrl = useFileUrl(videoKey ?? null);
   const isVideo = Boolean(videoKey);
+  const [videoBuffering, setVideoBuffering] = useState(true);
+  const [videoError, setVideoError] = useState(false);
+
+  useEffect(() => {
+    setVideoBuffering(true);
+    setVideoError(false);
+  }, [videoKey, videoUrl]);
 
   return (
     <AnimatePresence>
@@ -62,23 +70,70 @@ export function Lightbox({
           <div className="flex min-h-0 flex-1 items-center justify-center p-2 sm:p-4">
             {isVideo ? (
               videoUrl ? (
-                <motion.video
-                  initial={{ scale: 0.96, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 28 }}
-                  src={videoUrl}
-                  controls
-                  autoPlay
-                  playsInline
-                  preload="metadata"
-                  className="max-h-full max-w-full rounded-[12px] bg-black object-contain"
+                <div
+                  className="relative flex max-h-full max-w-full items-center justify-center"
                   onClick={(event) => event.stopPropagation()}
-                  onError={(event) => {
-                    event.currentTarget.pause();
-                  }}
-                />
+                >
+                  <motion.video
+                    key={videoUrl}
+                    initial={{ scale: 0.96, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 28 }}
+                    src={videoUrl}
+                    controls
+                    playsInline
+                    preload="auto"
+                    data-tcy-fullscreen-video="true"
+                    className="max-h-[calc(100dvh-112px)] max-w-[calc(100vw-16px)] rounded-[12px] bg-black object-contain"
+                    onLoadStart={() => {
+                      setVideoBuffering(true);
+                      setVideoError(false);
+                    }}
+                    onWaiting={() => setVideoBuffering(true)}
+                    onStalled={() => setVideoBuffering(true)}
+                    onCanPlay={() => {
+                      setVideoBuffering(false);
+                      setVideoError(false);
+                    }}
+                    onPlaying={() => setVideoBuffering(false)}
+                    onError={() => {
+                      setVideoBuffering(false);
+                      setVideoError(true);
+                    }}
+                  />
+                  {videoBuffering && !videoError && (
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-[12px] bg-black/30">
+                      <span className="flex h-[58px] w-[58px] items-center justify-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-sm">
+                        <LoaderCircle size={28} className="animate-spin" />
+                      </span>
+                    </span>
+                  )}
+                  {videoError && (
+                    <div role="status" className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[12px] bg-black/80 px-5 text-center text-[13px] text-white">
+                      <span>Не удалось загрузить видео</span>
+                      <button
+                        type="button"
+                        className="rounded-full bg-white/15 px-4 py-2 font-semibold"
+                        onClick={() => {
+                          setVideoError(false);
+                          setVideoBuffering(true);
+                          const player = document.querySelector<HTMLVideoElement>("[data-tcy-fullscreen-video='true']");
+                          if (player) {
+                            player.load();
+                            void player.play().catch(() => undefined);
+                          }
+                        }}
+                      >
+                        Повторить
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
-                <div className="tcy-skeleton h-[200px] w-[260px] rounded-[18px]" />
+                <div className="flex h-[220px] w-[180px] flex-col items-center justify-center gap-3 rounded-[18px] bg-white/5 text-white/75">
+                  <LoaderCircle size={30} className="animate-spin" />
+                  <span className="text-[12px]">Загружаем видео…</span>
+                </div>
               )
             ) : imageKey ? (
               url ? (
