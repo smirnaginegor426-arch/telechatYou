@@ -363,13 +363,13 @@ html[data-tcy-plush="true"] #root [role="listbox"] {
 
 /* Floating tab bar */
 html[data-tcy-plush="true"] #root .tcy-island {
-  border-radius: 27px !important;
+  border-radius: 9999px !important;
   background: linear-gradient(145deg, var(--plush-panel), color-mix(in srgb, var(--plush-card-alt) 50%, var(--plush-panel))) !important;
   border: 1px solid var(--plush-line-strong) !important;
   box-shadow: inset 0 2px 0 color-mix(in srgb, white 70%, transparent), var(--plush-shadow-raised) !important;
 }
 html[data-tcy-plush="true"] #root .tcy-tab-orb {
-  border-radius: 22px !important;
+  border-radius: 9999px !important;
   background: linear-gradient(145deg, color-mix(in srgb, var(--plush-lilac) 66%, var(--plush-card)), color-mix(in srgb, var(--plush-pink) 57%, var(--plush-card))) !important;
   border: 1px solid color-mix(in srgb, white 68%, transparent) !important;
   box-shadow: inset 0 1px 0 color-mix(in srgb, white 72%, transparent), var(--plush-shadow) !important;
