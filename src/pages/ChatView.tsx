@@ -10,6 +10,7 @@ import {
   Forward,
   Info,
   MoreVertical,
+  MessageCircle,
   VolumeX,
   Volume2,
   Ban,
@@ -30,6 +31,7 @@ import { isTesterUsername } from "@/lib/testers";
 import { Composer } from "@/components/Composer";
 import { BottomSheet } from "@/components/BottomSheet";
 import { MessageBubble, ReplyPreviewBar } from "@/components/MessageBubble";
+import { ChannelCommentsSheet } from "@/components/ChannelCommentsSheet";
 import { Lightbox } from "@/components/Lightbox";
 import { computePeaks } from "@/components/VoiceMessage";
 import { useFileUrl } from "@/hooks/useFileUrl";
@@ -137,7 +139,8 @@ export default function ChatView() {
   const [selectionToolbarAnchor, setSelectionToolbarAnchor] = useState<HTMLElement | null>(null);
   const [forwardMessageIds, setForwardMessageIds] = useState<number[]>([]);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
-  const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null; video?: boolean } | null>(null);
+  const [commentsPost, setCommentsPost] = useState<MessageItem | null>(null);
+  const [lightbox, setLightbox = useState<{ key: string; name?: string | null; size?: number | null; video?: boolean } | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(DEFAULT_CHAT_WALLPAPER);
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(null);
   const [pollOpen, setPollOpen] = useState(false);
@@ -214,6 +217,10 @@ export default function ChatView() {
   const { enabled: experimentalUI } = useExperimentalUI();
 
   const info = trpc.chats.info.useQuery({ chatId }, { refetchInterval: 8000 });
+  const channelCommentCounts = trpc.channels.commentCounts.useQuery(
+    { chatId },
+    { enabled: !!info.data?.channel?.commentsEnabled, refetchInterval: info.data?.channel?.commentsEnabled ? 8000 : false },
+  );
   const contactNamesQuery = trpc.accountData.contactNames.get.useQuery();
   const blockStatus = trpc.chats.blockStatus.useQuery({ chatId }, { enabled: Number.isSafeInteger(chatId) && chatId > 0 });
   const personalPinned = trpc.messages.pinnedPersonal.useQuery({ chatId }, {
@@ -949,7 +956,7 @@ export default function ChatView() {
                   )}
                   <MessageBubble
                     m={m}
-                    own={own}
+                    own={isChannel ? false : own}
                     myId={myId}
                     isGroup={!!isGroup}
                     isChannel={isChannel}
@@ -979,6 +986,24 @@ export default function ChatView() {
                     }}
                     experimental={experimentalUI}
                   />
+                  {isChannel && info.data?.channel?.commentsEnabled && (
+                    <div className="mb-3 mt-1 flex px-5">
+                      <button
+                        type="button"
+                        onClick={() => setCommentsPost(m)}
+                        className="tcy-press inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-[12px] font-bold tcy-accent"
+                        aria-label={`Комментировать публикацию, комментариев ${channelCommentCounts.data?.find((item) => item.postId === m.id)?.count ?? 0}`}
+                      >
+                        <MessageCircle size={15} />
+                        <span>Комментировать</span>
+                        {(channelCommentCounts.data?.find((item) => item.postId === m.id)?.count ?? 0) > 0 && (
+                          <span className="min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] tcy-card-strong">
+                            {channelCommentCounts.data?.find((item) => item.postId === m.id)?.count}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })
@@ -1366,6 +1391,13 @@ export default function ChatView() {
           })}
         </div>
       </BottomSheet>
+
+      <ChannelCommentsSheet
+        open={!!commentsPost}
+        onClose={() => setCommentsPost(null)}
+        chatId={chatId}
+        post={commentsPost}
+      />
 
       <Lightbox
         imageKey={lightbox && !lightbox.video ? lightbox.key : null}
