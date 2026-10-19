@@ -59,6 +59,10 @@ export function parseAppLink(raw: string): AppLink | null {
  * Link preview card shown under a link inside the same message bubble.
  * TeleChat You links use app data; external links use server-fetched page metadata.
  */
+function isProfileLink(link: AppLink): boolean {
+  return link.kind === "channel" || link.kind === "user";
+}
+
 export function LinkPreview({
   text,
   own,
@@ -234,7 +238,7 @@ export function LinkPreview({
         style={{ background: surface, color: frontColor }}
       >
         <span className="flex items-start gap-3 px-3 py-3">
-          {(appLink.kind === "channel" || appLink.kind === "user") ? (
+          {isProfileLink(appLink) ? (
             <Avatar
               name={linkedProfile?.displayName ?? (appLink.kind === "channel" ? appLink.username : "Профиль")}
               avatarKey={linkedProfile?.avatarKey ?? null}
