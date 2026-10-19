@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, like } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, like, sql } from "drizzle-orm";
 import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
-import { channels, chatMembers, chats, profiles } from "@db/schema";
-import { getChatMembers, getMembership, touchChat } from "./queries/telechat";
+import { channelPostComments, channels, chatMembers, chats, messages, profiles } from "@db/schema";
+import { getChatMembers, getMembership, getProfilesByIds, touchChat } from "./queries/telechat";
 import { makeInviteToken, readInviteToken } from "./lib/invite";
 
 const channelUsername = z.string().trim().toLowerCase().min(3).max(32).regex(
@@ -217,6 +217,111 @@ export const channelsRouter = createRouter({
       await touchChat(input.chatId);
 
       return { ok: true, username, isPublic: input.isPublic };
+    }),
+
+  /** Counts comments attached to each channel post in the requested channel. */
+  commentCounts: authedQuery
+    .input(z.object({ chatId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const channel = await getDb().query.channels.findFirst({
+        where: and(eq(channels.chatId, input.chatId), eq(channels.kind, "channel")),
+      });
+      if (!channel || !channel.commentsEnabled) return [];
+      const rows = await getDb()
+        .select({
+          postId: channelPostComments.postId,
+          count: sql<number>`count(*)`,
+        })
+        .from(channelPostComments)
+        .where(eq(channelPostComments.chatId, input.chatId))
+        .groupBy(channelPostComments.postId);
+      return rows.map((row) => ({ postId: row.postId, count: Number(row.count) }));
+    }),
+
+  /** List a post's discussion thread. Only members of channels with comments enabled may read it. */
+  listComments: authedQuery
+    .input(z.object({ chatId: z.number(), postId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const channel = await getDb().query.channels.findFirst({
+        where: and(eq(channels.chatId, input.chatId), eq(channels.kind, "channel")),
+      });
+      if (!channel || !channel.commentsEnabled) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Комментарии в этом канале отключены" });
+      }
+      const post = await getDb().query.messages.findFirst({
+        where: and(
+          eq(messages.id, input.postId),
+          eq(messages.chatId, input.chatId),
+          isNull(messages.deletedAt),
+        ),
+      });
+      if (!post) throw new TRPCError({ code: "NOT_FOUND", message: "Публикация не найдена" });
+
+      const rows = await getDb()
+        .select()
+        .from(channelPostComments)
+        .where(and(
+          eq(channelPostComments.chatId, input.chatId),
+          eq(channelPostComments.postId, input.postId),
+        ))
+        .orderBy(asc(channelPostComments.id))
+        .limit(300);
+      const senderIds = [...new Set(rows.map((row) => row.senderId))];
+      const senders = await getProfilesByIds(senderIds);
+      const byId = new Map(senders.map((profile) => [profile.userId, profile]));
+      return rows.map((row) => {
+        const sender = byId.get(row.senderId);
+        return {
+          id: row.id,
+          postId: row.postId,
+          body: row.body,
+          createdAt: row.createdAt,
+          sender: sender ? {
+            userId: sender.userId,
+            username: sender.username,
+            displayName: sender.displayName,
+            avatarKey: sender.avatarKey,
+          } : null,
+        };
+      });
+    }),
+
+  /** Add a text comment to a channel post; comments are stored outside the channel feed. */
+  addComment: authedQuery
+    .input(z.object({
+      chatId: z.number(),
+      postId: z.number(),
+      body: z.string().trim().min(1).max(2000),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+      const channel = await getDb().query.channels.findFirst({
+        where: and(eq(channels.chatId, input.chatId), eq(channels.kind, "channel")),
+      });
+      if (!channel || !channel.commentsEnabled) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Комментарии в этом канале отключены" });
+      }
+      const post = await getDb().query.messages.findFirst({
+        where: and(
+          eq(messages.id, input.postId),
+          eq(messages.chatId, input.chatId),
+          isNull(messages.deletedAt),
+        ),
+      });
+      if (!post) throw new TRPCError({ code: "NOT_FOUND", message: "Публикация не найдена" });
+
+      await getDb().insert(channelPostComments).values({
+        postId: input.postId,
+        chatId: input.chatId,
+        senderId: ctx.user.id,
+        body: input.body,
+      });
+      return { ok: true };
     }),
 
   /** Public channels can be joined by username. Private channels need an invite from an owner/admin. */
