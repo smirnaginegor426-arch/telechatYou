@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createRouter, authedQuery } from "./middleware";
@@ -366,7 +366,12 @@ export const e2eeRouter = createRouter({
         .from(chatMembers)
         .where(eq(chatMembers.userId, ctx.user.id));
       const sharedChatIds = [...new Set(senderChatIds.map((row) => row.chatId))];
-      let queued = 0;
+      const planned: {
+        recipientUserId: number;
+        recipientDeviceId: string;
+        eventType: string;
+        content: string;
+      }[] = [];
 
       for (const message of input.messages) {
         if (message.userId !== ctx.user.id) {
@@ -407,22 +412,34 @@ export const e2eeRouter = createRouter({
           });
           if (existing) continue;
 
-          await db.insert(e2eeToDeviceEvents).values({
-            senderUserId: ctx.user.id,
+          planned.push({
             recipientUserId: message.userId,
             recipientDeviceId: recipient.deviceId,
             eventType: input.eventType,
             content: safeJson(message.content),
-            transactionId: input.transactionId,
           });
-          queued += 1;
-          if (queued > 300) {
+          if (planned.length > 300) {
             throw new TRPCError({ code: "BAD_REQUEST", message: "Слишком много устройств в одном запросе." });
           }
         }
       }
 
-      return { ok: true, queued };
+      // Validate the complete expansion before writing; an oversized request
+      // must never partially enqueue a packet batch.
+      for (const item of planned) {
+        await db.insert(e2eeToDeviceEvents).values({
+          senderUserId: ctx.user.id,
+          recipientUserId: item.recipientUserId,
+          recipientDeviceId: item.recipientDeviceId,
+          eventType: item.eventType,
+          content: item.content,
+          transactionId: input.transactionId,
+        }).onDuplicateKeyUpdate({
+          // A retry with the same transaction id is idempotent; don't overwrite content.
+          content: e2eeToDeviceEvents.content,
+        });
+      }
+      return { ok: true, queued: planned.length };
     }),
 
   /** Read pending events for one of the signed-in user's active devices. */
