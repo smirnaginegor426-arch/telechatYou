@@ -5,7 +5,7 @@ import { Logo } from "@/components/Logo";
 import { TcButton } from "@/components/TcButton";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "2.0.0";
 
 
 

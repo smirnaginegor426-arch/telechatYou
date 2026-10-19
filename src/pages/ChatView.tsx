@@ -311,7 +311,17 @@ export default function ChatView() {
   const invalidateLists = () => {
     utils.chats.list.invalidate();
   };
-  const send = trpc.messages.send.useMutation({ onSuccess: invalidateLists });
+  const send = trpc.messages.send.useMutation({
+    onSuccess: async (sent) => {
+      setMessages((current) => current.some((message) => message.id === sent.id)
+        ? current
+        : [...current, sent].sort((a, b) => a.id - b.id));
+      await Promise.all([
+        utils.messages.list.invalidate({ chatId }),
+        utils.chats.list.invalidate(),
+      ]);
+    },
+  });
   const updateChatFlags = trpc.chats.setFlags.useMutation({
     onSuccess: async () => {
       await utils.chats.info.invalidate({ chatId });
@@ -401,7 +411,10 @@ export default function ChatView() {
       return;
     }
     stickToBottomRef.current = true;
-    send.mutate({ chatId, kind: "text", body: text, replyToId: replyTo?.id });
+    send.mutate(
+      { chatId, kind: "text", body: text, replyToId: replyTo?.id },
+      { onError: (error) => alert("Не удалось отправить сообщение: " + error.message) },
+    );
     setReplyTo(null);
   };
 
@@ -516,7 +529,7 @@ export default function ChatView() {
   const peer = info.data?.peer;
   const channel = info.data?.channel;
   const isChannel = !!channel;
-  const canPublish = !channel || info.data?.me.role === "owner" || info.data?.me.role === "admin";
+  const canPublish = !channel || channel.ownerId === myId || info.data?.me.role === "owner" || info.data?.me.role === "admin";
   const isGroup = chat?.type === "group";
   const directParts = chat?.directKey?.split(":") ?? [];
   const isFavoritesChat = chat?.type === "direct" && directParts.length === 2 && directParts[0] === directParts[1];

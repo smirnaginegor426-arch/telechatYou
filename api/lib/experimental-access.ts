@@ -7,6 +7,7 @@ import type { PublicUser } from "./session";
 const PRIVATE_EXPERIMENTAL_USER_IDS = new Set<number>([
   1633623,
   848009, // @artemizzz — tester ID 848009
+  3838382, // @bank — tester ID 3838382
 ]);
 
 export type PrivateExperimentalMatch = "user-id" | "none";

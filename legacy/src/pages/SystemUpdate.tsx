@@ -4,7 +4,7 @@ import { AlertCircle, ArrowLeft, CheckCircle2, Download, KeyRound, RefreshCw, X 
 import { Logo } from "@/components/Logo";
 import { TcButton } from "@/components/TcButton";
 
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "2.0.0";
 
 
 
