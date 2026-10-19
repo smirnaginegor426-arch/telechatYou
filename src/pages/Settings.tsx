@@ -711,6 +711,23 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
     notifications: notificationsRows,
     email: emailRows,
     security: securityRows,
+    e2ee: (
+      <div className="mx-4 rounded-[18px] border tcy-line tcy-card p-4">
+        <div className="text-[14px] font-bold tcy-text">Matrix E2EE — тестовый режим</div>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed tcy-dim">
+          Это отдельные Matrix-комнаты. Обычные чаты TeleChat You остаются без изменений.
+          Пока не завершены проверка устройств и восстановление ключей, используй только тестовые сообщения.
+        </p>
+        <TcButton
+          variant="soft"
+          size="lg"
+          className="mt-3 w-full"
+          onClick={() => navigate("/encrypted")}
+        >
+          <ShieldCheck size={16} /> Открыть зашифрованные чаты
+        </TcButton>
+      </div>
+    ),
     privacy: privacyRows,
     chats: chatsRows,
     data: dataRows,
