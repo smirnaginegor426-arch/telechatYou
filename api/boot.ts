@@ -49,7 +49,8 @@ app.get("/api/files/*", async (c) => {
     const headers = new Headers({
       "Content-Type": meta.contentType,
       "Content-Length": String(meta.size),
-      "Cache-Control": "private, max-age=300",
+      // Uploads receive unique keys, so successful file responses are safe to cache across route changes.
+      "Cache-Control": "private, max-age=86400, immutable",
       "X-Content-Type-Options": "nosniff",
     });
     if (c.req.query("download") === "1") {
