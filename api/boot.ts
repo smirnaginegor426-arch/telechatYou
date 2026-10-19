@@ -15,6 +15,8 @@ import { ensureUserCustomDataSchema } from "./lib/user-custom-data-schema";
 import { ensureUserBlocksSchema } from "./lib/user-blocks-schema";
 import { ensureEmailVerificationSchema } from "./lib/email-verification-schema";
 import { emailDeliveryConfigSummary, isEmailDeliveryConfigured } from "./lib/email-service";
+import { ensureAlphaAccessKeySchema, redeemAlphaAccessKey } from "./lib/alpha-access";
+import { assertRateLimit } from "./lib/rate-limit";
 
 // Make email configuration problems obvious in the server logs at startup.
 if (!isEmailDeliveryConfigured()) {
@@ -79,6 +81,67 @@ app.get("/api/files/*", async (c) => {
   }
 });
 
+const ALPHA_DOWNLOAD_URL = "https://github.com/smirnaginegor426-arch/telechatYou/releases/download/v2.0-alpha/TeleChatYouAlpha.apk";
+
+app.post("/api/alpha/redeem", async (c) => {
+  c.header("Cache-Control", "no-store");
+
+  const clientHint =
+    c.req.header("cf-connecting-ip") ??
+    c.req.header("x-real-ip") ??
+    c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown";
+  try {
+    assertRateLimit(`alpha-key-redeem:${clientHint}`, 10, 10 * 60 * 1000);
+  } catch {
+    return c.json(
+      { ok: false, code: "RATE_LIMITED", error: "Слишком много попыток. Попробуй позже." },
+      429,
+    );
+  }
+
+  let body: unknown;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ ok: false, code: "INVALID", error: "Введи ключ доступа." }, 400);
+  }
+
+  const rawKey =
+    body && typeof body === "object" && "key" in body
+      ? (body as { key?: unknown }).key
+      : undefined;
+  if (typeof rawKey !== "string" || rawKey.trim().length < 12 || rawKey.length > 64) {
+    return c.json({ ok: false, code: "INVALID", error: "Неверный ключ. Проверь его и попробуй снова." }, 400);
+  }
+
+  try {
+    const redemption = await redeemAlphaAccessKey(rawKey);
+    if (redemption === "accepted") {
+      return c.json({ ok: true, downloadUrl: ALPHA_DOWNLOAD_URL });
+    }
+    if (redemption === "used") {
+      return c.json(
+        { ok: false, code: "USED", error: "Этот ключ уже использован." },
+        409,
+      );
+    }
+    return c.json(
+      { ok: false, code: "INVALID", error: "Неверный ключ. Проверь его и попробуй снова." },
+      400,
+    );
+  } catch (error) {
+    console.warn(
+      "[alpha-access] Key redemption failed",
+      error instanceof Error ? error.message : String(error),
+    );
+    return c.json(
+      { ok: false, code: "UNAVAILABLE", error: "Не удалось проверить ключ. Попробуй позже." },
+      503,
+    );
+  }
+});
+
 app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 if (env.isProduction) {
@@ -89,6 +152,7 @@ if (env.isProduction) {
   await ensureUserCustomDataSchema();
   await ensureUserBlocksSchema();
   await ensureEmailVerificationSchema();
+  await ensureAlphaAccessKeySchema();
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);
