@@ -17,7 +17,7 @@ const LEGACY_SHELL = path.join("legacy", "index.html");
  * Roll out the frozen 10 Oct build to everyone except the approved private
  * accounts. Keep false so the current build is never globally exposed.
  */
-const SERVE_CURRENT_BUILD_TO_EVERYONE = false;
+const SERVE_CURRENT_BUILD_TO_EVERYONE = true;
 /** Opt-in marker used by the Alpha V2.0 Android APK. */
 const ALPHA_BUILD_COOKIE = "tcy_build=alpha-v2";
 const isAlphaBuildRequested = (requestUrl: string) =>
