@@ -5,6 +5,7 @@ import { createRouter, authedQuery } from "./middleware";
 import { getDb } from "./queries/connection";
 import { channelMessageViews, channels, chatMembers, chats, messages, personalPinnedMessages, pinnedMessages, pollOptions, polls, pollVotes, reactions, userBlocks } from "@db/schema";
 import { getMembership, getProfilesByIds, searchMessages, touchChat } from "./queries/telechat";
+import { canReadFileKey } from "./lib/file-access";
 
 const PAGE = 40;
 
@@ -346,6 +347,12 @@ export const messagesRouter = createRouter({
       const me = await getMembership(input.chatId, ctx.user.id);
       if (!me) throw new TRPCError({ code: "FORBIDDEN" });
       await assertDirectChatNotBlocked(input.chatId, ctx.user.id);
+      if (input.attachmentKey && !(await canReadFileKey(input.attachmentKey, ctx.user.id))) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "У тебя нет доступа к этому файлу. Загрузи его заново.",
+        });
+      }
       const channel = await getDb().query.channels.findFirst({ where: eq(channels.chatId, input.chatId) });
       if (channel && channel.kind === "channel" && me.role !== "owner" && me.role !== "admin") {
         throw new TRPCError({ code: "FORBIDDEN", message: "В канале могут публиковать только владелец и администраторы" });
