@@ -104,55 +104,7 @@ function PendingAttachmentTile({
       >
         <X size={13} />
       </button>
-      {editingAttachmentId && (() => {
-        const attachment = pendingAttachments.find((item) => item.id === editingAttachmentId && item.kind === "image");
-        return attachment ? createPortal(
-          <PhotoEditor
-            key={attachment.id}
-            image={attachment.file}
-            onCancel={() => setEditingAttachmentId(null)}
-            onSave={(editedFile) => {
-              setPendingAttachments((current) => current.map((item) =>
-                item.id === attachment.id ? { ...item, file: editedFile } : item
-              ));
-              setEditingAttachmentId(null);
-            }}
-          />,
-          document.body,
-        ) : null;
-      })()}
 
-      <AnimatePresence>
-        {previewPhoto && createPortal(
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10050] flex flex-col bg-black/95 text-white"
-            onClick={() => setPreviewPhoto(null)}
-          >
-            <div className="flex items-center justify-between gap-3 px-4 py-3 safe-top" onClick={(event) => event.stopPropagation()}>
-              <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{previewPhoto.name || "Фото"}</span>
-              <button
-                type="button"
-                onClick={() => setPreviewPhoto(null)}
-                aria-label="Закрыть фото"
-                className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-xl"
-              >
-                <X size={19} />
-              </button>
-            </div>
-            <div className="flex min-h-0 flex-1 items-center justify-center p-3 pb-5" onClick={(event) => event.stopPropagation()}>
-              <img
-                src={previewPhoto.url}
-                alt={previewPhoto.name || "Фото"}
-                className="max-h-full max-w-full rounded-[18px] object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
-              />
-            </div>
-          </motion.div>,
-          document.body,
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -799,6 +751,55 @@ export function Composer({
         </div>,
         document.body,
       )}
+      {editingAttachmentId && (() => {
+        const attachment = pendingAttachments.find((item) => item.id === editingAttachmentId && item.kind === "image");
+        return attachment ? createPortal(
+          <PhotoEditor
+            key={attachment.id}
+            image={attachment.file}
+            onCancel={() => setEditingAttachmentId(null)}
+            onSave={(editedFile) => {
+              setPendingAttachments((current) => current.map((item) =>
+                item.id === attachment.id ? { ...item, file: editedFile } : item
+              ));
+              setEditingAttachmentId(null);
+            }}
+          />,
+          document.body,
+        ) : null;
+      })()}
+
+      <AnimatePresence>
+        {previewPhoto && createPortal(
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10050] flex flex-col bg-black/95 text-white"
+            onClick={() => setPreviewPhoto(null)}
+          >
+            <div className="flex items-center justify-between gap-3 px-4 py-3 safe-top" onClick={(event) => event.stopPropagation()}>
+              <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{previewPhoto.name || "Фото"}</span>
+              <button
+                type="button"
+                onClick={() => setPreviewPhoto(null)}
+                aria-label="Закрыть фото"
+                className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-xl"
+              >
+                <X size={19} />
+              </button>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center p-3 pb-5" onClick={(event) => event.stopPropagation()}>
+              <img
+                src={previewPhoto.url}
+                alt={previewPhoto.name || "Фото"}
+                className="max-h-full max-w-full rounded-[18px] object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+              />
+            </div>
+          </motion.div>,
+          document.body,
+        )}
+      </AnimatePresence>
 
     </div>
   );
