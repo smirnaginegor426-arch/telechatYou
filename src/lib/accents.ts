@@ -6,6 +6,7 @@ export const ACCENTS = [
   { id: "orange", name: "Оранжевый", color: "#b99a7d", deep: "#92775d", onAccent: "#1c1004", glow1: "rgba(185, 137, 98, 0.12)", glow2: "rgba(142, 121, 181, 0.07)" },
   { id: "red", name: "Красный", color: "#b98991", deep: "#916873", onAccent: "#ffffff", glow1: "rgba(189, 116, 128, 0.12)", glow2: "rgba(189, 116, 128, 0.07)" },
   { id: "pink", name: "Розовый", color: "#b58da5", deep: "#906e84", onAccent: "#ffffff", glow1: "rgba(186, 123, 158, 0.12)", glow2: "rgba(186, 123, 158, 0.07)" },
+  { id: "none", name: "Без акцента", color: "#85858b", deep: "#68686f", onAccent: "#ffffff", glow1: "rgba(255, 255, 255, 0.025)", glow2: "rgba(255, 255, 255, 0.015)" },
 ] as const;
 
 export type AccentId = (typeof ACCENTS)[number]["id"];
