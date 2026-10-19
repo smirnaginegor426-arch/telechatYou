@@ -72,7 +72,7 @@ const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: strin
   { id: "chats", title: "Чаты и медиа", subtitle: "Клавиатура, медиа и стикеры", icon: Paperclip },
   { id: "data", title: "Данные", subtitle: "Хранилище и язык", icon: Database },
   { id: "seasonal", title: "Сезонное", subtitle: "Halloween и сезонные функции", icon: Ghost },
-  { id: "about", title: "О приложении", subtitle: "Версия 1.0.0", icon: Info },
+  { id: "about", title: "О приложении", subtitle: "Версия 2.0.0", icon: Info },
 ];
 
 /** Названия групп — по одной на три раздела (вкладки). */
@@ -572,7 +572,7 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
       <SettingsRow
         icon={<Info size={17} />}
         title="О TeleChatYou"
-        subtitle="Версия 1.0.0"
+        subtitle="Версия 2.0.0"
         onClick={() => setAboutOpen(true)}
       />
     </>
@@ -589,7 +589,7 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
               T
             </span>
           </div>
-          <p className="text-[14px] font-bold tcy-text">TeleChatYou 1.0.0</p>
+          <p className="text-[14px] font-bold tcy-text">TeleChatYou 2.0.0</p>
           <p className="text-[13px] tcy-dim leading-relaxed">
             Современный мессенджер с голосовыми сообщениями, группами, темами и живыми
             анимациями. Самостоятельный продукт — спроектирован и собран с нуля.
