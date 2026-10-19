@@ -1288,7 +1288,7 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
    The built-in TeleChatYou row sits outside the regular list and needs its own
    top cap; regular rows stay subtly rounded, while the final row gets a broad bottom cap. */
 #root .tcy-chat-list-scroll > .tcy-chat-list-item {
-  border-radius: 32px 32px 0 0 !important;
+  border-radius: 32px 32px 8px 8px !important;
 }
 #root .tcy-chat-list-scroll > .divide-y > div > .tcy-chat-list-item {
   border-radius: 8px !important;
@@ -1300,7 +1300,7 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
   border-radius: 8px !important;
 }
 #root .tcy-chat-list-scroll > .divide-y > div:last-child > .tcy-chat-list-item {
-  border-radius: 0 0 32px 32px !important;
+  border-radius: 8px 8px 32px 32px !important;
 }
 #root .tcy-chat-list-scroll:not(:has(> .tcy-chat-list-item)) > .divide-y > div:only-child > .tcy-chat-list-item {
   border-radius: 32px !important;
