@@ -131,7 +131,7 @@ export function ChannelCommentsSheet({
                         <div className="mb-1 flex items-baseline gap-2">
                           <span className="truncate text-[12.5px] font-bold tcy-text">{comment.sender?.displayName ?? "Пользователь"}</span>
                           <time className="shrink-0 text-[10px] tcy-faint">
-                            {new Date(comment.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            {comment.createdAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </time>
                         </div>
                         <p className="whitespace-pre-wrap break-words text-[13.5px] leading-relaxed tcy-text">{comment.body}</p>
