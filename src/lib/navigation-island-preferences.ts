@@ -48,7 +48,7 @@ export function saveNavigationIslandPreferences(
   preferences: NavigationIslandPreferences,
 ): void {
   const normalized = {
-    order: NAVIGATION_TAB_OPTIONS.map((tab) => tab.to).filter((id) => preferences.order.includes(id)),
+    order: preferences.order.filter((id) => NAVIGATION_TAB_OPTIONS.some((tab) => tab.to === id)),
     width: Math.min(MAX_NAVIGATION_ISLAND_WIDTH, Math.max(MIN_NAVIGATION_ISLAND_WIDTH, Math.round(preferences.width))),
   } satisfies NavigationIslandPreferences;
   // Make sure future or partially missing tab IDs don't disappear from the navigation.
