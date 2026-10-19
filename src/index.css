@@ -1284,10 +1284,10 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
 }
 
 
-/* Chat and Settings list geometry: first row rounded on top, middle rows square,
-   final row rounded on the bottom. Keep the existing colors and surfaces. */
+/* Chat and Settings list geometry: first row keeps its top shape, middle chat rows
+   get softly rounded corners, and the final row keeps its bottom shape. */
 .tcy-chat-list-scroll > .divide-y > div > .tcy-chat-list-item {
-  border-radius: 0 !important;
+  border-radius: 16px !important;
 }
 .tcy-chat-list-scroll > .divide-y > div:first-child > .tcy-chat-list-item {
   border-radius: 22px 22px 0 0 !important;
