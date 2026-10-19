@@ -4,6 +4,7 @@ import { ArrowLeft, LockKeyhole, LogOut, Plus, RefreshCw, Send, ShieldCheck } fr
 import { ClientEvent, RoomEvent, type MatrixClient, type Room } from "matrix-js-sdk";
 import {
   getActiveMatrixClient,
+  getConfiguredMatrixHomeserver,
   initializeMatrixClient,
   loginMatrix,
   logoutMatrix,
@@ -87,7 +88,7 @@ export default function EncryptedChats() {
   const navigate = useNavigate();
   const [session, setSession] = useState<MatrixSession | null>(null);
   const [client, setClient] = useState<MatrixClient | null>(null);
-  const [homeserver, setHomeserver] = useState("https://matrix.org");
+  const [homeserver, setHomeserver] = useState<string | null>(() => getConfiguredMatrixHomeserver());
   const [matrixUser, setMatrixUser] = useState("");
   const [matrixPassword, setMatrixPassword] = useState("");
   const [roomName, setRoomName] = useState("");
@@ -199,7 +200,7 @@ export default function EncryptedChats() {
     setNotice("");
     setMatrixPassword("");
     try {
-      const result = await loginMatrix(homeserver, matrixUser, matrixPassword);
+      const result = await loginMatrix(matrixUser, matrixPassword);
       setSession(result.session);
       setClient(result.client);
       setHomeserver(result.session.baseUrl);
@@ -337,10 +338,17 @@ export default function EncryptedChats() {
               </p>
             </div>
             <form onSubmit={handleLogin} className="space-y-3">
-              <label className="block space-y-1.5">
-                <span className="pl-1 text-[12px] font-bold tcy-dim">Адрес Matrix-сервера</span>
-                <input autoCapitalize="none" autoCorrect="off" inputMode="url" type="url" required value={homeserver} onChange={(e) => setHomeserver(e.target.value)} placeholder="https://matrix.example.org" className="w-full rounded-[16px] border px-4 py-3 text-[14px] outline-none tcy-text" style={{ background: "var(--tcy-input)", borderColor: "var(--tcy-line-strong)" }} />
-              </label>
+              <div className="space-y-1.5">
+                <span className="block pl-1 text-[12px] font-bold tcy-dim">Matrix-сервер проекта</span>
+                <div className="w-full rounded-[16px] border px-4 py-3 text-[13px] break-all tcy-text" style={{ background: "var(--tcy-input)", borderColor: "var(--tcy-line-strong)" }}>
+                  {homeserver ?? "Не настроен"}
+                </div>
+                {!homeserver && (
+                  <p className="px-1 text-[11px] leading-relaxed tcy-dim">
+                    Подключение отключено до настройки доверенного HTTPS Matrix homeserver. Адрес задаётся владельцем при сборке приложения — ввод Matrix-пароля на произвольный сервер запрещён.
+                  </p>
+                )}
+              </div>
               <label className="block space-y-1.5">
                 <span className="pl-1 text-[12px] font-bold tcy-dim">Matrix ID или имя пользователя</span>
                 <input autoCapitalize="none" autoCorrect="off" autoComplete="username" required value={matrixUser} onChange={(e) => setMatrixUser(e.target.value)} placeholder="@user:matrix.org" className="w-full rounded-[16px] border px-4 py-3 text-[14px] outline-none tcy-text" style={{ background: "var(--tcy-input)", borderColor: "var(--tcy-line-strong)" }} />
@@ -349,12 +357,12 @@ export default function EncryptedChats() {
                 <span className="pl-1 text-[12px] font-bold tcy-dim">Пароль Matrix-аккаунта</span>
                 <input autoComplete="current-password" required type="password" value={matrixPassword} onChange={(e) => setMatrixPassword(e.target.value)} className="w-full rounded-[16px] border px-4 py-3 text-[14px] outline-none tcy-text" style={{ background: "var(--tcy-input)", borderColor: "var(--tcy-line-strong)" }} />
               </label>
-              <TcButton type="submit" disabled={busy} size="lg" className="w-full">
+              <TcButton type="submit" disabled={busy || !homeserver} size="lg" className="w-full">
                 <LockKeyhole size={16} /> {busy ? "Подключаем E2EE…" : "Подключить"}
               </TcButton>
             </form>
             <p className="text-[11px] leading-relaxed tcy-dim">
-              Вход подключает этот интерфейс к Matrix, а не превращает аккаунт TeleChat You в Matrix-аккаунт. Используй только доверенный сервер; при ошибке инициализации отправка сообщений не включается.
+              Вход подключает этот интерфейс к Matrix, а не превращает аккаунт TeleChat You в Matrix-аккаунт. Пароль уходит напрямую только на настроенный homeserver. Это бета-версия; проверка устройств и восстановление ключей ещё не реализованы.
             </p>
           </div>
         </div>
