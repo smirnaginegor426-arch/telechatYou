@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, LockKeyhole, LogOut, Plus, RefreshCw, Send, ShieldCheck } from "lucide-react";
-import { ClientEvent, RoomEvent, type MatrixClient, type Room } from "matrix-js-sdk";
+import { ClientEvent, EventType, Preset, RoomEvent, type MatrixClient, type Room } from "matrix-js-sdk";
 import {
   getActiveMatrixClient,
   getConfiguredMatrixHomeserver,
@@ -231,7 +231,7 @@ export default function EncryptedChats() {
     try {
       const result = await client.createRoom({
         name: roomName.trim().slice(0, 80),
-        preset: "private_chat",
+        preset: Preset.PrivateChat,
         is_direct: Boolean(invite),
         invite: invite ? [invite] : [],
         initial_state: [{
@@ -265,7 +265,7 @@ export default function EncryptedChats() {
     setBusy(true);
     setError("");
     try {
-      await client.sendEvent(selectedRoomId, "m.room.message", {
+      await client.sendEvent(selectedRoomId, EventType.RoomMessage, {
         msgtype: "m.text",
         body,
       });
