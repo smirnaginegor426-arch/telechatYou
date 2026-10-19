@@ -372,7 +372,7 @@ export const channelPostComments = mysqlTable(
     id: serial("id").primaryKey(),
     postId: bigint("postId", { mode: "number", unsigned: true }).notNull(),
     chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull(),
-    senderId: userId(),
+    senderId: bigint("senderId", { mode: "number", unsigned: true }).notNull(),
     body: text("body").notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
