@@ -1120,6 +1120,7 @@ html[data-theme="light"] .tcy-wallpaper-bg--cocoa {
   }
   .tcy-main-nav .tcy-island {
     display: flex;
+    width: 100% !important;
     height: 100%;
     margin: 0 !important;
     border-radius: 21px !important;
