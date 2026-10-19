@@ -14,6 +14,11 @@ CREATE TABLE IF NOT EXISTS channels (
   KEY channels_owner_idx (ownerId)
 ) ENGINE=InnoDB;
 
+-- Existing deployments may have a role enum without "owner", which is required
+-- when creating a channel/group. Widening it preserves existing owner/admin/member rows.
+ALTER TABLE chat_members
+  MODIFY COLUMN role ENUM('owner','admin','member') NOT NULL DEFAULT 'member';
+
 CREATE TABLE IF NOT EXISTS polls (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   messageId BIGINT UNSIGNED NOT NULL,

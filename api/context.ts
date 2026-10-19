@@ -12,10 +12,9 @@ export async function createContext(
   opts: FetchCreateContextFnOptions,
 ): Promise<TrpcContext> {
   const ctx: TrpcContext = { req: opts.req, resHeaders: opts.resHeaders };
-  try {
-    ctx.user = (await authenticateRequest(opts.req.headers)) ?? undefined;
-  } catch {
-    // Authentication is optional for public procedures; DB errors surface on protected procedures.
-  }
+  // Invalid/expired sessions are returned as null by authenticateRequest. Do not
+  // swallow database/driver failures here: that turns infrastructure errors into
+  // misleading UNAUTHORIZED responses and hides the real failure from tRPC logs.
+  ctx.user = (await authenticateRequest(opts.req.headers)) ?? undefined;
   return ctx;
 }

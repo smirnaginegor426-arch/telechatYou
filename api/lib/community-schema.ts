@@ -1,6 +1,38 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "../queries/connection";
 
+function isDuplicateColumnError(error: unknown): boolean {
+  const visited = new Set<object>();
+  let current: unknown = error;
+  while (current && typeof current === "object" && !visited.has(current)) {
+    visited.add(current);
+    const candidate = current as {
+      code?: unknown;
+      errno?: unknown;
+      message?: unknown;
+      cause?: unknown;
+    };
+    if (
+      candidate.code === "ER_DUP_FIELDNAME" ||
+      Number(candidate.errno) === 1060 ||
+      (typeof candidate.message === "string" &&
+        /duplicate column name|er_dup_fieldname/i.test(candidate.message))
+    ) {
+      return true;
+    }
+    current = candidate.cause;
+  }
+  return typeof error === "string" && /duplicate column name|er_dup_fieldname/i.test(error);
+}
+
+async function addColumnIfMissing(statement: string): Promise<void> {
+  try {
+    await getDb().execute(sql.raw(statement));
+  } catch (error) {
+    if (!isDuplicateColumnError(error)) throw error;
+  }
+}
+
 /**
  * These additive tables are created idempotently so an existing Render deployment
  * can roll out channels and polls without requiring a separate console migration.
@@ -80,26 +112,19 @@ export async function ensureCommunitySchema(): Promise<void> {
     await getDb().execute(sql.raw(statement));
   }
 
-  // Existing Render databases may have been created before public groups existed.
-  // Try the additive migration on every boot and ignore only MySQL's duplicate-column error.
-  try {
-    await getDb().execute(sql.raw(
-      "ALTER TABLE channels ADD COLUMN kind ENUM('channel','group') NOT NULL DEFAULT 'channel' AFTER ownerId",
-    ));
-  } catch (error) {
-    const cause = error as { code?: string; cause?: { code?: string } };
-    const code = cause.code ?? cause.cause?.code;
-    if (code !== "ER_DUP_FIELDNAME") throw error;
-  }
+  // Existing Render databases may predate the channel kind/comments columns.
+  // Ignore duplicate-column errors even when Drizzle/TiDB wraps them several levels deep.
+  await addColumnIfMissing(
+    "ALTER TABLE channels ADD COLUMN kind ENUM('channel','group') NOT NULL DEFAULT 'channel' AFTER ownerId",
+  );
+  await addColumnIfMissing(
+    "ALTER TABLE channels ADD COLUMN commentsEnabled BOOLEAN NOT NULL DEFAULT FALSE AFTER isPublic",
+  );
 
-  // Add comments permission to existing channels without making deploys depend on a manual SQL step.
-  try {
-    await getDb().execute(sql.raw(
-      "ALTER TABLE channels ADD COLUMN commentsEnabled BOOLEAN NOT NULL DEFAULT FALSE AFTER isPublic",
-    ));
-  } catch (error) {
-    const cause = error as { code?: string; cause?: { code?: string } };
-    const code = cause.code ?? cause.cause?.code;
-    if (code !== "ER_DUP_FIELDNAME") throw error;
-  }
+  // A channel/group creator is stored in chat_members.role. Older deployments may
+  // have an enum that does not allow "owner", causing create channel/group to fail.
+  // Expanding the enum preserves current rows and makes this migration idempotent.
+  await getDb().execute(sql.raw(
+    "ALTER TABLE chat_members MODIFY COLUMN role ENUM('owner','admin','member') NOT NULL DEFAULT 'member'",
+  ));
 }

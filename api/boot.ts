@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import type { HttpBindings } from "@hono/node-server";
@@ -28,6 +29,32 @@ if (!isEmailDeliveryConfigured()) {
 }
 
 const app = new Hono<{ Bindings: HttpBindings }>();
+
+// Never let an unhandled API error fall through to Hono's plain-text/HTML error page.
+app.onError((error, c) => {
+  const pathname = new URL(c.req.url).pathname;
+  const requestId = randomUUID();
+  console.error(JSON.stringify({
+    event: "http.unhandled_error",
+    requestId,
+    method: c.req.method,
+    path: pathname,
+    errorName: error instanceof Error ? error.name : "UnknownError",
+    errorMessage: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  }));
+
+  if (pathname.startsWith("/api/")) {
+    return c.json({
+      error: {
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Внутренняя ошибка API. Код запроса: ${requestId}`,
+        requestId,
+      },
+    }, 500);
+  }
+  return c.text(`Internal server error. Request ID: ${requestId}`, 500);
+});
 
 // Security headers for both the app shell and API responses.
 // The CSP is deliberately limited to directives that should not block the app's
@@ -74,13 +101,36 @@ app.use("/api/*", async (c, next) => {
   await next();
 });
 
-app.use(bodyLimit({ maxSize: 32 * 1024 * 1024 }));
+app.use(bodyLimit({
+  maxSize: 32 * 1024 * 1024,
+  onError: (c) => c.json({
+    error: {
+      code: "PAYLOAD_TOO_LARGE",
+      message: "Запрос превышает 32 МБ. Для вложений доступно до 20 МБ.",
+    },
+  }, 413),
+}));
 app.use("/api/trpc/*", async (c) => {
   return fetchRequestHandler({
     endpoint: "/api/trpc",
     req: c.req.raw,
     router: appRouter,
     createContext,
+    onError({ error, path, type, req }) {
+      const cause = error.cause instanceof Error ? error.cause : undefined;
+      console.error(JSON.stringify({
+        event: "trpc.error",
+        procedure: path ?? "unknown",
+        type: type ?? "unknown",
+        method: req.method,
+        requestPath: new URL(req.url).pathname,
+        code: error.code,
+        message: error.message,
+        causeMessage: cause?.message,
+        stack: error.stack,
+        causeStack: cause?.stack,
+      }));
+    },
   });
 });
 
@@ -192,7 +242,9 @@ app.post("/api/alpha/redeem", async (c) => {
   }
 });
 
-app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
+app.all("/api/*", (c) => c.json({
+  error: { code: "NOT_FOUND", message: "API endpoint not found" },
+}, 404));
 
 if (env.isProduction) {
   await ensureCommunitySchema();

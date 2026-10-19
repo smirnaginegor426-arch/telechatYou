@@ -11,6 +11,7 @@ import { TcButton } from "@/components/TcButton";
 import { TcInput } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 /** New chat: pick one user for a direct chat, or several + title for a group. */
 export default function NewChat() {
@@ -32,6 +33,7 @@ export default function NewChat() {
 
   const createDirect = trpc.chats.createDirect.useMutation({
     onSuccess: (r) => navigate(`/chat/${r.chatId}`, { replace: true }),
+    onError: (error) => toast.error(error.message),
   });
   const createGroup = trpc.chats.createGroup.useMutation({
     onSuccess: (r) => navigate(`/chat/${r.chatId}`, { replace: true }),
@@ -50,17 +52,21 @@ export default function NewChat() {
   };
 
   const makeGroup = async () => {
-    let avatarKey: string | undefined;
-    if (avatarFile) {
-      const res = await upload.mutateAsync({
-        name: avatarFile.name,
-        contentBase64: await fileToBase64(avatarFile),
-        contentType: avatarFile.type,
-        folder: "avatars",
-      });
-      avatarKey = res.key;
+    try {
+      let avatarKey: string | undefined;
+      if (avatarFile) {
+        const res = await upload.mutateAsync({
+          name: avatarFile.name,
+          contentBase64: await fileToBase64(avatarFile),
+          contentType: avatarFile.type,
+          folder: "avatars",
+        });
+        avatarKey = res.key;
+      }
+      await createGroup.mutateAsync({ title, memberIds: selected, avatarKey });
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "Не удалось создать чат. Проверь логи сервера.");
     }
-    createGroup.mutate({ title, memberIds: selected, avatarKey });
   };
 
   const busy = createDirect.isPending || createGroup.isPending || upload.isPending;
