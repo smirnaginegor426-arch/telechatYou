@@ -147,7 +147,7 @@ export function Lightbox({
               videoUrl ? (
                 <div
                   ref={videoStageRef}
-                  className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden rounded-[24px]"
+                  className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden"
                   style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.035), rgba(255,255,255,0.005))" }}
                   onClick={(event) => event.stopPropagation()}
                 >
@@ -158,7 +158,7 @@ export function Lightbox({
                     autoPlay
                     playsInline
                     preload="auto"
-                    className="max-h-full max-w-full rounded-[12px] bg-black object-contain shadow-[0_24px_90px_rgba(0,0,0,0.45)]"
+                    className="max-h-full max-w-full bg-transparent object-contain"
                     onLoadStart={() => {
                       setVideoBuffering(true);
                       setVideoError(false);
@@ -204,7 +204,7 @@ export function Lightbox({
                   )}
 
                   {videoError && (
-                    <div role="status" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-[22px] bg-black/80 px-5 text-center text-white">
+                    <div role="status" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/80 px-5 text-center text-white">
                       <span className="text-[14px] font-semibold">Видео пока не удалось загрузить</span>
                       <button
                         type="button"
