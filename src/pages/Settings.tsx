@@ -249,6 +249,12 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
         subtitle="Толщина текста и пример переписки"
         onClick={() => navigate("/font")}
       />
+      <SettingsRow
+        icon={<ImageIcon size={17} />}
+        title="Обои"
+        subtitle="Тёмные фоны и предпросмотр"
+        onClick={() => navigate("/wallpapers")}
+      />
     </>
   );
 
