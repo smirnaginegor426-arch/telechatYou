@@ -37,7 +37,7 @@ import android.widget.Toast;
 import android.net.http.SslError;
 
 public class MainActivity extends Activity {
-    private static final String START_URL = "https://telechatyou-1.onrender.com/?tcyAndroidApp=1";
+    private static final String START_URL = "https://telechatyou-1.onrender.com/?tcyAndroidApp=1&tcyBuild=alpha-v2";
     private static final String ALLOWED_HOST = "telechatyou-1.onrender.com";
     private static final int FILE_CHOOSER_REQUEST = 4101;
     private static final int MICROPHONE_REQUEST = 4102;
@@ -192,7 +192,10 @@ public class MainActivity extends Activity {
 
         if (savedInstanceState != null) {
             webView.restoreState(savedInstanceState);
-            if (webView.getUrl() == null) webView.loadUrl(START_URL);
+            String restoredUrl = webView.getUrl();
+            if (restoredUrl == null || !restoredUrl.contains("tcyBuild=alpha-v2")) {
+                webView.loadUrl(START_URL);
+            }
         } else {
             webView.loadUrl(START_URL);
         }
