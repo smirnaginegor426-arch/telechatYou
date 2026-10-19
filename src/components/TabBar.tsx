@@ -6,6 +6,11 @@ import { MessageCircle, Users, UserRound, Settings2, Sparkles } from "lucide-rea
 import { useTesterMode } from "@/hooks/useTesterMode";
 import { cn } from "@/lib/utils";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
+import {
+  getNavigationIslandPreferences,
+  subscribeNavigationIslandPreferences,
+  type NavigationTabId,
+} from "@/lib/navigation-island-preferences";
 
 const tabs = [
   { to: "/", label: "Чаты", icon: MessageCircle, plushEmoji: "💌" },
@@ -29,6 +34,14 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
   const deviceMode = useDeviceMode();
   const { enabled: isPrivateTester } = useTesterMode();
   const [dragTarget, setDragTarget] = useState<string | null>(null);
+  const [islandPreferences, setIslandPreferences] = useState(getNavigationIslandPreferences);
+  const orderedTabs = [...tabs].sort(
+    (a, b) =>
+      islandPreferences.order.indexOf(a.to as NavigationTabId) -
+      islandPreferences.order.indexOf(b.to as NavigationTabId),
+  );
+
+  useEffect(() => subscribeNavigationIslandPreferences(setIslandPreferences), []);
   const gestureRef = useRef<Gesture | null>(null);
   const longPressTimer = useRef<number | null>(null);
   const suppressClickRef = useRef(false);
@@ -164,9 +177,9 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
       aria-label="Основная навигация"
       className="tcy-main-nav absolute bottom-0 left-0 right-0 z-30 safe-bottom tcy-no-select"
     >
-      <div className="tcy-island mx-auto mb-2 w-[min(272px,calc(100vw-56px))] rounded-full border tcy-line tcy-header-blur">
+      <div className="tcy-island mx-auto mb-2 rounded-full border tcy-line tcy-header-blur" style={{ width: `min(${islandPreferences.width}px, calc(100vw - 56px))` }}>
         <div className="grid grid-cols-4 h-[54px]">
-          {tabs.map(({ to, label, plushLabel, icon: Icon, plushEmoji }) => {
+          {orderedTabs.map(({ to, label, plushLabel, icon: Icon, plushEmoji }) => {
             const active = activeTo === to;
             const highlighted = dragTarget ? dragTarget === to : active;
             const displayLabel = isPrivateTester ? (plushLabel ?? label) : label;
