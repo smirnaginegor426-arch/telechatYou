@@ -300,6 +300,8 @@ export const messagesRouter = createRouter({
           inArray(messages.id, input.messageIds),
           sql`${messages.deletedAt} IS NULL`,
           sql`${messages.kind} <> 'system'`,
+          // A channel author should not count their own visit as a view.
+          sql`${messages.senderId} <> ${ctx.user.id}`,
         ));
       if (!rows.length) return { ok: true, views: [] };
 
