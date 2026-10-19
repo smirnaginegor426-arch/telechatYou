@@ -7,16 +7,7 @@ import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
 const APP_VERSION = "1.0.0";
 
-// Add the publicly downloadable Alpha V2.0 APK URL when the build is published.
-const V2_DOWNLOAD_URL = "https://github.com/smirnaginegor426-arch/telechatYou/releases/download/v2.0-alpha/TeleChatYouAlpha.apk";
 
-const TESTER_KEYS = new Set([
-  "TCY-NEW-7KQ9-M4XP",
-  "TCY-NEW-R8W2-Z6VN",
-  "TCY-NEW-H3JD-9BFT",
-  "TCY-ALPHA-7KQ9-M2VX-R8NP",
-  "TCY-ALPHA-9R4K-P7WQ-X3ND",
-]);
 
 export default function SystemUpdate() {
   const navigate = useNavigate();
@@ -25,6 +16,7 @@ export default function SystemUpdate() {
   const [testerKey, setTesterKey] = useState("");
   const [keyError, setKeyError] = useState("");
   const [keyAccepted, setKeyAccepted] = useState(false);
+  const [isCheckingKey, setIsCheckingKey] = useState(false);
   const { enabled: experimentalUI } = useExperimentalUI();
 
   const closeTesterDialog = () => {
@@ -34,21 +26,50 @@ export default function SystemUpdate() {
     setKeyAccepted(false);
   };
 
-  const submitTesterKey = (event: React.FormEvent<HTMLFormElement>) => {
+  const submitTesterKey = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isCheckingKey) return;
+
     const normalizedKey = testerKey.trim().toUpperCase();
-
-    if (!TESTER_KEYS.has(normalizedKey)) {
-      setKeyAccepted(false);
-      setKeyError("Неверный ключ. Проверь его и попробуй снова.");
-      return;
-    }
-
+    setIsCheckingKey(true);
     setKeyError("");
-    setKeyAccepted(true);
+    setKeyAccepted(false);
 
-    if (V2_DOWNLOAD_URL) {
-      window.location.assign(V2_DOWNLOAD_URL);
+    try {
+      const response = await fetch("/api/alpha/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ key: normalizedKey }),
+      });
+      const result = (await response.json()) as {
+        ok?: boolean;
+        code?: string;
+        error?: string;
+        downloadUrl?: string;
+      };
+
+      if (!response.ok || !result.ok) {
+        setKeyAccepted(false);
+        setKeyError(result.error || (result.code === "USED"
+          ? "Этот ключ уже использован."
+          : "Не удалось проверить ключ. Попробуй ещё раз."));
+        return;
+      }
+
+      if (!result.downloadUrl) {
+        setKeyAccepted(false);
+        setKeyError("Ссылка на скачивание временно недоступна.");
+        return;
+      }
+
+      setKeyAccepted(true);
+      window.location.assign(result.downloadUrl);
+    } catch {
+      setKeyAccepted(false);
+      setKeyError("Не удалось связаться с сервером. Проверь интернет и попробуй ещё раз.");
+    } finally {
+      setIsCheckingKey(false);
     }
   };
 
@@ -187,22 +208,22 @@ export default function SystemUpdate() {
                 </p>
               )}
 
-              {keyAccepted && !V2_DOWNLOAD_URL && (
+              {keyAccepted && (
                 <div role="status" className="mt-3 rounded-2xl border border-white/10 bg-[#222222] px-3 py-3">
                   <p className="flex items-center gap-2 text-[13px] font-bold text-white">
                     <CheckCircle2 size={17} className="tcy-accent" />
                     Ключ принят
                   </p>
                   <p className="mt-1 text-[12px] leading-5 text-white/60">
-                    APK-файл Альфа V2.0 пока не опубликован. Скачивание станет доступно, когда файл будет добавлен.
+                    Начинаем скачивание альфа-версии TeleChat You.
                   </p>
                 </div>
               )}
 
               <div className="mt-5 flex flex-col gap-2">
-                <TcButton type="submit" size="lg" disabled={!testerKey.trim()}>
+                <TcButton type="submit" size="lg" disabled={isCheckingKey || !testerKey.trim()}>
                   <KeyRound size={17} />
-                  Проверить ключ и скачать
+                  {isCheckingKey ? "Проверяем ключ…" : "Проверить ключ и скачать"}
                 </TcButton>
                 <TcButton type="button" size="lg" variant="soft" onClick={closeTesterDialog}>
                   Отмена
