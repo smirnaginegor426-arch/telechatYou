@@ -17,6 +17,7 @@ import { ensureEmailVerificationSchema } from "./lib/email-verification-schema";
 import { emailDeliveryConfigSummary, isEmailDeliveryConfigured } from "./lib/email-service";
 import { ensureAlphaAccessKeySchema, redeemAlphaAccessKey } from "./lib/alpha-access";
 import { assertRateLimit } from "./lib/rate-limit";
+import { canReadFileKey } from "./lib/file-access";
 
 // Make email configuration problems obvious in the server logs at startup.
 if (!isEmailDeliveryConfigured()) {
@@ -91,13 +92,17 @@ app.get("/api/files/*", async (c) => {
   let key: string;
   try {
     key = new URL(c.req.url).pathname.slice("/api/files/".length).split("/").map(decodeURIComponent).join("/");
+    if (!(await canReadFileKey(key, user.id))) {
+      // Use 404 for both unknown and unauthorized keys to avoid key enumeration.
+      return c.json({ error: "File not found" }, 404);
+    }
     const meta = await storage.headFile({ fileKey: key });
     const bytes = await storage.readFile({ fileKey: key });
     const headers = new Headers({
       "Content-Type": meta.contentType,
       "Content-Length": String(meta.size),
-      // Uploads receive unique keys, so successful file responses are safe to cache across route changes.
-      "Cache-Control": "private, max-age=86400, immutable",
+      // This endpoint serves private or shared media; never keep bytes in a shared browser cache.
+      "Cache-Control": "private, no-store, max-age=0",
       "X-Content-Type-Options": "nosniff",
     });
     if (c.req.query("download") === "1") {
