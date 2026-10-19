@@ -132,6 +132,10 @@ export async function initializeMatrixClient(session: MatrixSession): Promise<Ma
         .map((byte) => byte.toString(16).padStart(2, "0"))
         .join("");
       await client.initRustCrypto({ cryptoDatabasePrefix: `tcy-matrix-${suffix}` });
+      const cryptoApi = client.getCrypto();
+      if (!cryptoApi) throw new Error("Matrix E2EE не инициализирован. Подключение остановлено.");
+      // Fail closed: do not share room keys with unverified devices by default.
+      cryptoApi.globalBlacklistUnverifiedDevices = true;
       initializedClient = client;
       return client;
     } catch (error) {
