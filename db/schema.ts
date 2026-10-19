@@ -188,6 +188,7 @@ export const channels = mysqlTable(
     username: varchar("username", { length: 32 }).unique(),
     description: varchar("description", { length: 280 }).default("").notNull(),
     isPublic: boolean("isPublic").default(false).notNull(),
+    commentsEnabled: boolean("commentsEnabled").default(false).notNull(),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (t) => ({
@@ -361,6 +362,24 @@ export const channelMessageViews = mysqlTable(
     messageUserUnique: uniqueIndex("channel_message_views_unique").on(t.messageId, t.userId),
     messageIdx: index("channel_message_views_message_idx").on(t.messageId),
     userIdx: index("channel_message_views_user_idx").on(t.userId),
+  }),
+);
+
+/** Text comments attached to a channel post, separate from the channel's publication feed. */
+export const channelPostComments = mysqlTable(
+  "channel_post_comments",
+  {
+    id: serial("id").primaryKey(),
+    postId: bigint("postId", { mode: "number", unsigned: true }).notNull(),
+    chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull(),
+    senderId: userId(),
+    body: text("body").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    postIdx: index("channel_post_comments_post_idx").on(t.postId, t.id),
+    chatIdx: index("channel_post_comments_chat_idx").on(t.chatId),
+    senderIdx: index("channel_post_comments_sender_idx").on(t.senderId),
   }),
 );
 
