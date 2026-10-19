@@ -43,10 +43,12 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 import {
   CHAT_WALLPAPER_CHANGE_EVENT,
+  GLOBAL_CHAT_WALLPAPER_CHANGE_EVENT,
   DEFAULT_CHAT_WALLPAPER,
   chatWallpaperImageKey,
   chatWallpaperKey,
   isExperimentalWallpaper,
+  readGlobalChatWallpaper,
 } from "@/lib/chat-wallpapers";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 type LocalPinnedSnapshot = {
@@ -164,10 +166,10 @@ export default function ChatView() {
   useEffect(() => {
     const loadSavedWallpaper = () => {
       try {
-        setWallpaper(localStorage.getItem(chatWallpaperKey(chatId)) || DEFAULT_CHAT_WALLPAPER);
+        setWallpaper(localStorage.getItem(chatWallpaperKey(chatId)) || readGlobalChatWallpaper());
         setWallpaperImage(localStorage.getItem(chatWallpaperImageKey(chatId)));
       } catch {
-        setWallpaper(DEFAULT_CHAT_WALLPAPER);
+        setWallpaper(readGlobalChatWallpaper());
         setWallpaperImage(null);
       }
     };
@@ -179,9 +181,24 @@ export default function ChatView() {
       setWallpaperImage(detail.wallpaper === "custom" ? detail.image : null);
     };
 
+    const onGlobalWallpaperChange = () => {
+      try {
+        // Explicit per-chat choices take precedence over the global default.
+        if (localStorage.getItem(chatWallpaperKey(chatId))) return;
+      } catch {
+        // Fall back to the currently selected global wallpaper.
+      }
+      setWallpaper(readGlobalChatWallpaper());
+      setWallpaperImage(null);
+    };
+
     loadSavedWallpaper();
     window.addEventListener(CHAT_WALLPAPER_CHANGE_EVENT, onWallpaperChange);
-    return () => window.removeEventListener(CHAT_WALLPAPER_CHANGE_EVENT, onWallpaperChange);
+    window.addEventListener(GLOBAL_CHAT_WALLPAPER_CHANGE_EVENT, onGlobalWallpaperChange);
+    return () => {
+      window.removeEventListener(CHAT_WALLPAPER_CHANGE_EVENT, onWallpaperChange);
+      window.removeEventListener(GLOBAL_CHAT_WALLPAPER_CHANGE_EVENT, onGlobalWallpaperChange);
+    };
   }, [chatId]);
 
   const me = trpc.profile.me.useQuery(undefined, { staleTime: 60_000 });
