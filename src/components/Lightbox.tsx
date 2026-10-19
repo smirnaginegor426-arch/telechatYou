@@ -81,6 +81,7 @@ export function Lightbox({
                     transition={{ type: "spring", stiffness: 300, damping: 28 }}
                     src={videoUrl}
                     controls
+                    autoPlay
                     playsInline
                     preload="auto"
                     data-tcy-fullscreen-video="true"
