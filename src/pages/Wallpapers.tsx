@@ -10,21 +10,21 @@ import {
   type ChatWallpaperId,
 } from "@/lib/chat-wallpapers";
 
-const GENERATED_WALLPAPER_IDS = ["generated-1", "generated-2", "generated-3"] as const;
-const WALLPAPER_OPTIONS = GENERATED_WALLPAPER_IDS.map((id) => CHAT_WALLPAPERS.find((item) => item.id === id)!).filter(Boolean);
+const TELEGRAM_WALLPAPER_IDS = ["pattern-sky", "pattern-emerald", "pattern-lavender", "pattern-sunset", "pattern-coral", "pattern-teal"] as const;
+const WALLPAPER_OPTIONS = TELEGRAM_WALLPAPER_IDS.map((id) => CHAT_WALLPAPERS.find((item) => item.id === id)!).filter(Boolean);
 
 export default function Wallpapers() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<ChatWallpaperId>(() => {
     const saved = readGlobalChatWallpaper();
-    return GENERATED_WALLPAPER_IDS.includes(saved as (typeof GENERATED_WALLPAPER_IDS)[number])
+    return TELEGRAM_WALLPAPER_IDS.includes(saved as (typeof TELEGRAM_WALLPAPER_IDS)[number])
       ? saved
-      : "generated-1";
+      : "pattern-sky";
   });
 
   useEffect(() => {
     const saved = readGlobalChatWallpaper();
-    if (GENERATED_WALLPAPER_IDS.includes(saved as (typeof GENERATED_WALLPAPER_IDS)[number])) return;
+    if (TELEGRAM_WALLPAPER_IDS.includes(saved as (typeof TELEGRAM_WALLPAPER_IDS)[number])) return;
     try {
       window.localStorage.setItem(GLOBAL_CHAT_WALLPAPER_KEY, selected);
     } catch {
@@ -72,13 +72,13 @@ export default function Wallpapers() {
         </button>
         <div className="min-w-0">
           <h1 className="text-[22px] font-extrabold tcy-text">Обои</h1>
-          <p className="text-[12.5px] tcy-faint">Тёмные фоны для чатов</p>
+          <p className="text-[12.5px] tcy-faint">Обои в стиле Telegram</p>
         </div>
       </header>
 
       <div className="mx-auto flex w-full max-w-[520px] flex-col gap-4 px-4 pb-8">
         <p className="text-center text-[12px] leading-relaxed tcy-faint">
-          Тёмные обои, созданные для TeleChatYou. Переключай варианты стрелками.
+          Фирменный узор с рисунками, как в Telegram. Переключай цветовые варианты стрелками.
         </p>
 
         <div
@@ -140,7 +140,7 @@ export default function Wallpapers() {
         </div>
 
         <p className="mx-auto max-w-[360px] text-center text-[11.5px] leading-relaxed tcy-faint">
-          Обои применяются ко всем чатам без отдельного фона. Индивидуальные обои чатов не меняются.
+          Узорчатые обои в стиле Telegram применяются ко всем чатам без отдельного фона. Индивидуальные обои чатов не меняются.
         </p>
       </div>
     </div>
