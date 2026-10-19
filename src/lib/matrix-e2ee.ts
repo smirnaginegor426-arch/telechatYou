@@ -89,11 +89,16 @@ export async function initializeMatrixClient(session: MatrixSession): Promise<Ma
     throw new Error("Matrix-клиент уже инициализируется. Подожди завершения операции.");
   }
 
+  const dbUser = session.userId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 96);
+  const dbDevice = session.deviceId.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 96);
   const client = createClient({
     baseUrl: session.baseUrl,
     accessToken: session.accessToken,
     userId: session.userId,
     deviceId: session.deviceId,
+    // Keep Matrix crypto IndexedDB records separated across the distinct
+    // Matrix accounts/devices that might use the same TeleChat You origin.
+    cryptoDatabasePrefix: `tcy-matrix-${dbUser}-${dbDevice}`,
   });
   activeClient = client;
   activeSessionKey = identity;
