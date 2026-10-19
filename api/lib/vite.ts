@@ -15,7 +15,7 @@ const LEGACY_SHELL = path.join("legacy", "index.html");
 
 /**
  * Roll out the frozen 10 Oct build to everyone except the approved private
- * account. Keep false so the current build is never globally exposed.
+ * accounts. Keep false so the current build is never globally exposed.
  */
 const SERVE_CURRENT_BUILD_TO_EVERYONE = false;
 /** Opt-in marker used by the Alpha V2.0 Android APK. */
@@ -34,10 +34,10 @@ export function serveStaticFiles(app: App) {
   };
 
   /**
-   * The private experimental account and the Alpha V2.0 Android build receive
-   * the current application. The alpha marker is persisted in a WebView cookie
-   * so refreshes and direct navigation keep the same build. Everyone else gets
-   * the frozen legacy build. Fail closed if a shell is missing.
+   * Approved private experimental accounts and the Alpha V2.0 Android build
+   * receive the current application. The alpha marker is persisted in a WebView
+   * cookie so refreshes and direct navigation keep the same build. Everyone else
+   * gets the frozen legacy build. Fail closed if a shell is missing.
    */
   const shellFor = async (headers: Headers, requestUrl: string): Promise<string | null> => {
     const alphaBuild = isAlphaBuildRequested(requestUrl) || hasAlphaBuildCookie(headers);
@@ -75,6 +75,7 @@ export function serveStaticFiles(app: App) {
       sessionCookieFound: Boolean(token),
       accountSwitcherActive: Boolean(getActiveAccountSlotId(headers)),
       privateTesterUserId: 1633623,
+      privateTesterUserIds: [1633623, 848009],
       shells: {
         current: readShell(CURRENT_SHELL) !== null,
         legacy: readShell(LEGACY_SHELL) !== null,
