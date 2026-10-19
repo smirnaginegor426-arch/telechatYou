@@ -14,7 +14,6 @@ import { ensurePinnedMessageSchema } from "./lib/pinned-message-schema";
 import { ensureUserCustomDataSchema } from "./lib/user-custom-data-schema";
 import { ensureUserBlocksSchema } from "./lib/user-blocks-schema";
 import { ensureEmailVerificationSchema } from "./lib/email-verification-schema";
-import { ensureE2eeSchema } from "./lib/e2ee-schema";
 import { emailDeliveryConfigSummary, isEmailDeliveryConfigured } from "./lib/email-service";
 import { ensureAlphaAccessKeySchema, redeemAlphaAccessKey } from "./lib/alpha-access";
 import { assertRateLimit } from "./lib/rate-limit";
@@ -203,7 +202,6 @@ if (env.isProduction) {
   await ensureUserCustomDataSchema();
   await ensureUserBlocksSchema();
   await ensureEmailVerificationSchema();
-  await ensureE2eeSchema();
   await ensureAlphaAccessKeySchema();
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
