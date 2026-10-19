@@ -101,6 +101,22 @@ export default function EncryptedChats() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const selectedRoom = useMemo(
+    () => rooms.find((room) => room.id === selectedRoomId) ?? null,
+    [rooms, selectedRoomId],
+  );
+
+  const refreshClientState = useCallback((matrixClient: MatrixClient) => {
+    const nextRooms = getEncryptedRooms(matrixClient);
+    setRooms(nextRooms);
+    setSelectedRoomId((current) => (
+      current && nextRooms.some((room) => room.id === current)
+        ? current
+        : nextRooms[0]?.id ?? ""
+    ));
+  }, []);
+
   const eventHandlersRef = useRef<{
     client: MatrixClient;
     onSync: (state: string) => void;
@@ -130,21 +146,6 @@ export default function EncryptedChats() {
     current.client.removeListener(ClientEvent.Sync, current.onSync);
     current.client.removeListener(RoomEvent.Timeline, current.onTimeline);
     eventHandlersRef.current = null;
-  }, []);
-
-  const selectedRoom = useMemo(
-    () => rooms.find((room) => room.id === selectedRoomId) ?? null,
-    [rooms, selectedRoomId],
-  );
-
-  const refreshClientState = useCallback((matrixClient: MatrixClient) => {
-    const nextRooms = getEncryptedRooms(matrixClient);
-    setRooms(nextRooms);
-    setSelectedRoomId((current) => (
-      current && nextRooms.some((room) => room.id === current)
-        ? current
-        : nextRooms[0]?.id ?? ""
-    ));
   }, []);
 
   const loadSession = useCallback(async (saved: MatrixSession) => {
