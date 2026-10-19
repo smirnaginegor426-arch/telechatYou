@@ -77,7 +77,7 @@ function compressWallpaperImage(file: File, theme: "dark" | "light"): Promise<st
         canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
         const context = canvas.getContext("2d");
         if (!context) throw new Error("Не удалось обработать изображение.");
-        context.fillStyle = theme === "light" ? "#f5f5f7" : "#050506";
+        context.fillStyle = theme === "light" ? "#f5f5f7" : "#141418";
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.drawImage(image, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL("image/jpeg", 0.76));

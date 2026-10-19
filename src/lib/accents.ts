@@ -49,10 +49,10 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
     "--tcy-selected-on-accent": selected.onAccent,
     /* Base island tokens keep the accent treatment available when a screen tint is active. */
     "--tcy-selected-header-base": dark
-      ? mix(8, "rgba(5, 5, 6, 0.90)")
+      ? mix(8, "rgba(20, 20, 24, 0.90)")
       : mix(4, "rgba(250, 250, 252, 0.92)"),
     "--tcy-selected-header": dark
-      ? mix(8, "rgba(5, 5, 6, 0.90)")
+      ? mix(8, "rgba(20, 20, 24, 0.90)")
       : mix(4, "rgba(250, 250, 252, 0.92)"),
     "--tcy-selected-glass-line-base": dark
       ? mix(18, "rgba(255, 255, 255, 0.19)")
@@ -61,20 +61,20 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
       ? mix(18, "rgba(255, 255, 255, 0.19)")
       : mix(12, "rgba(24, 24, 27, 0.14)"),
     "--tcy-selected-input": dark
-      ? mix(5, "rgba(10, 11, 18, 0.58)")
+      ? mix(5, "rgba(24, 24, 28, 0.58)")
       : mix(4, "rgba(255, 255, 255, 0.62)"),
 
     /* Keep the overall application background and ordinary surfaces neutral. */
-    "--tcy-bg": dark ? "#050506" : "#f5f5f7",
-    "--tcy-bg-2": dark ? "#09090b" : "#ededf0",
+    "--tcy-bg": dark ? "#141418" : "#f5f5f7",
+    "--tcy-bg-2": dark ? "#1a1a1f" : "#ededf0",
     "--tcy-card": dark
       ? "rgba(244, 244, 245, 0.035)"
       : "rgba(24, 24, 27, 0.035)",
     "--tcy-card-strong": dark
       ? "rgba(244, 244, 245, 0.075)"
       : "rgba(24, 24, 27, 0.075)",
-    "--tcy-solid": dark ? "#0b0b0d" : "#ffffff",
-    "--tcy-solid-2": dark ? "#111114" : "#f4f4f5",
+    "--tcy-solid": dark ? "#1d1d22" : "#ffffff",
+    "--tcy-solid-2": dark ? "#25252b" : "#f4f4f5",
     "--tcy-line": dark
       ? "rgba(244, 244, 245, 0.085)"
       : "rgba(24, 24, 27, 0.105)",
@@ -104,9 +104,9 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
       : `color-mix(in srgb, ${selected.deep} 24%, transparent)`,
 
     /* Neutral base for ordinary headers, forms and ambient background. */
-    "--tcy-header": dark ? "rgba(5, 5, 6, 0.82)" : "rgba(250, 250, 252, 0.88)",
+    "--tcy-header": dark ? "rgba(20, 20, 24, 0.82)" : "rgba(250, 250, 252, 0.88)",
     "--tcy-glass-line": dark ? "rgba(255, 255, 255, 0.19)" : "rgba(24, 24, 27, 0.14)",
-    "--tcy-input": dark ? "rgba(10, 11, 18, 0.58)" : "rgba(255, 255, 255, 0.62)",
+    "--tcy-input": dark ? "rgba(24, 24, 28, 0.58)" : "rgba(255, 255, 255, 0.62)",
     "--tcy-glow-1": dark ? "rgba(255, 255, 255, 0.035)" : "rgba(24, 24, 27, 0.035)",
     "--tcy-glow-2": dark ? "rgba(148, 163, 184, 0.035)" : "rgba(100, 116, 139, 0.045)",
   };
@@ -115,5 +115,5 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
   root.style.colorScheme = theme;
 
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", dark ? "#050506" : "#f5f5f7");
+  if (meta) meta.setAttribute("content", dark ? "#141418" : "#f5f5f7");
 }

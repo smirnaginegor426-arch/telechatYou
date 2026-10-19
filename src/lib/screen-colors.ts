@@ -34,10 +34,10 @@ export function applyScreenColor(theme: "dark" | "light", colorId: string) {
 
   const base = dark
     ? {
-        bg: "#050506",
-        bg2: "#09090b",
-        solid: "#0b0b0d",
-        solid2: "#111114",
+        bg: "#141418",
+        bg2: "#1a1a1f",
+        solid: "#1d1d22",
+        solid2: "#25252b",
       }
     : {
         bg: "#f5f5f7",

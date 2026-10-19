@@ -34,8 +34,8 @@
 
   /* ---- TeleChatYou semantic tokens ---- */
   :root {
-    --tcy-bg: #050506;
-    --tcy-bg-2: #09090b;
+    --tcy-bg: #141418;
+    --tcy-bg-2: #1a1a1f;
     --tcy-accent: #e4e4e7;
     --tcy-accent-deep: #a1a1aa;
     --tcy-on-accent: #09090b;
@@ -47,8 +47,8 @@
     --tcy-selected-input: rgba(30, 16, 45, 0.58);
     --tcy-card: rgba(244, 244, 245, 0.035);
     --tcy-card-strong: rgba(244, 244, 245, 0.075);
-    --tcy-solid: #0b0b0d;
-    --tcy-solid-2: #111114;
+    --tcy-solid: #1d1d22;
+    --tcy-solid-2: #25252b;
     --tcy-line: rgba(244, 244, 245, 0.085);
     --tcy-line-strong: rgba(244, 244, 245, 0.14);
     --tcy-text: #f4f4f5;
@@ -60,9 +60,9 @@
     --tcy-bubble-own-fg: #f5f2f8;
     --tcy-bubble-own-muted: rgba(245, 242, 248, 0.66);
     --tcy-bubble-own-line: rgba(162, 139, 191, 0.38);
-    --tcy-header: rgba(5, 5, 6, 0.82);
+    --tcy-header: rgba(20, 20, 24, 0.82);
     --tcy-glass-line: rgba(255, 255, 255, 0.19);
-    --tcy-input: rgba(10, 11, 18, 0.58);
+    --tcy-input: rgba(24, 24, 28, 0.58);
     --tcy-glow-1: rgba(255, 255, 255, 0.035);
     --tcy-glow-2: rgba(148, 163, 184, 0.035);
     color-scheme: dark;
@@ -230,11 +230,11 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background-color: #050506;
+  background-color: var(--tcy-bg, #141418);
 }
 
 .tcy-wallpaper-preview {
-  background-color: #050506;
+  background-color: var(--tcy-bg, #141418);
   background-size: cover;
   background-position: center;
 }
