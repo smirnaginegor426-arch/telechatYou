@@ -110,6 +110,37 @@ export function DownloadableMediaPlayer({
         border: `1px solid ${own ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 18%, transparent)" : "var(--tcy-line)"}`,
       }}
     >
+      {video && !isDownloaded && (
+        <div className="relative mb-3 h-[150px] overflow-hidden rounded-[15px] bg-black/20">
+          {url && (
+            <video
+              src={url}
+              muted
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+              tabIndex={-1}
+              className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-70"
+              onLoadedData={(event) => {
+                try { event.currentTarget.currentTime = Math.min(0.2, event.currentTarget.duration || 0.2); } catch { /* poster stays blurred */ }
+              }}
+            />
+          )}
+          <div className="absolute inset-0 bg-black/20" />
+          <button
+            type="button"
+            onClick={() => void downloadAndPrepare()}
+            disabled={!url || downloading}
+            aria-label="Скачать и посмотреть видео"
+            className="tcy-press absolute left-1/2 top-1/2 z-[1] flex h-[58px] w-[58px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/50 bg-black/45 text-white shadow-lg backdrop-blur-md disabled:opacity-60"
+          >
+            {downloading ? <LoaderCircle size={25} className="animate-spin" /> : <Download size={25} strokeWidth={2.5} />}
+          </button>
+          <span className="absolute bottom-2 left-2 rounded-full bg-black/45 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
+            Скачать и посмотреть
+          </span>
+        </div>
+      )}
       {!video && (
         <audio
           className="hidden"
