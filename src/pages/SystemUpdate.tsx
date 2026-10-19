@@ -15,6 +15,7 @@ const TESTER_KEYS = new Set([
   "TCY-NEW-R8W2-Z6VN",
   "TCY-NEW-H3JD-9BFT",
   "TCY-ALPHA-7KQ9-M2VX-R8NP",
+  "TCY-ALPHA-9R4K-P7WQ-X3ND",
 ]);
 
 export default function SystemUpdate() {
