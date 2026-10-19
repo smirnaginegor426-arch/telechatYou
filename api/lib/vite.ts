@@ -69,13 +69,27 @@ export function serveStaticFiles(app: App) {
     });
   });
 
-  // Browser navigations choose their application before static files are tried,
-  // so "/" cannot leak the current shell to a non-experimental account. Every
-  // HTML navigation is handled here, including /index.html, so the only way to
-  // reach a shell is through the session check below.
+  /**
+   * A document request is decided by the shape of the path, not by the Accept
+   * header. Accept used to be the classifier, but a client sending a wildcard
+   * accept value (curl, a crawler, a link preview bot, an image proxy) skipped
+   * the session check and was handed the current shell straight out of the
+   * build output by the static handler below. Extension-less paths and *.html
+   * are the documents; anything with a file extension is an asset and stays
+   * static.
+   */
+  const isDocumentRequest = (pathname: string) => {
+    if (pathname.endsWith(".html")) return true;
+    return !pathname.slice(pathname.lastIndexOf("/") + 1).includes(".");
+  };
+
+  // Document requests choose their application before static files are tried,
+  // so neither "/" nor "/index.html" can leak the current shell to a
+  // non-experimental account: the only way to reach a shell is through the
+  // session check below.
   app.use("*", async (c, next) => {
     if (c.req.method !== "GET") return next();
-    if (!(c.req.header("accept") ?? "").includes("text/html")) return next();
+    if (!isDocumentRequest(new URL(c.req.url).pathname)) return next();
 
     const shell = await shellFor(c.req.raw.headers);
     if (!shell) {
