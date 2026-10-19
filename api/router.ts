@@ -3,7 +3,6 @@ import { adminRouter } from "./admin-router";
 import { chatsRouter } from "./chats-router";
 import { channelsRouter } from "./channels-router";
 import { messagesRouter } from "./messages-router";
-import { e2eeRouter } from "./e2ee-router";
 import { profileRouter } from "./profile-router";
 import { settingsRouter } from "./settings-router";
 import { accountDataRouter } from "./account-data-router";
@@ -27,7 +26,6 @@ export const appRouter = createRouter({
   chats: chatsRouter,
   channels: channelsRouter,
   messages: messagesRouter,
-  e2ee: e2eeRouter,
   storage: storageRouter,
   links: linksRouter,
   settings: settingsRouter,
