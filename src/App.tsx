@@ -40,6 +40,7 @@ import StickerPackCreate from "@/pages/StickerPackCreate";
 import ChatFolders from "@/pages/ChatFolders";
 import CustomLanguage from "@/pages/CustomLanguage";
 import SystemUpdate from "@/pages/SystemUpdate";
+import EncryptedChats from "@/pages/EncryptedChats";
 import Admin from "@/pages/Admin";
 import Search from "@/pages/Search";
 import NewChat from "@/pages/NewChat";
@@ -138,7 +139,7 @@ useEffect(() => {
       ? { origin: "100% 0%", x: 26, y: -22, exitX: 18, exitY: -14 }
     : path.startsWith("/profile") || path.startsWith("/user/")
       ? { origin: "100% 100%", x: 26, y: 22, exitX: 18, exitY: 16 }
-      : ["/settings", "/halloween", "/accent", "/font", "/wallpapers", "/stickers", "/language", "/system-update", "/rename-chat"].some((route) => path.startsWith(route))
+      : ["/settings", "/halloween", "/accent", "/font", "/wallpapers", "/stickers", "/language", "/system-update", "/rename-chat", "/encrypted"].some((route) => path.startsWith(route))
         ? { origin: "0% 100%", x: -26, y: 22, exitX: -18, exitY: 16 }
         : path.startsWith("/chat/")
           ? { origin: "0% 0%", x: -26, y: -22, exitX: -18, exitY: -14 }
@@ -231,6 +232,7 @@ useEffect(() => {
             <Route path="/folders/:folderId" element={<ChatFolders />} />
             <Route path="/language" element={<CustomLanguage />} />
             <Route path="/system-update" element={<SystemUpdate />} />
+            <Route path="/encrypted" element={<EncryptedChats />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/search" element={<Search />} />
             <Route path="/new" element={<NewChat />} />
