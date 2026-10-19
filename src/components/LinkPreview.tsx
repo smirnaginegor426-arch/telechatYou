@@ -142,7 +142,7 @@ export function LinkPreview({
           style={{ background: surface, color: frontColor }}
         >
           <span className="block px-3 py-3">
-            <span className="flex min-w-0 items-center gap-3">
+            <span className="flex min-w-0 items-start gap-3">
               <Avatar
                 name={linkedProfile.displayName}
                 avatarKey={linkedProfile.avatarKey}
