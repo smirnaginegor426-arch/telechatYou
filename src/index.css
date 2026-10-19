@@ -1284,19 +1284,29 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
 }
 
 
-/* Chat list: subtle corners on middle cards, rounded top edge on the first,
-   and rounded bottom edge on the last card. */
-.tcy-chat-list-scroll > .divide-y > div > .tcy-chat-list-item {
+/* Chat list geometry.
+   The built-in TeleChatYou row sits outside the regular list and needs its own
+   top cap; regular rows stay subtly rounded, while the final row gets a broad bottom cap. */
+#root .tcy-chat-list-scroll > .tcy-chat-list-item {
+  border-radius: 32px 32px 0 0 !important;
+}
+#root .tcy-chat-list-scroll > .divide-y > div > .tcy-chat-list-item {
   border-radius: 8px !important;
 }
-.tcy-chat-list-scroll > .divide-y > div:first-child > .tcy-chat-list-item {
-  border-radius: 8px 8px 0 0 !important;
+#root .tcy-chat-list-scroll:not(:has(> .tcy-chat-list-item)) > .divide-y > div:first-child > .tcy-chat-list-item {
+  border-radius: 32px 32px 0 0 !important;
 }
-.tcy-chat-list-scroll > .divide-y > div:last-child > .tcy-chat-list-item {
-  border-radius: 0 0 8px 8px !important;
-}
-.tcy-chat-list-scroll > .divide-y > div:only-child > .tcy-chat-list-item {
+#root .tcy-chat-list-scroll:has(> .tcy-chat-list-item) > .divide-y > div:first-child > .tcy-chat-list-item {
   border-radius: 8px !important;
+}
+#root .tcy-chat-list-scroll > .divide-y > div:last-child > .tcy-chat-list-item {
+  border-radius: 0 0 32px 32px !important;
+}
+#root .tcy-chat-list-scroll:not(:has(> .tcy-chat-list-item)) > .divide-y > div:only-child > .tcy-chat-list-item {
+  border-radius: 32px !important;
+}
+#root .tcy-chat-list-scroll:has(> .tcy-chat-list-item) > .divide-y > div:only-child > .tcy-chat-list-item {
+  border-radius: 8px 8px 32px 32px !important;
 }
 
 .tcy-settings-panel > .tcy-settings-item {
