@@ -4,7 +4,7 @@ export const Session = {
 } as const;
 
 export const ErrorMessages = {
-  unauthenticated: "Authentication required",
+  unauthenticated: "Сессия не найдена или истекла. Войди в аккаунт снова.",
   insufficientRole: "Insufficient permissions",
 } as const;
 

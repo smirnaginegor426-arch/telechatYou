@@ -3,7 +3,12 @@ import type { HttpBindings } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import fs from "fs";
 import path from "path";
-import { getActiveAccountSlotId, getSessionToken, getSessionUser } from "./session";
+import {
+  getActiveAccountSlotId,
+  getSessionCookieDiagnostics,
+  getSessionToken,
+  getSessionUser,
+} from "./session";
 import { isPrivateExperimentalUser, privateExperimentalMatch } from "./experimental-access";
 
 type App = Hono<{ Bindings: HttpBindings }>;
@@ -74,8 +79,9 @@ export function serveStaticFiles(app: App) {
       username: user?.username ?? null,
       sessionCookieFound: Boolean(token),
       accountSwitcherActive: Boolean(getActiveAccountSlotId(headers)),
+      sessionCookies: getSessionCookieDiagnostics(headers),
       privateTesterUserId: 1633623,
-      privateTesterUserIds: [1633623, 848009],
+      privateTesterUserIds: [1633623, 848009, 3838382],
       shells: {
         current: readShell(CURRENT_SHELL) !== null,
         legacy: readShell(LEGACY_SHELL) !== null,

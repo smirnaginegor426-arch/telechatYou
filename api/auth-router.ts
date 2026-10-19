@@ -129,7 +129,11 @@ function appendSessionCookie(
   slotId?: string,
 ) {
   if (!slotId) {
+    // The frozen legacy shell logs in through tcy_sid and does not know about
+    // tcy_account_<slot>. Remove a stale selector from the newer account switcher
+    // so it cannot mask the freshly created legacy session.
     appendCookie(ctx, Session.cookieName, token);
+    clearActiveAccountCookie(ctx);
     return;
   }
   if (!isValidAccountSlotId(slotId)) {

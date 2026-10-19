@@ -63,6 +63,30 @@ export function getSessionToken(
   return parsed[Session.cookieName] || undefined;
 }
 
+/**
+ * Safe session diagnostics for logs and the caller's own /build-info response.
+ * Never include cookie values, session tokens, or slot IDs in diagnostic output.
+ */
+export function getSessionCookieDiagnostics(headers: Headers) {
+  const rawCookie = headers.get("cookie") ?? "";
+  const parsed = cookie.parse(rawCookie);
+  const selectorPresent = Object.prototype.hasOwnProperty.call(parsed, ACTIVE_ACCOUNT_COOKIE);
+  const selectorValue = parsed[ACTIVE_ACCOUNT_COOKIE];
+  const selectorValid = typeof selectorValue === "string" && isValidAccountSlotId(selectorValue);
+  const selectedCookiePresent = selectorValid
+    ? Boolean(parsed[accountCookieName(selectorValue)])
+    : false;
+
+  return {
+    cookieHeaderPresent: Boolean(rawCookie),
+    legacySessionCookiePresent: Boolean(parsed[Session.cookieName]),
+    activeAccountSelectorPresent: selectorPresent,
+    activeAccountSelectorValid: selectorValid,
+    activeAccountSessionCookiePresent: selectedCookiePresent,
+    selectedSessionCookiePresent: Boolean(getSessionToken(headers)),
+  };
+}
+
 export async function createSession(
   userId: number,
   meta: SessionMeta = {},

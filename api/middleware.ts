@@ -4,6 +4,7 @@ import superjson from "superjson";
 import type { TrpcContext } from "./context";
 import type { PublicUser } from "./lib/session";
 import { isPrivateExperimentalTester } from "./lib/experimental-access";
+import { getSessionCookieDiagnostics } from "./lib/session";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -17,9 +18,19 @@ const requireAuth = t.middleware(async (opts) => {
 
   const user = ctx.user;
   if (!user) {
+    const url = new URL(ctx.req.url);
+    console.warn(JSON.stringify({
+      event: "auth.unauthorized",
+      method: ctx.req.method,
+      path: url.pathname,
+      host: ctx.req.headers.get("host"),
+      origin: ctx.req.headers.get("origin"),
+      userAgent: ctx.req.headers.get("user-agent"),
+      ...getSessionCookieDiagnostics(ctx.req.headers),
+    }));
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: ErrorMessages.unauthenticated,
+      message: "Сессия не найдена или истекла. Войди в аккаунт снова.",
     });
   }
 
