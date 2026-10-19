@@ -126,7 +126,7 @@ function FileAttachment({
           onVideoOpen?.(m.attachmentKey);
         }}
         aria-label="Открыть видео"
-        className="tcy-press relative block h-[280px] max-h-[44vh] w-[min(158px,48vw)] min-w-[130px] overflow-hidden rounded-none bg-transparent p-0"
+        className="tcy-press relative block h-[280px] max-h-[44vh] w-[min(158px,48vw)] min-w-[130px] overflow-hidden rounded-none border-0 outline-none ring-0 bg-transparent p-0 shadow-none"
       >
         {url && !videoPreviewFailed ? (
           <video
