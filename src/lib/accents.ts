@@ -29,6 +29,16 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
   root.dataset.theme = theme;
   root.dataset.accent = selected.id;
 
+  // Remove the retired screen-tint preference and any stale inline tint left
+  // by an earlier app version. The application background must stay neutral.
+  delete root.dataset.screenColor;
+  root.style.removeProperty("--tcy-screen-color");
+  try {
+    localStorage.removeItem("tcy-screen-color");
+  } catch {
+    // The neutral theme still applies if storage is unavailable.
+  }
+
   const tokens: Record<string, string> = {
     /* Default decorative accents stay neutral outside the requested surfaces. */
     "--tcy-accent": dark
