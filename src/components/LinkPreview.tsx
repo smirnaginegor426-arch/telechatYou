@@ -59,10 +59,6 @@ export function parseAppLink(raw: string): AppLink | null {
  * Link preview card shown under a link inside the same message bubble.
  * TeleChat You links use app data; external links use server-fetched page metadata.
  */
-function isProfileLink(link: AppLink): boolean {
-  return link.kind === "channel" || link.kind === "user";
-}
-
 export function LinkPreview({
   text,
   own,
@@ -238,25 +234,16 @@ export function LinkPreview({
         style={{ background: surface, color: frontColor }}
       >
         <span className="flex items-start gap-3 px-3 py-3">
-          {isProfileLink(appLink) ? (
-            <Avatar
-              name={linkedProfile?.displayName ?? (appLink.kind === "channel" ? appLink.username : "Профиль")}
-              avatarKey={linkedProfile?.avatarKey ?? null}
-              size={56}
-              className="shrink-0"
-            />
-          ) : (
-            <span
-              className="grid size-[36px] shrink-0 place-items-center rounded-[11px]"
-              style={{
-                background: own
-                  ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 12%, transparent)"
-                  : "color-mix(in srgb, var(--tcy-accent) 14%, transparent)",
-              }}
-            >
-              <Logo size={24} />
-            </span>
-          )}
+          <span
+            className="grid size-[36px] shrink-0 place-items-center rounded-[11px]"
+            style={{
+              background: own
+                ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 12%, transparent)"
+                : "color-mix(in srgb, var(--tcy-accent) 14%, transparent)",
+            }}
+          >
+            <Logo size={24} />
+          </span>
           <span className="min-w-0 flex-1">
             <span className="flex min-w-0 items-center gap-1.5">
               <span className="shrink-0 text-[12px] font-black tracking-tight">TeleChatYou</span>
