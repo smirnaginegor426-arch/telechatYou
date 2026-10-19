@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { applyTheme, ACCENTS, type AccentId } from "@/lib/accents";
 import { applyScreenColor, getSavedScreenColor } from "@/lib/screen-colors";
 import { applyFontWeight, getSavedFontWeight } from "@/lib/font-weight";
@@ -53,6 +53,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   });
   const [theme, setThemeState] = useState<Theme>(readLocalTheme);
   const [accent, setAccentState] = useState<AccentId>(readLocalAccent);
+  const matteTransitionTimer = useRef<number | null>(null);
+  const matteFadeTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (matteTransitionTimer.current !== null) window.clearTimeout(matteTransitionTimer.current);
+      if (matteFadeTimer.current !== null) window.clearTimeout(matteFadeTimer.current);
+      delete document.documentElement.dataset.themeTransition;
+    };
+  }, []);
 
   useEffect(() => {
     if (savedSettings.data?.theme) setThemeState(savedSettings.data.theme);
@@ -74,11 +84,36 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [theme, accent]);
 
   const setTheme = useCallback((nextTheme: Theme) => {
+    const root = document.documentElement;
+
+    if (matteTransitionTimer.current !== null) window.clearTimeout(matteTransitionTimer.current);
+    if (matteFadeTimer.current !== null) window.clearTimeout(matteFadeTimer.current);
+    matteTransitionTimer.current = null;
+    matteFadeTimer.current = null;
+
+    // On the way from light to dark, pass through a brief matte-grey glass
+    // layer first so the dark theme appears softly instead of flashing abruptly.
+    if (nextTheme === "dark" && theme === "light") {
+      root.dataset.themeTransition = "matte";
+      matteTransitionTimer.current = window.setTimeout(() => {
+        setThemeState(nextTheme);
+        if (me.data?.profile) update.mutate({ theme: nextTheme });
+        matteTransitionTimer.current = null;
+
+        matteFadeTimer.current = window.setTimeout(() => {
+          delete root.dataset.themeTransition;
+          matteFadeTimer.current = null;
+        }, 420);
+      }, 220);
+      return;
+    }
+
+    delete root.dataset.themeTransition;
     setThemeState(nextTheme);
     // The welcome/registration screens are available before authentication.
     // Keep their theme choice locally and only sync settings for an existing profile.
     if (me.data?.profile) update.mutate({ theme: nextTheme });
-  }, [me.data?.profile, update.mutate]);
+  }, [theme, me.data?.profile, update.mutate]);
 
   const setAccent = useCallback((nextAccent: AccentId) => {
     setAccentState(nextAccent);
