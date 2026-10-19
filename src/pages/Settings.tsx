@@ -55,6 +55,7 @@ type SettingsSectionId =
   | "notifications"
   | "email"
   | "security"
+  | "e2ee"
   | "privacy"
   | "chats"
   | "data"
@@ -66,6 +67,7 @@ const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: strin
   { id: "notifications", title: "Уведомления", subtitle: "Звук и превью сообщений", icon: Bell },
   { id: "email", title: "Почта для восстановления", subtitle: "Привязка почты аккаунта", icon: Mail },
   { id: "security", title: "Безопасность аккаунта", subtitle: "Резервный секрет", icon: KeyRound },
+  { id: "e2ee", title: "Сквозное шифрование", subtitle: "Экспериментальный режим Matrix E2EE", icon: ShieldCheck },
   { id: "privacy", title: "Приватность", subtitle: "Статус «в сети» и отметки прочтения", icon: Eye },
   { id: "chats", title: "Чаты и медиа", subtitle: "Клавиатура, медиа и стикеры", icon: Paperclip },
   { id: "data", title: "Данные", subtitle: "Хранилище и язык", icon: Database },
@@ -76,7 +78,7 @@ const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: strin
 /** Названия групп — по одной на три раздела (вкладки). */
 const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
   { heading: "Оформление", ids: ["appearance", "notifications", "chats"] },
-  { heading: "Аккаунт", ids: ["email", "security", "privacy"] },
+  { heading: "Аккаунт", ids: ["email", "security", "e2ee", "privacy"] },
   { heading: "Прочее", ids: ["data", "seasonal", "about"] },
 ];
 
