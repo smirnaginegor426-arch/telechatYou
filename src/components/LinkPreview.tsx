@@ -237,7 +237,7 @@ export function LinkPreview({
           {(appLink.kind === "channel" || appLink.kind === "user") ? (
             <Avatar
               name={linkedProfile?.displayName ?? (appLink.kind === "channel" ? appLink.username : "Профиль")}
-              avatarKey={linkedProfile?.avatarKey}
+              avatarKey={linkedProfile?.avatarKey ?? null}
               size={56}
               className="shrink-0"
             />
