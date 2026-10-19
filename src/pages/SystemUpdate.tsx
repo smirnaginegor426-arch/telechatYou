@@ -8,7 +8,7 @@ import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 const APP_VERSION = "1.0.0";
 
 // Add the publicly downloadable Alpha V2.0 APK URL when the build is published.
-const V2_DOWNLOAD_URL = "";
+const V2_DOWNLOAD_URL = "https://github.com/smirnaginegor426-arch/telechatYou/releases/download/v2.0-alpha/TeleChatYouAlpha.apk";
 
 const TESTER_KEYS = new Set([
   "TCY-NEW-7KQ9-M4XP",
