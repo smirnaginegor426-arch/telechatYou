@@ -209,7 +209,7 @@ export default function EncryptedChats() {
       bindClientEvents(result.client);
       startMatrixSync(result.client);
       refreshClientState(result.client);
-      setNotice("E2EE инициализирован. Matrix не выдаёт ключи неподтверждённым устройствам; проверка устройств в TeleChat You пока не реализована. Старые чаты не изменены.");
+      setNotice("Matrix E2EE-модуль инициализирован. Интерфейс проверки и подтверждения устройств ещё не готов: используй только тестовые сообщения, не секретные данные. Старые чаты не изменены.");
     } catch (cause) {
       setError(safeMatrixError(cause));
     } finally {
