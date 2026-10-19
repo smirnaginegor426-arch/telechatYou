@@ -135,7 +135,7 @@ export default function ChatView() {
   const [selectionToolbarAnchor, setSelectionToolbarAnchor] = useState<HTMLElement | null>(null);
   const [forwardMessageIds, setForwardMessageIds] = useState<number[]>([]);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
-  const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null } | null>(null);
+  const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null; video?: boolean } | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(DEFAULT_CHAT_WALLPAPER);
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(null);
   const [pollOpen, setPollOpen] = useState(false);
@@ -900,6 +900,9 @@ export default function ChatView() {
                     onImageOpen={(key) =>
                       setLightbox({ key, name: m.attachmentName, size: m.attachmentSize })
                     }
+                    onVideoOpen={(key) =>
+                      setLightbox({ key, name: m.attachmentName, size: m.attachmentSize, video: true })
+                    }
                     onStickerOpen={setStickerActionMsg}
                     highlighted={highlightedMessageId === m.id}
                     onReaction={onReaction}
@@ -1299,7 +1302,8 @@ export default function ChatView() {
       </BottomSheet>
 
       <Lightbox
-        imageKey={lightbox?.key ?? null}
+        imageKey={lightbox && !lightbox.video ? lightbox.key : null}
+        videoKey={lightbox?.video ? lightbox.key : null}
         name={lightbox?.name}
         size={lightbox?.size}
         onClose={() => setLightbox(null)}
