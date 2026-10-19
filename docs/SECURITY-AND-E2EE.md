@@ -19,14 +19,17 @@ Existing protections observed during the audit:
 
 Messages are currently persisted in `messages.body` as ordinary text. Server-side message search uses SQL `LIKE`, and chat previews/replies/features read message bodies. Message attachments are also uploaded before client-side encryption. Therefore **TeleChat You does not currently have end-to-end encrypted messaging**. Do not advertise it as E2EE yet.
 
-## E2EE rollout plan
+## Selected implementation and E2EE rollout plan
+
+The Matrix client SDK is already a project dependency (`matrix-js-sdk` 44.0.0). The experimental screen initializes Rust/WASM crypto with `initRustCrypto()`, which uses the browser IndexedDB store by default. Its access token is stored only in `sessionStorage` for the current browser session; the password is never stored. This is a pilot foundation, not yet a complete integration of existing TeleChat accounts.
 
 Implement in stages; do not encrypt only one field or use a custom static shared-key scheme and call it secure.
 
-1. **Protocol choice and threat model**
-   - Select a maintained, audited protocol implementation with browser/WebView support, device identities, authenticated key exchange, forward secrecy and a ratchet.
-   - Document key verification, device replacement, account recovery, lost-device and multi-device behavior before enabling it.
-   - Do not invent a cryptographic protocol from low-level primitives.
+1. **Selected protocol and threat model**
+   - Use the existing pinned `matrix-js-sdk` package and its Rust/WASM E2EE implementation. Do not implement Olm/Megolm or key exchange manually.
+   - The experimental UI currently connects to a separately configured Matrix homeserver; TeleChat You's own API and legacy chat database are not used as a substitute homeserver.
+   - The homeserver URL is build-time public configuration (`VITE_MATRIX_HOMESERVER_URL`) and must be HTTPS in production.
+   - Before launch, document key verification, device replacement, account recovery, lost-device and multi-device behavior.
 
 2. **Device identities and key distribution**
    - Each device generates private keys locally using a cryptographic library.
@@ -34,11 +37,11 @@ Implement in stages; do not encrypt only one field or use a custom static shared
    - Provide device verification/fingerprint comparison to detect key substitution.
    - Never send private identity keys to the API or store them in plaintext on the server.
 
-3. **Opt-in one-to-one messages**
-   - Start with newly created direct chats; keep existing history clearly labelled as legacy/non-E2EE.
-   - Encrypt on the sender's device before calling the API; decrypt only on a recipient device.
-   - The database and API should see ciphertext, message IDs, routing metadata and timestamps, not message text.
-   - If a recipient does not have a verified compatible device/key bundle, fail closed with a clear UI state rather than silently sending plaintext.
+3. **Opt-in Matrix pilot rooms, then chat integration**
+   - The experimental screen can connect to a configured Matrix homeserver and create a private room with `m.room.encryption` set to `m.megolm.v1.aes-sha2`.
+   - Next, verify the room and encrypted event flow between two different Matrix accounts/devices. Do not infer that a room is fully verified merely because creation succeeded.
+   - Only after that test should we add account linking and a new-chat choice for Matrix E2EE. Existing chats and history remain on the current TeleChat backend and must keep working unchanged.
+   - Matrix E2EE messages must travel through Matrix APIs, never through the existing plaintext `messages.send` API.
 
 4. **Features that need E2EE-aware redesign**
    - Search becomes device-local; the server cannot SQL-search ciphertext.
