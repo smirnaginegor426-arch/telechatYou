@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Check, CheckCheck, CornerUpLeft, Download, FileText, Forward, LoaderCircle, Pencil } from "lucide-react";
+import { Check, CheckCheck, CornerUpLeft, Download, FileText, Forward, LoaderCircle, Pencil, Play } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
 import { DownloadableMediaPlayer } from "./DownloadableMediaPlayer";
@@ -91,23 +91,63 @@ function MessageMeta({
 function FileAttachment({
   m,
   own,
+  onVideoOpen,
 }: {
   m: MessageItem;
   own: boolean;
+  onVideoOpen?: (key: string) => void;
 }) {
   const url = useFileUrl(m.attachmentKey);
   const attachmentName = m.attachmentName ?? "Медиафайл";
   const attachmentMime = m.attachmentMime ?? "";
   const isAudio = attachmentMime.startsWith("audio/") || /\.(mp3|m4a|wav|ogg|opus|aac|flac|wma|weba|amr|aiff?|caf)$/i.test(attachmentName);
   const isVideo = attachmentMime.startsWith("video/") || /\.(mp4|m4v|mov|webm|mkv|avi|3gp|ogv|mpeg|mpg|flv|ts)$/i.test(attachmentName);
-  if (isAudio || isVideo) {
+  if (isVideo) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          if (!url || !m.attachmentKey) return;
+          onVideoOpen?.(m.attachmentKey);
+        }}
+        aria-label="Открыть видео"
+        className="tcy-press relative block aspect-video w-[min(260px,70vw)] min-w-[180px] overflow-hidden rounded-[16px] bg-black p-0"
+      >
+        {url ? (
+          <video
+            src={url}
+            muted
+            playsInline
+            preload="metadata"
+            tabIndex={-1}
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            onLoadedData={(event) => {
+              try {
+                if (event.currentTarget.duration > 0) event.currentTarget.currentTime = Math.min(0.08, event.currentTarget.duration);
+              } catch { /* Keep the first available frame. */ }
+            }}
+          />
+        ) : (
+          <span className="tcy-skeleton absolute inset-0" />
+        )}
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10">
+          <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm">
+            <Play size={25} fill="currentColor" className="ml-0.5" />
+          </span>
+        </span>
+      </button>
+    );
+  }
+
+  if (isAudio) {
     return (
       <DownloadableMediaPlayer
         url={url}
         name={attachmentName}
         size={m.attachmentSize}
         own={own}
-        video={isVideo}
+        video={false}
         mime={attachmentMime}
       />
     );
@@ -163,6 +203,7 @@ export function MessageBubble({
   peerLastReadId,
   onLongPress,
   onImageOpen,
+  onVideoOpen,
   onStickerOpen,
   onReaction,
   onSwipeReply,
@@ -182,6 +223,7 @@ export function MessageBubble({
   peerLastReadId?: number;
   onLongPress: (m: MessageItem) => void;
   onImageOpen: (key: string) => void;
+  onVideoOpen?: (key: string) => void;
   onStickerOpen?: (m: MessageItem) => void;
   onReaction: (m: MessageItem, emoji: string) => void;
   onSwipeReply?: (m: MessageItem) => void;
@@ -652,7 +694,11 @@ export function MessageBubble({
                   : { background: "var(--tcy-bubble-in)", color: "var(--tcy-text)" }
                 : undefined}
             >
-              <FileAttachment m={m} own={own} />
+              <FileAttachment
+                m={m}
+                own={own}
+                onVideoOpen={onVideoOpen}
+              />
             </div>
           )}
 
