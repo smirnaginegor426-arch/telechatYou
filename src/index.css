@@ -1284,16 +1284,16 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
 }
 
 
-/* Chat and Settings list geometry: keep the first and last rows distinct in
-   their placement, while giving every chat row a subtle, consistent corner radius. */
+/* Chat list: subtle corners on middle cards, rounded top edge on the first,
+   and rounded bottom edge on the last card. */
 .tcy-chat-list-scroll > .divide-y > div > .tcy-chat-list-item {
   border-radius: 8px !important;
 }
 .tcy-chat-list-scroll > .divide-y > div:first-child > .tcy-chat-list-item {
-  border-radius: 8px !important;
+  border-radius: 8px 8px 0 0 !important;
 }
 .tcy-chat-list-scroll > .divide-y > div:last-child > .tcy-chat-list-item {
-  border-radius: 8px !important;
+  border-radius: 0 0 8px 8px !important;
 }
 .tcy-chat-list-scroll > .divide-y > div:only-child > .tcy-chat-list-item {
   border-radius: 8px !important;
