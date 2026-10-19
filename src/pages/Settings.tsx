@@ -25,6 +25,7 @@ import {
   RefreshCw,
   Smile,
   Sun,
+  SlidersHorizontal,
   ShieldCheck,
   Trash2,
   Type,
@@ -234,6 +235,12 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
         title="Обои"
         subtitle="Тёмные фоны и предпросмотр"
         onClick={() => navigate("/wallpapers")}
+      />
+      <SettingsRow
+        icon={<SlidersHorizontal size={17} />}
+        title="Остров Навигации"
+        subtitle="Предпросмотр, порядок вкладок и ширина"
+        onClick={() => navigate("/settings/navigation-island")}
       />
     </>
   );
