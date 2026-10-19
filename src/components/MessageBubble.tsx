@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Check, CheckCheck, CornerUpLeft, Download, FileText, Forward, LoaderCircle, Pencil, Play } from "lucide-react";
+import { Check, CheckCheck, CornerUpLeft, Download, Eye, FileText, Forward, LoaderCircle, Pencil, Play } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
 import { MusicFilePlayer } from "./MusicFilePlayer";
@@ -45,6 +45,7 @@ function MessageMeta({
   peerLastReadId,
   isImage,
   isStickerMessage,
+  isChannel = false,
   inCaptionFrame = false,
 }: {
   m: MessageItem;
@@ -52,6 +53,7 @@ function MessageMeta({
   peerLastReadId?: number;
   isImage: boolean;
   isStickerMessage: boolean;
+  isChannel?: boolean;
   inCaptionFrame?: boolean;
 }) {
   return (
@@ -75,6 +77,16 @@ function MessageMeta({
         </span>
       )}
       {formatMessageTime(m.createdAt)}
+      {isChannel && (
+        <span
+          className="ml-1 inline-flex items-center gap-0.5"
+          title={`Просмотров: ${m.viewCount ?? 0}`}
+          aria-label={`Просмотров: ${m.viewCount ?? 0}`}
+        >
+          <Eye size={11} strokeWidth={2.1} />
+          {m.viewCount ?? 0}
+        </span>
+      )}
       {own && (
         <span className="ml-0.5 -mr-0.5">
           {(peerLastReadId ?? 0) >= m.id ? (
@@ -686,6 +698,7 @@ export function MessageBubble({
                 <MessageMeta
                   m={m}
                   own={own}
+                  isChannel={isChannel}
                   peerLastReadId={peerLastReadId}
                   isImage={isImage}
                   isStickerMessage={isStickerMessage}
@@ -747,6 +760,7 @@ export function MessageBubble({
                 <MessageMeta
                   m={m}
                   own={own}
+                  isChannel={isChannel}
                   peerLastReadId={peerLastReadId}
                   isImage={isImage}
                   isStickerMessage={isStickerMessage}
@@ -767,6 +781,7 @@ export function MessageBubble({
             <MessageMeta
               m={m}
               own={own}
+              isChannel={isChannel}
               peerLastReadId={peerLastReadId}
               isImage={isImage}
               isStickerMessage={isStickerMessage}
