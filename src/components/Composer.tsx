@@ -70,12 +70,16 @@ function PendingAttachmentTile({
         </button>
         <button
           type="button"
-          onClick={() => onEdit(attachment)}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onEdit(attachment);
+          }}
           aria-label="Редактировать фото"
           title="Редактировать фото"
-          className="tcy-press absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full border border-white/45 bg-white/25 text-white shadow-[0_4px_14px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-transform hover:scale-105 active:scale-95"
+          className="tcy-press absolute right-1.5 top-1.5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-black/45 text-white shadow-[0_4px_18px_rgba(0,0,0,0.35)] backdrop-blur-2xl transition-transform hover:scale-105 active:scale-95"
         >
-          <Brush size={17} strokeWidth={2.1} />
+          <Brush size={19} strokeWidth={2.3} />
         </button>
         <span className="pointer-events-none absolute bottom-2 left-2 max-w-[56px] truncate text-[10px] font-bold text-white/90 drop-shadow">
           Фото
@@ -802,17 +806,19 @@ export function Composer({
         document.body,
       )}
       {editingAttachment?.kind === "image" && createPortal(
-        <PhotoEditor
-          key={editingAttachment.id}
-          image={editingAttachment.file}
-          onCancel={() => setEditingAttachment(null)}
-          onSave={(editedFile) => {
-            setPendingAttachments((current) => current.map((item) =>
-              item.id === editingAttachment.id ? { ...item, file: editedFile } : item
-            ));
-            setEditingAttachment(null);
-          }}
-        />,
+        <div className="fixed inset-0 z-[10060]">
+          <PhotoEditor
+            key={editingAttachment.id}
+            image={editingAttachment.file}
+            onCancel={() => setEditingAttachment(null)}
+            onSave={(editedFile) => {
+              setPendingAttachments((current) => current.map((item) =>
+                item.id === editingAttachment.id ? { ...item, file: editedFile } : item
+              ));
+              setEditingAttachment(null);
+            }}
+          />
+        </div>,
         document.body,
       )}
 
