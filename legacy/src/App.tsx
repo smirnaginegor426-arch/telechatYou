@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Route, Routes, useLocation } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
@@ -87,8 +88,9 @@ function AuthedApp() {
 
 function Gate() {
   const { isAuthenticated, isLoading } = useAuth();
+  // Fired in the same tick as auth.me, so tRPC batches both into a single
+  // request: the splash used to wait two network round trips in a row.
   const me = trpc.profile.me.useQuery(undefined, {
-    enabled: isAuthenticated,
     retry: false,
     staleTime: 30_000,
   });
@@ -101,6 +103,17 @@ function Gate() {
 
 export default function App() {
   const location = useLocation();
+
+  // React has committed its first frame: hand the screen over from the static
+  // boot splash in index.html, which the browser painted without waiting for
+  // this bundle to download.
+  useEffect(() => {
+    const boot = document.getElementById("tcy-boot");
+    if (!boot) return;
+    boot.classList.add("is-done");
+    window.setTimeout(() => boot.remove(), 260);
+  }, []);
+
   return (
     <div className="tcy-app-shell">
       <div className="tcy-aurora" />

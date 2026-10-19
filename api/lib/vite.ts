@@ -88,6 +88,26 @@ export function serveStaticFiles(app: App) {
     return c.html(shell);
   });
 
+  // Vite fingerprints every asset file name, so the bundles never change under
+  // the same URL. Without this header the browser and Cloudflare re-downloaded
+  // ~700 KB of JS/CSS on every visit, which is what made the splash feel long.
+  app.use("*", async (c, next) => {
+    if (c.req.method !== "GET") return next();
+
+    const pathname = new URL(c.req.url).pathname;
+    const isBundle =
+      pathname.startsWith("/assets/") || pathname.startsWith("/legacy/assets/");
+    if (!isBundle) return next();
+
+    // Only files that really exist get the long cache: a missing hashed asset
+    // must stay a plain 404 instead of being remembered for a year.
+    const absolute = path.resolve(distPath, "." + pathname);
+    if (absolute.startsWith(distPath) && fs.existsSync(absolute)) {
+      c.header("Cache-Control", "public, max-age=31536000, immutable");
+    }
+    await next();
+  });
+
   app.use("*", serveStatic({ root: "./dist/public" }));
 
   app.notFound(async (c) => {

@@ -10,6 +10,89 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <title>TeleChatYou</title>
+    <!--
+      The boot splash below is plain HTML/CSS: it is painted by the browser as
+      soon as this document arrives, without waiting for the JavaScript bundle.
+      The theme and accent are restored from storage here so the splash already
+      looks like the settings the person saved (no dark flash for light theme).
+    -->
+    <script>
+      try {
+        var savedAccent = localStorage.getItem("tcy-accent");
+        var accents = ["mint", "lagoon", "sky", "violet", "amber", "rose"];
+        if (savedAccent && accents.indexOf(savedAccent) >= 0) {
+          document.documentElement.dataset.accent = savedAccent;
+        }
+        document.documentElement.dataset.theme =
+          localStorage.getItem("tcy-theme") === "light" ? "light" : "dark";
+      } catch (e) {}
+    </script>
+    <style>
+      #tcy-boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        background: var(--tcy-bg, #07110e);
+        transition: opacity 0.2s ease;
+      }
+      #tcy-boot.is-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      /* Same palette table as index.css, so the splash matches every accent. */
+      #tcy-boot {
+        --boot-accent: #2fe0a8;
+        --boot-deep: #0e9f76;
+        --boot-on: #03211a;
+      }
+      html[data-accent="lagoon"] #tcy-boot { --boot-accent: #2dd4bf; --boot-deep: #0d9488; --boot-on: #032220; }
+      html[data-accent="sky"] #tcy-boot { --boot-accent: #4cc3f7; --boot-deep: #1e8fd6; --boot-on: #06222f; }
+      html[data-accent="violet"] #tcy-boot { --boot-accent: #b39dfa; --boot-deep: #8b6cf0; --boot-on: #1d1040; }
+      html[data-accent="amber"] #tcy-boot { --boot-accent: #fbbf24; --boot-deep: #d97706; --boot-on: #2c1a02; }
+      html[data-accent="rose"] #tcy-boot { --boot-accent: #fb8ba0; --boot-deep: #e0506e; --boot-on: #33050f; }
+      html[data-theme="light"] #tcy-boot { --boot-accent: #0e9f76; --boot-deep: #0b8463; }
+      html[data-theme="light"][data-accent="lagoon"] #tcy-boot { --boot-accent: #0d9488; --boot-deep: #0b7a70; }
+      html[data-theme="light"][data-accent="sky"] #tcy-boot { --boot-accent: #1e8fd6; --boot-deep: #1774b0; }
+      html[data-theme="light"][data-accent="violet"] #tcy-boot { --boot-accent: #8b6cf0; --boot-deep: #7452e0; }
+      html[data-theme="light"][data-accent="amber"] #tcy-boot { --boot-accent: #d97706; --boot-deep: #b4640a; }
+      html[data-theme="light"][data-accent="rose"] #tcy-boot { --boot-accent: #e0506e; --boot-deep: #c43f5b; }
+
+      #tcy-boot-logo {
+        width: 76px;
+        height: 76px;
+        animation: tcy-boot-breathe 1.6s ease-in-out infinite;
+      }
+      .tcy-boot-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .tcy-boot-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--boot-accent);
+        animation: tcy-boot-typing 1.1s ease-in-out infinite;
+      }
+      .tcy-boot-dots span:nth-child(2) { animation-delay: 0.15s; }
+      .tcy-boot-dots span:nth-child(3) { animation-delay: 0.3s; }
+      @keyframes tcy-boot-breathe {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+      }
+      @keyframes tcy-boot-typing {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+        30% { transform: translateY(-3px); opacity: 1; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #tcy-boot-logo { animation: none; }
+        .tcy-boot-dots span { animation: none; opacity: 0.7; }
+      }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,6 +101,32 @@
     />
   </head>
   <body>
+    <div id="tcy-boot" aria-hidden="true">
+      <svg id="tcy-boot-logo" viewBox="0 0 48 48" fill="none">
+        <defs>
+          <linearGradient id="tcy-boot-gradient" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+            <stop stop-color="var(--boot-accent)" />
+            <stop offset="1" stop-color="var(--boot-deep)" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M24 3.5c11.3 0 20.5 8.4 20.5 18.8 0 10.3-9.2 18.7-20.5 18.7-2 0-3.9-.2-5.7-.7l-8.5 4.2c-.9.4-1.9-.4-1.6-1.4l2.4-7.4C6.6 32 3.5 27.4 3.5 22.3 3.5 11.9 12.7 3.5 24 3.5Z"
+          fill="url(#tcy-boot-gradient)"
+        />
+        <path
+          d="M15 24.5c0-.8.7-1.5 1.5-1.5h15c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5h-15c-.8 0-1.5-.7-1.5-1.5Z"
+          fill="var(--boot-on)"
+          opacity=".95"
+        />
+        <circle cx="24" cy="16.5" r="1.8" fill="var(--boot-on)" opacity=".95" />
+        <path
+          d="M18.5 31c0-.8.7-1.5 1.5-1.5h8c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5h-8c-.8 0-1.5-.7-1.5-1.5Z"
+          fill="var(--boot-on)"
+          opacity=".7"
+        />
+      </svg>
+      <div class="tcy-boot-dots"><span></span><span></span><span></span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

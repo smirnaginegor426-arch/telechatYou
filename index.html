@@ -10,6 +10,92 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <title>TeleChatYou</title>
+    <!--
+      The boot splash below is plain HTML/CSS: it is painted by the browser as
+      soon as this document arrives, without waiting for the JavaScript bundle.
+      The theme and accent are restored from storage here so the splash already
+      looks like the settings the person saved (no dark flash for light theme).
+    -->
+    <script>
+      try {
+        var savedAccent = localStorage.getItem("tcy-accent");
+        var accents = ["purple", "blue", "cyan", "green", "orange", "red", "pink"];
+        if (savedAccent && accents.indexOf(savedAccent) >= 0) {
+          document.documentElement.dataset.accent = savedAccent;
+        }
+        document.documentElement.dataset.theme =
+          localStorage.getItem("tcy-theme") === "light" ? "light" : "dark";
+      } catch (e) {}
+    </script>
+    <style>
+      #tcy-boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--tcy-bg, #050506);
+        transition: opacity 0.2s ease;
+      }
+      #tcy-boot.is-done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      /* Same palette table as the app, so the splash matches every accent. */
+      #tcy-boot {
+        --boot-accent: #9b8bb3;
+      }
+      html[data-accent="blue"] #tcy-boot { --boot-accent: #7898ba; }
+      html[data-accent="cyan"] #tcy-boot { --boot-accent: #78a3a8; }
+      html[data-accent="green"] #tcy-boot { --boot-accent: #7da18f; }
+      html[data-accent="orange"] #tcy-boot { --boot-accent: #b99a7d; }
+      html[data-accent="red"] #tcy-boot { --boot-accent: #b98991; }
+      html[data-accent="pink"] #tcy-boot { --boot-accent: #b58da5; }
+      html[data-theme="light"] #tcy-boot { --boot-accent: #78678f; }
+      html[data-theme="light"][data-accent="blue"] #tcy-boot { --boot-accent: #58799c; }
+      html[data-theme="light"][data-accent="cyan"] #tcy-boot { --boot-accent: #5f898e; }
+      html[data-theme="light"][data-accent="green"] #tcy-boot { --boot-accent: #5f806f; }
+      html[data-theme="light"][data-accent="orange"] #tcy-boot { --boot-accent: #92775d; }
+      html[data-theme="light"][data-accent="red"] #tcy-boot { --boot-accent: #916873; }
+      html[data-theme="light"][data-accent="pink"] #tcy-boot { --boot-accent: #906e84; }
+
+      /* Mirrors ConnectionLoader: two dots split apart and merge back. */
+      .tcy-boot-dots {
+        position: relative;
+        width: 40px;
+        height: 40px;
+      }
+      .tcy-boot-dots span {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 12px;
+        height: 12px;
+        margin: -6px 0 0 -6px;
+        border-radius: 999px;
+        background: var(--boot-accent);
+        animation: tcy-boot-split-left 1.2s ease-in-out infinite;
+      }
+      .tcy-boot-dots span:nth-child(2) {
+        animation-name: tcy-boot-split-right;
+      }
+      @keyframes tcy-boot-split-left {
+        0% { transform: translate(0, 0) scale(0.55); }
+        28%, 72% { transform: translate(-8px, -2px) scale(1); }
+        100% { transform: translate(0, 0) scale(0.55); }
+      }
+      @keyframes tcy-boot-split-right {
+        0% { transform: translate(0, 0) scale(0.55); }
+        28%, 72% { transform: translate(8px, 2px) scale(1); }
+        100% { transform: translate(0, 0) scale(0.55); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tcy-boot-dots span { animation: none; }
+        .tcy-boot-dots span:nth-child(1) { transform: translate(-4px, -1px); }
+        .tcy-boot-dots span:nth-child(2) { transform: translate(4px, 1px); }
+      }
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -18,6 +104,9 @@
     />
   </head>
   <body>
+    <div id="tcy-boot" aria-hidden="true">
+      <div class="tcy-boot-dots"><span></span><span></span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

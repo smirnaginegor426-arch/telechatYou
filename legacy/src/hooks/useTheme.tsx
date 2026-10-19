@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { applyTheme } from "@/lib/accents";
+import { applyTheme, resolveAccent } from "@/lib/accents";
 import { trpc } from "@/providers/trpc";
 
 type ThemeCtx = {
@@ -21,7 +21,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => (localStorage.getItem("tcy-theme") as "dark" | "light") || "dark",
   );
   const [accent, setAccentState] = useState(
-    () => localStorage.getItem("tcy-accent") || "mint",
+    () => resolveAccent(localStorage.getItem("tcy-accent") ?? "mint"),
   );
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     if (settingsQuery.data && !syncedRef[0]) {
       syncedRef[1](true);
       setThemeState(settingsQuery.data.theme);
-      setAccentState(settingsQuery.data.accent);
+      setAccentState(resolveAccent(settingsQuery.data.accent));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settingsQuery.data]);

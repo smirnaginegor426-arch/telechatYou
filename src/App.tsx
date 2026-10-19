@@ -12,6 +12,7 @@ import { ConnectionLoader } from "@/components/ConnectionLoader";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
 import { useTesterMode } from "@/hooks/useTesterMode";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
+import { hideBootSplash } from "@/lib/boot-splash";
 
 import Welcome from "@/pages/Welcome";
 import WelcomeLegacy from "@/pages/WelcomeLegacy";
@@ -247,8 +248,9 @@ useEffect(() => {
 function Gate({ plush }: { plush: boolean }) {
   const { isAuthenticated, isLoading } = useAuth();
 
+  // Fired in the same tick as auth.me, so tRPC batches both into a single
+  // request: the splash used to wait two network round trips in a row.
   const me = trpc.profile.me.useQuery(undefined, {
-    enabled: isAuthenticated,
     retry: false,
     staleTime: 30_000,
   });
@@ -274,6 +276,11 @@ export default function App() {
   const location = useLocation();
   const { isAuthenticated, isLoading } = useAuth();
   const { enabled: isPrivateTester } = useTesterMode({ enabled: isAuthenticated });
+
+  // React has committed its first frame: hand the screen over from the static
+  // boot splash in index.html, which the browser painted without waiting for
+  // this bundle to download.
+  useEffect(hideBootSplash, []);
 
   useEffect(() => {
     const root = document.documentElement;
