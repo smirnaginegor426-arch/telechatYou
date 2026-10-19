@@ -18,7 +18,7 @@ The original TeleChat You chat stack stores message content in `messages.body` a
 
 ## Matrix integration now staged in the current client
 
-The current main app includes an experimental `/encrypted` screen, linked from Settings → Chats and media → Сквозное шифрование, and pins `matrix-js-sdk` to a specific version in the npm dependency tree. The homeserver address is intentionally controlled by `VITE_MATRIX_HOMESERVER_URL`, not entered freely on the login screen; when it is unset, login remains disabled.
+The current main app includes an experimental `/encrypted` screen, linked from Settings → Account → Сквозное шифрование, and pins `matrix-js-sdk` to a specific version in the npm dependency tree. The homeserver address is intentionally controlled by `VITE_MATRIX_HOMESERVER_URL`, not entered freely on the login screen; when it is unset, login remains disabled.
 
 The new section is separate from the original TeleChat API. It:
 - connects directly from the browser/WebView to a Matrix homeserver over HTTPS (localhost HTTP is allowed for development);
