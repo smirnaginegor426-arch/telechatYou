@@ -16,6 +16,7 @@ export async function ensureCommunitySchema(): Promise<void> {
       username VARCHAR(32) NULL,
       description VARCHAR(280) NOT NULL DEFAULT '',
       isPublic BOOLEAN NOT NULL DEFAULT FALSE,
+      commentsEnabled BOOLEAN NOT NULL DEFAULT FALSE,
       createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
       UNIQUE KEY channels_chatId_unique (chatId),
       UNIQUE KEY channels_username_unique (username),
@@ -62,6 +63,17 @@ export async function ensureCommunitySchema(): Promise<void> {
       KEY channel_message_views_message_idx (messageId),
       KEY channel_message_views_user_idx (userId)
     ) ENGINE=InnoDB`,
+    `CREATE TABLE IF NOT EXISTS channel_post_comments (
+      id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      postId BIGINT UNSIGNED NOT NULL,
+      chatId BIGINT UNSIGNED NOT NULL,
+      senderId BIGINT UNSIGNED NOT NULL,
+      body TEXT NOT NULL,
+      createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      KEY channel_post_comments_post_idx (postId, id),
+      KEY channel_post_comments_chat_idx (chatId),
+      KEY channel_post_comments_sender_idx (senderId)
+    ) ENGINE=InnoDB`,
   ];
 
   for (const statement of statements) {
@@ -73,6 +85,17 @@ export async function ensureCommunitySchema(): Promise<void> {
   try {
     await getDb().execute(sql.raw(
       "ALTER TABLE channels ADD COLUMN kind ENUM('channel','group') NOT NULL DEFAULT 'channel' AFTER ownerId",
+    ));
+  } catch (error) {
+    const cause = error as { code?: string; cause?: { code?: string } };
+    const code = cause.code ?? cause.cause?.code;
+    if (code !== "ER_DUP_FIELDNAME") throw error;
+  }
+
+  // Add comments permission to existing channels without making deploys depend on a manual SQL step.
+  try {
+    await getDb().execute(sql.raw(
+      "ALTER TABLE channels ADD COLUMN commentsEnabled BOOLEAN NOT NULL DEFAULT FALSE AFTER isPublic",
     ));
   } catch (error) {
     const cause = error as { code?: string; cause?: { code?: string } };
