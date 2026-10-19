@@ -101,6 +101,36 @@ export default function EncryptedChats() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const eventHandlersRef = useRef<{
+    client: MatrixClient;
+    onSync: (state: string) => void;
+    onTimeline: () => void;
+  } | null>(null);
+
+  const bindClientEvents = useCallback((matrixClient: MatrixClient) => {
+    const previous = eventHandlersRef.current;
+    if (previous) {
+      previous.client.removeListener(ClientEvent.Sync, previous.onSync);
+      previous.client.removeListener(RoomEvent.Timeline, previous.onTimeline);
+    }
+
+    const onSync = (state: string) => {
+      setSyncState(state);
+      refreshClientState(matrixClient);
+    };
+    const onTimeline = () => refreshClientState(matrixClient);
+    matrixClient.on(ClientEvent.Sync, onSync);
+    matrixClient.on(RoomEvent.Timeline, onTimeline);
+    eventHandlersRef.current = { client: matrixClient, onSync, onTimeline };
+  }, [refreshClientState]);
+
+  useEffect(() => () => {
+    const current = eventHandlersRef.current;
+    if (!current) return;
+    current.client.removeListener(ClientEvent.Sync, current.onSync);
+    current.client.removeListener(RoomEvent.Timeline, current.onTimeline);
+    eventHandlersRef.current = null;
+  }, []);
 
   const selectedRoom = useMemo(
     () => rooms.find((room) => room.id === selectedRoomId) ?? null,
@@ -130,13 +160,7 @@ export default function EncryptedChats() {
       refreshClientState(matrixClient);
       setSyncState("Подключаемся…");
 
-      const onSync = (state: string) => {
-        setSyncState(state);
-        refreshClientState(matrixClient);
-      };
-      const onTimeline = () => refreshClientState(matrixClient);
-      matrixClient.on(ClientEvent.Sync, onSync);
-      matrixClient.on(RoomEvent.Timeline, onTimeline);
+      bindClientEvents(matrixClient);
       startMatrixSync(matrixClient);
       setNotice("E2EE инициализирован. Matrix не выдаёт ключи неподтверждённым устройствам; проверка устройств в TeleChat You пока не реализована.");
     } catch (cause) {
@@ -144,7 +168,7 @@ export default function EncryptedChats() {
     } finally {
       setBusy(false);
     }
-  }, [refreshClientState]);
+  }, [refreshClientState, bindClientEvents]);
 
   useEffect(() => {
     const saved = readMatrixSession();
@@ -180,13 +204,7 @@ export default function EncryptedChats() {
       setHomeserver(result.session.baseUrl);
       setMatrixUser(result.session.userId);
       setSyncState("Подключаемся…");
-      const onSync = (state: string) => {
-        setSyncState(state);
-        refreshClientState(result.client);
-      };
-      const onTimeline = () => refreshClientState(result.client);
-      result.client.on(ClientEvent.Sync, onSync);
-      result.client.on(RoomEvent.Timeline, onTimeline);
+      bindClientEvents(result.client);
       startMatrixSync(result.client);
       refreshClientState(result.client);
       setNotice("E2EE инициализирован. Matrix не выдаёт ключи неподтверждённым устройствам; проверка устройств в TeleChat You пока не реализована. Старые чаты не изменены.");
