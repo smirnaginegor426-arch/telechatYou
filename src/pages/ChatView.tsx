@@ -140,7 +140,7 @@ export default function ChatView() {
   const [forwardMessageIds, setForwardMessageIds] = useState<number[]>([]);
   const [forwardMsg, setForwardMsg] = useState<MessageItem | null>(null);
   const [commentsPost, setCommentsPost] = useState<MessageItem | null>(null);
-  const [lightbox, setLightbox = useState<{ key: string; name?: string | null; size?: number | null; video?: boolean } | null>(null);
+  const [lightbox, setLightbox] = useState<{ key: string; name?: string | null; size?: number | null; video?: boolean } | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(DEFAULT_CHAT_WALLPAPER);
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(null);
   const [pollOpen, setPollOpen] = useState(false);
