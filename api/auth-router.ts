@@ -571,6 +571,10 @@ export const authRouter = createRouter({
   login: publicQuery
     .input(z.object({ username: usernameSchema, password: passwordSchema, slotId: accountSlotIdSchema.optional() }))
     .mutation(async ({ ctx, input }) => {
+      const ip = requestIp(ctx.req);
+      // Slow brute-force attempts by network and account, including attempts that use a wrong password.
+      assertRateLimit(`login:ip:${ip}`, 40, 15 * 60 * 1000);
+      assertRateLimit(`login:username:${input.username.toLowerCase()}`, 10, 15 * 60 * 1000);
       const user = await findUserByUsername(input.username.toLowerCase());
       const ok = user?.passwordHash ? await verifyPassword(input.password, user.passwordHash) : false;
       if (!user || !ok) throw new TRPCError({ code: "UNAUTHORIZED", message: "Неверное имя пользователя или пароль" });
