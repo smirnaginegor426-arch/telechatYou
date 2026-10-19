@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { MessageCircle, Send, X } from "lucide-react";
@@ -48,7 +48,7 @@ export function ChannelCommentsSheet({
     element.scrollTop = element.scrollHeight;
   }, [open, comments.data?.length]);
 
-  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const body = draft.trim();
     if (!body || !post || addComment.isPending) return;
