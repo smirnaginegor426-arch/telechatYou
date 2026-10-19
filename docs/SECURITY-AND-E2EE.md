@@ -8,7 +8,9 @@ Existing protections observed during the audit:
 - User passwords are hashed with scrypt and a per-password random salt.
 - Session tokens are random and only an HMAC-SHA-256 hash is stored in the database.
 - Session cookies are HttpOnly, SameSite=Lax, and Secure except for localhost development.
-- Private uploaded files require an authenticated session.
+- Uploaded-file access is checked per account: owner, current members of chats containing the attachment, recipients of shared sticker-pack manifests, profile avatars and eligible group/public-channel avatars. Signed media URLs use the same authorization helper.
+- Private file responses are marked no-store to avoid retaining chat media in the browser cache after access changes.
+- Sending a message with an attachment is rejected if the sender cannot already read that file.
 - Login attempts are rate-limited by source hint and username.
 - Server responses now include clickjacking, MIME-sniffing, referrer, permissions and base/form policy headers; API responses are no-store.
 - Cross-origin API writes with a mismatching Origin or Sec-Fetch-Site: cross-site are rejected.
