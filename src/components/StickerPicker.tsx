@@ -61,7 +61,7 @@ export function StickerPicker({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: "100%" }}
       transition={{ type: "spring", stiffness: 380, damping: 36 }}
-      className="tcy-sticker-panel absolute bottom-[calc(100%-1px)] left-0 right-0 z-40 flex flex-col overflow-hidden rounded-t-[26px] border border-b-0 tcy-line tcy-solid"
+      className="tcy-sticker-panel absolute bottom-[calc(100%+8px)] left-0 right-0 z-40 flex flex-col overflow-hidden rounded-t-[26px] border border-b-0 tcy-line tcy-solid"
       style={{ height: "min(52dvh, calc(100dvh - 210px))" }}
       role="dialog"
       aria-label="Стикеры"
