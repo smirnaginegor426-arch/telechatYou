@@ -62,6 +62,7 @@ export function PhotoEditor({
   const strokePointerRef = useRef<number | null>(null);
   const [currentFile, setCurrentFile] = useState(image);
   const [imageReady, setImageReady] = useState(false);
+  const [imageRevision, setImageRevision] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const [tool, setTool] = useState<Tool>("draw");
   const [filter, setFilter] = useState<Filter>("original");
@@ -89,6 +90,7 @@ export function PhotoEditor({
       }
       setCurrentFile(file);
       setImageReady(true);
+      setImageRevision((revision) => revision + 1);
       setLoadError(false);
       resolve();
     };
@@ -113,6 +115,13 @@ export function PhotoEditor({
     if (!canvas || !imageElement || !imageReady) return;
     const context = canvas.getContext("2d");
     if (!context) return;
+    const scale = Math.min(1, 1800 / Math.max(imageElement.naturalWidth, imageElement.naturalHeight));
+    const desiredWidth = Math.max(1, Math.round(imageElement.naturalWidth * scale));
+    const desiredHeight = Math.max(1, Math.round(imageElement.naturalHeight * scale));
+    if (canvas.width !== desiredWidth || canvas.height !== desiredHeight) {
+      canvas.width = desiredWidth;
+      canvas.height = desiredHeight;
+    }
 
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.filter = FILTERS[filter];
@@ -151,7 +160,7 @@ export function PhotoEditor({
       context.fillText(mark.text, mark.x, mark.y, canvas.width * 0.86);
       context.restore();
     }
-  }, [imageReady, filter, strokes, activeStroke, textMarks]);
+  }, [imageReady, imageRevision, filter, strokes, activeStroke, textMarks]);
 
   const canvasPoint = (event: ReactPointerEvent<HTMLCanvasElement>): Point => {
     const canvas = canvasRef.current!;
