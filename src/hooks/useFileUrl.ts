@@ -30,19 +30,24 @@ export function refreshFileUrl(key: string | null | undefined): void {
  * to resolve this URL. Only an actual load error adds a cache-busting version.
  */
 export function useFileUrl(key: string | null | undefined): string | null {
-  const [retryVersion, setRetryVersion] = useState(
-    () => (key ? retryVersions.get(key) ?? 0 : 0),
+  const [retryState, setRetryState] = useState<{ key: string | null | undefined; version: number }>(
+    () => ({ key, version: key ? retryVersions.get(key) ?? 0 : 0 }),
   );
+  const retryVersion = retryState.key === key
+    ? retryState.version
+    : key
+      ? retryVersions.get(key) ?? 0
+      : 0;
 
   useEffect(() => {
     if (!key || typeof window === "undefined") return;
 
     // Pick up a retry requested before this component mounted.
-    setRetryVersion(retryVersions.get(key) ?? 0);
+    setRetryState({ key, version: retryVersions.get(key) ?? 0 });
 
     const onRefresh = (event: Event) => {
       const detail = (event as CustomEvent<RefreshDetail>).detail;
-      if (detail?.key === key) setRetryVersion(detail.version);
+      if (detail?.key === key) setRetryState({ key, version: detail.version });
     };
 
     window.addEventListener(REFRESH_EVENT, onRefresh);
