@@ -19,6 +19,7 @@ export const CHAT_WALLPAPERS = [
   { id: "pattern-sunset", name: "Закат", description: "Узор как в Telegram" },
   { id: "pattern-coral", name: "Коралл", description: "Узор как в Telegram" },
   { id: "pattern-teal", name: "Бирюза", description: "Узор как в Telegram" },
+  { id: "telechatyou", name: "TeleChatYou", description: "Тёмный фирменный узор" },
 ] as const;
 
 export type ChatWallpaperId = (typeof CHAT_WALLPAPERS)[number]["id"];
@@ -35,6 +36,19 @@ export function chatWallpaperImageKey(chatId: number) {
 
 export function isChatWallpaperId(value: string | null): value is ChatWallpaperId {
   return CHAT_WALLPAPERS.some((wallpaper) => wallpaper.id === value);
+}
+
+export const GLOBAL_CHAT_WALLPAPER_KEY = "tcy-global-chat-wallpaper";
+export const GLOBAL_CHAT_WALLPAPER_CHANGE_EVENT = "tcy:global-chat-wallpaper-change";
+
+/** Global default for chats that do not have an explicit per-chat wallpaper. */
+export function readGlobalChatWallpaper(): ChatWallpaperId {
+  try {
+    const saved = localStorage.getItem(GLOBAL_CHAT_WALLPAPER_KEY);
+    return isChatWallpaperId(saved) ? saved : DEFAULT_CHAT_WALLPAPER;
+  } catch {
+    return DEFAULT_CHAT_WALLPAPER;
+  }
 }
 
 /**
