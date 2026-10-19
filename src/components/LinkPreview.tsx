@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { MouseEvent } from "react";
 import { useNavigate } from "react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Link as LinkIcon } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { Logo } from "./Logo";
 import { Avatar } from "./Avatar";
@@ -302,7 +302,30 @@ export function LinkPreview({
           className="block h-[132px] w-full object-cover"
         />
       )}
-      <span className="block px-3 py-2">
+      <span className="flex items-start gap-2.5 px-3 py-2">
+        <span
+          className="mt-0.5 flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-[10px]"
+          style={{
+            background: own
+              ? "color-mix(in srgb, var(--tcy-bubble-own-fg) 12%, transparent)"
+              : "color-mix(in srgb, var(--tcy-accent) 12%, transparent)",
+            color: own ? "var(--tcy-bubble-own-fg)" : "var(--tcy-accent)",
+          }}
+          aria-hidden="true"
+        >
+          <img
+            src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(data.host)}&sz=64`}
+            alt=""
+            className="size-5 object-contain"
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+              const fallback = event.currentTarget.nextElementSibling as HTMLElement | null;
+              if (fallback) fallback.style.display = "block";
+            }}
+          />
+          <LinkIcon size={19} style={{ display: "none" }} />
+        </span>
+        <span className="block min-w-0 flex-1">
         <span
           className="block truncate text-[11px] font-bold"
           style={{ color: own ? "var(--tcy-bubble-own-muted)" : "var(--tcy-accent)" }}
@@ -336,6 +359,7 @@ export function LinkPreview({
             {data.description}
           </span>
         )}
+        </span>
       </span>
     </a>
   );
