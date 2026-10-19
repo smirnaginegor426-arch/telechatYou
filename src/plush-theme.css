@@ -217,7 +217,7 @@ html[data-tcy-plush="true"] #root .tcy-chat-list-item {
   transition: transform 220ms cubic-bezier(.2,.8,.2,1), background 220ms ease, box-shadow 220ms ease;
 }
 html[data-tcy-plush="true"] #root .tcy-chat-list-scroll > .tcy-chat-list-item {
-  border-radius: 8px 8px 32px 32px !important;
+  border-radius: 32px 32px 8px 8px !important;
 }
 html[data-tcy-plush="true"] #root .tcy-chat-list-item:active {
   transform: scale(.988);
