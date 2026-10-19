@@ -230,7 +230,7 @@ export default function Settings() {
         <SettingsRow
           icon={<Info size={17} />}
           title="О TeleChatYou"
-          subtitle="Версия 1.0.0"
+          subtitle="Версия 2.0.0"
           onClick={() => setAboutOpen(true)}
         />
       </SettingsGroup>
@@ -247,7 +247,7 @@ export default function Settings() {
               T
             </span>
           </div>
-          <p className="text-[14px] font-bold tcy-text">TeleChatYou 1.0.0</p>
+          <p className="text-[14px] font-bold tcy-text">TeleChatYou 2.0.0</p>
           <p className="text-[13px] tcy-dim leading-relaxed">
             Современный мессенджер с голосовыми сообщениями, группами, темами и живыми
             анимациями. Самостоятельный продукт — спроектирован и собран с нуля.
