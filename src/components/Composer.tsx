@@ -13,7 +13,11 @@ import { cn } from "@/lib/utils";
 type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
 
 function isImageAttachment(file: File) {
-  return file.type.toLowerCase().startsWith("image/") ||
+  const type = file.type.toLowerCase();
+  if (type.startsWith("video/") || /\.(3gp|avi|flv|m4v|mkv|mov|mp4|mpeg|mpg|ogv|ts|webm)$/i.test(file.name)) {
+    return false;
+  }
+  return type.startsWith("image/") ||
     /\.(avif|bmp|gif|heic|heif|jpe?g|png|tiff?|webp)$/i.test(file.name);
 }
 
@@ -412,7 +416,7 @@ export function Composer({
       <input
         ref={imgInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         multiple
         className="hidden"
         onChange={(e) => {
