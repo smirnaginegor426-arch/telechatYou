@@ -1,161 +1,63 @@
-
 import { useEffect, useState } from "react";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
-import superjson from "superjson";
-import type { AppRouter } from "../../api/router";
 
-const REFRESH_AFTER_MS = 4 * 60 * 1000;
-const RETRY_AFTER_MS = 30 * 1000;
 const REFRESH_EVENT = "tcy:refresh-file-url";
 
-type CachedUrl = {
-  url: string;
-  createdAt: number;
-};
+type RefreshDetail = { key: string; version: number };
 
-const vanilla = createTRPCClient<AppRouter>({
-  links: [
-    httpBatchLink({
-      url: "/api/trpc",
-      transformer: superjson,
-      fetch(input, init) {
-        return globalThis.fetch(input, {
-          ...(init ?? {}),
-          credentials: "include",
-        });
-      },
-    }),
-  ],
-});
+// Uploaded objects get unique keys and the authenticated file route is stable.
+// Resolve the URL locally instead of making a storage.urls request for every image.
+const retryVersions = new Map<string, number>();
+let nextRetryVersion = 0;
 
-const cache = new Map<string, CachedUrl>();
-const pending = new Map<string, Promise<string | null>>();
-
-async function resolveKey(
-  key: string,
-  forceRefresh = false,
-): Promise<string | null> {
-  const hit = cache.get(key);
-
-  if (
-    !forceRefresh &&
-    hit &&
-    Date.now() - hit.createdAt < REFRESH_AFTER_MS
-  ) {
-    return hit.url;
-  }
-
-  const existing = pending.get(key);
-  if (existing) return existing;
-
-  cache.delete(key);
-
-  const promise = vanilla.storage.urls
-    .query({ keys: [key] })
-    .then((result) => {
-      const url = result.urls[key] ?? null;
-
-      if (url) {
-        cache.set(key, {
-          url,
-          createdAt: Date.now(),
-        });
-      }
-
-      return url;
-    })
-    .catch(() => null)
-    .finally(() => {
-      pending.delete(key);
-    });
-
-  pending.set(key, promise);
-  return promise;
+function fileUrlForKey(key: string): string {
+  return `/api/files/${key.split("/").map(encodeURIComponent).join("/")}`;
 }
 
-export function refreshFileUrl(
-  key: string | null | undefined,
-): void {
+export function refreshFileUrl(key: string | null | undefined): void {
   if (!key || typeof window === "undefined") return;
 
+  const version = ++nextRetryVersion;
+  retryVersions.set(key, version);
   window.dispatchEvent(
-    new CustomEvent(REFRESH_EVENT, {
-      detail: { key },
+    new CustomEvent<RefreshDetail>(REFRESH_EVENT, {
+      detail: { key, version },
     }),
   );
 }
 
-export function useFileUrl(
-  key: string | null | undefined,
-): string | null {
-  const [url, setUrl] = useState<string | null>(
-    () => (key ? cache.get(key)?.url ?? null : null),
+/**
+ * A stable URL for a file. The browser caches the bytes itself; no RPC is needed
+ * to resolve this URL. Only an actual load error adds a cache-busting version.
+ */
+export function useFileUrl(key: string | null | undefined): string | null {
+  const [retryVersion, setRetryVersion] = useState(
+    () => (key ? retryVersions.get(key) ?? 0 : 0),
   );
 
   useEffect(() => {
-    if (!key) {
-      setUrl(null);
-      return;
-    }
+    if (!key || typeof window === "undefined") return;
 
-    let alive = true;
-    let timer: ReturnType<typeof setTimeout> | undefined;
+    // Pick up a retry requested before this component mounted.
+    setRetryVersion(retryVersions.get(key) ?? 0);
 
-    setUrl(cache.get(key)?.url ?? null);
-
-    function schedule(delay: number) {
-      if (timer) clearTimeout(timer);
-
-      timer = setTimeout(() => {
-        void load(true);
-      }, delay);
-    }
-
-    async function load(forceRefresh = false) {
-      const nextUrl = await resolveKey(key!, forceRefresh);
-
-      if (!alive) return;
-
-      if (nextUrl) {
-        setUrl(nextUrl);
-        schedule(REFRESH_AFTER_MS);
-      } else {
-        // If URL lookup temporarily fails, retry instead of leaving media permanently blank.
-        schedule(RETRY_AFTER_MS);
-      }
-    }
-
-    function onRefresh(event: Event) {
-      const detail = (event as CustomEvent<{ key: string }>).detail;
-      if (detail?.key !== key) return;
-
-      // Force the image/audio element to remount after a network or storage error.
-      // The URL itself is stable (/api/files/<key>), so refreshing only the cache
-      // without changing the state would not make the browser retry the request.
-      setUrl(null);
-      if (timer) clearTimeout(timer);
-      void load(true);
-    }
+    const onRefresh = (event: Event) => {
+      const detail = (event as CustomEvent<RefreshDetail>).detail;
+      if (detail?.key === key) setRetryVersion(detail.version);
+    };
 
     window.addEventListener(REFRESH_EVENT, onRefresh);
-    void load();
-
-    return () => {
-      alive = false;
-
-      if (timer) clearTimeout(timer);
-
-      window.removeEventListener(REFRESH_EVENT, onRefresh);
-    };
+    return () => window.removeEventListener(REFRESH_EVENT, onRefresh);
   }, [key]);
 
-  return url;
+  if (!key) return null;
+  const baseUrl = fileUrlForKey(key);
+  return retryVersion > 0 ? `${baseUrl}?tcy_retry=${retryVersion}` : baseUrl;
 }
 
-export function prefetchFileUrls(
-  keys: (string | null | undefined)[],
-) {
-  keys
-    .filter((key): key is string => Boolean(key))
-    .forEach((key) => void resolveKey(key));
+/** Kept as a no-op-free compatibility helper for existing prefetch call sites. */
+export function prefetchFileUrls(keys: (string | null | undefined)[]): void {
+  // Computing the stable URLs is synchronous; there is nothing to fetch in advance.
+  for (const key of keys) {
+    if (key) fileUrlForKey(key);
+  }
 }
