@@ -631,7 +631,7 @@ export function Composer({
         )}
       </AnimatePresence>
 
-      <div className="px-3 pb-3 pt-1.5 safe-bottom">
+      <div className={cn("px-3 pb-3 pt-1.5 safe-bottom", stickerOpen && "invisible pointer-events-none")}>
         {pendingAttachments.length > 0 && !recording && (
           <div className="flex flex-nowrap items-center gap-2.5 overflow-x-auto no-scrollbar px-1 pb-2">
             {pendingAttachments.map((attachment) => (
