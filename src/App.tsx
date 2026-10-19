@@ -52,7 +52,6 @@ import Recover from "@/pages/Recover";
 import AccountsPage from "@/pages/Accounts";
 import NotFound from "@/pages/NotFound";
 import Maintenance from "@/pages/Maintenance";
-import MatrixE2EESetup from "@/pages/MatrixE2EESetup";
 
 // true — технические работы для обычных пользователей.
 // Администраторы смогут пользоваться мессенджером.
@@ -222,7 +221,7 @@ useEffect(() => {
             <Route path="/settings/security/create-password" element={<AccountSecurityPassword />} />
             <Route path="/settings/navigation-island" element={<NavigationIslandSettings />} />
             <Route path="/settings/security/create-password/:format" element={<AccountSecurityPassword />} />
-            <Route path="/settings/e2ee" element={<MatrixE2EESetup />} />
+            <Route path="/settings/e2ee" element={<EncryptedChats />} />
             <Route path="/settings/:section" element={<SettingsSectionScreen />} />
             <Route path="/email-binding" element={<EmailBinding />} />
             <Route path="/halloween" element={<Halloween />} />
