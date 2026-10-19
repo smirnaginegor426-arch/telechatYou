@@ -31,7 +31,7 @@ function PendingAttachmentTile({
 }: {
   attachment: PendingAttachment;
   onRemove: () => void;
-  onEdit: () => void;
+  onEdit: (attachment: PendingAttachment) => void;
   onPreview: (file: File, name: string) => void;
 }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -70,7 +70,7 @@ function PendingAttachmentTile({
         </button>
         <button
           type="button"
-          onClick={onEdit}
+          onClick={() => onEdit(attachment)}
           aria-label="Редактировать фото"
           title="Редактировать фото"
           className="tcy-press absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full border border-white/45 bg-white/25 text-white shadow-[0_4px_14px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-transform hover:scale-105 active:scale-95"
