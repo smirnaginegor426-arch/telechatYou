@@ -109,6 +109,48 @@ function PendingAttachmentTile({
   );
 }
 
+function PhotoPreviewOverlay({ file, onClose }: { file: File; onClose: () => void }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[10050] flex flex-col bg-black/95 text-white"
+      onClick={onClose}
+    >
+      <div className="flex items-center justify-between gap-3 px-4 py-3 safe-top" onClick={(event) => event.stopPropagation()}>
+        <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{file.name || "Фото"}</span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Закрыть фото"
+          className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-xl"
+        >
+          <X size={19} />
+        </button>
+      </div>
+      <div className="flex min-h-0 flex-1 items-center justify-center p-3 pb-5" onClick={(event) => event.stopPropagation()}>
+        {url ? (
+          <img
+            src={url}
+            alt={file.name || "Фото"}
+            className="max-h-full max-w-full rounded-[18px] object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+          />
+        ) : (
+          <span className="tcy-skeleton h-[200px] w-[200px] rounded-[18px]" />
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 type Props = {
   onSendText: (text: string) => void;
   onSendVoice: (blob: Blob, duration: number) => void;
@@ -143,14 +185,8 @@ export function Composer({
   const [attachOpen, setAttachOpen] = useState(false);
   const [preparingImage, setPreparingImage] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
-  const [editingAttachmentId, setEditingAttachmentId] = useState<string | null>(null);
-  const [previewPhoto, setPreviewPhoto] = useState<{ url: string; name: string } | null>(null);
-
-  useEffect(() => {
-    if (!previewPhoto?.url) return;
-    const url = previewPhoto.url;
-    return () => URL.revokeObjectURL(url);
-  }, [previewPhoto?.url]);
+  const [editingAttachment, setEditingAttachment] = useState<PendingAttachment | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<File | null>(null);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
@@ -599,14 +635,11 @@ export function Composer({
                 key={attachment.id}
                 attachment={attachment}
                 onRemove={() => setPendingAttachments((current) => current.filter((item) => item.id !== attachment.id))}
-                onEdit={() => {
+                onEdit={(item) => {
                   setPreviewPhoto(null);
-                  setEditingAttachmentId(attachment.id);
+                  setEditingAttachment(item);
                 }}
-                onPreview={(file, name) => {
-                  const url = URL.createObjectURL(file);
-                  setPreviewPhoto({ url, name });
-                }}
+                onPreview={(file) => setPreviewPhoto(file)}
               />
             ))}
           </div>
@@ -768,56 +801,25 @@ export function Composer({
         </div>,
         document.body,
       )}
-      {editingAttachmentId && (() => {
-        const attachment = pendingAttachments.find((item) => item.id === editingAttachmentId && item.kind === "image");
-        return attachment ? createPortal(
-          <PhotoEditor
-            key={attachment.id}
-            image={attachment.file}
-            onCancel={() => setEditingAttachmentId(null)}
-            onSave={(editedFile) => {
-              setPendingAttachments((current) => current.map((item) =>
-                item.id === attachment.id ? { ...item, file: editedFile } : item
-              ));
-              setEditingAttachmentId(null);
-            }}
-          />,
-          document.body,
-        ) : null;
-      })()}
+      {editingAttachment?.kind === "image" && createPortal(
+        <PhotoEditor
+          key={editingAttachment.id}
+          image={editingAttachment.file}
+          onCancel={() => setEditingAttachment(null)}
+          onSave={(editedFile) => {
+            setPendingAttachments((current) => current.map((item) =>
+              item.id === editingAttachment.id ? { ...item, file: editedFile } : item
+            ));
+            setEditingAttachment(null);
+          }}
+        />,
+        document.body,
+      )}
 
-      <AnimatePresence>
-        {previewPhoto && createPortal(
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[10050] flex flex-col bg-black/95 text-white"
-            onClick={() => setPreviewPhoto(null)}
-          >
-            <div className="flex items-center justify-between gap-3 px-4 py-3 safe-top" onClick={(event) => event.stopPropagation()}>
-              <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{previewPhoto.name || "Фото"}</span>
-              <button
-                type="button"
-                onClick={() => setPreviewPhoto(null)}
-                aria-label="Закрыть фото"
-                className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-xl"
-              >
-                <X size={19} />
-              </button>
-            </div>
-            <div className="flex min-h-0 flex-1 items-center justify-center p-3 pb-5" onClick={(event) => event.stopPropagation()}>
-              <img
-                src={previewPhoto.url}
-                alt={previewPhoto.name || "Фото"}
-                className="max-h-full max-w-full rounded-[18px] object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
-              />
-            </div>
-          </motion.div>,
-          document.body,
-        )}
-      </AnimatePresence>
-
+      {previewPhoto && createPortal(
+        <PhotoPreviewOverlay file={previewPhoto} onClose={() => setPreviewPhoto(null)} />,
+        document.body,
+      )}
     </div>
   );
 }
