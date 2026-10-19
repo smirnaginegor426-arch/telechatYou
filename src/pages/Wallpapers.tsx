@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { ArrowLeft, ArrowRight, Mic, Paperclip, Smile, UserRound } from "lucide-react";
 import { toast } from "sonner";
@@ -15,7 +15,27 @@ const WALLPAPER_OPTIONS = GENERATED_WALLPAPER_IDS.map((id) => CHAT_WALLPAPERS.fi
 
 export default function Wallpapers() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<ChatWallpaperId>(readGlobalChatWallpaper);
+  const [selected, setSelected] = useState<ChatWallpaperId>(() => {
+    const saved = readGlobalChatWallpaper();
+    return GENERATED_WALLPAPER_IDS.includes(saved as (typeof GENERATED_WALLPAPER_IDS)[number])
+      ? saved
+      : "generated-1";
+  });
+
+  useEffect(() => {
+    const saved = readGlobalChatWallpaper();
+    if (GENERATED_WALLPAPER_IDS.includes(saved as (typeof GENERATED_WALLPAPER_IDS)[number])) return;
+    try {
+      window.localStorage.setItem(GLOBAL_CHAT_WALLPAPER_KEY, selected);
+    } catch {
+      // The visible preview still works if local storage is unavailable.
+    }
+    window.dispatchEvent(
+      new CustomEvent(GLOBAL_CHAT_WALLPAPER_CHANGE_EVENT, { detail: { wallpaper: selected } }),
+    );
+    // Migrate an older wallpaper selection to the first generated wallpaper once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectWallpaper = (wallpaper: ChatWallpaperId) => {
     try {
