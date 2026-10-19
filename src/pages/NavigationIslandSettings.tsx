@@ -131,6 +131,8 @@ export default function NavigationIslandSettings() {
             className="mx-auto mt-4 grid h-[48px] grid-cols-4 overflow-hidden rounded-full border p-1"
             style={{
               width: `min(${preferences.width}px, 100%)`,
+              transform: "rotate(180deg)",
+              transformOrigin: "center center",
               background: "var(--tcy-header)",
               borderColor: "var(--tcy-line-strong)",
               backdropFilter: "blur(18px) saturate(1.35)",
