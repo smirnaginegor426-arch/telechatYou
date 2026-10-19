@@ -1,31 +1,53 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { AlertCircle, ArrowLeft, CheckCircle2, Download, RefreshCw } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Download, KeyRound, RefreshCw, X } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { TcButton } from "@/components/TcButton";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
 
 const APP_VERSION = "1.0.0";
 
-/**
- * Direct link to the v2 build. Left empty while v2 has not shipped: the
- * download button then reports that the update is not out yet.
- */
+// Add the publicly downloadable Alpha V2.0 APK URL when the build is published.
 const V2_DOWNLOAD_URL = "";
+
+const TESTER_KEYS = new Set([
+  "TCY-NEW-7KQ9-M4XP",
+  "TCY-NEW-R8W2-Z6VN",
+  "TCY-NEW-H3JD-9BFT",
+]);
 
 export default function SystemUpdate() {
   const navigate = useNavigate();
   const [checkRequested, setCheckRequested] = useState(false);
-  const [downloadNotice, setDownloadNotice] = useState(false);
+  const [showTesterDialog, setShowTesterDialog] = useState(false);
+  const [testerKey, setTesterKey] = useState("");
+  const [keyError, setKeyError] = useState("");
+  const [keyAccepted, setKeyAccepted] = useState(false);
   const { enabled: experimentalUI } = useExperimentalUI();
 
-  const download = () => {
-    if (!V2_DOWNLOAD_URL) {
-      setDownloadNotice(true);
+  const closeTesterDialog = () => {
+    setShowTesterDialog(false);
+    setTesterKey("");
+    setKeyError("");
+    setKeyAccepted(false);
+  };
+
+  const submitTesterKey = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalizedKey = testerKey.trim().toUpperCase();
+
+    if (!TESTER_KEYS.has(normalizedKey)) {
+      setKeyAccepted(false);
+      setKeyError("Неверный ключ. Проверь его и попробуй снова.");
       return;
     }
-    setDownloadNotice(false);
-    window.open(V2_DOWNLOAD_URL, "_blank", "noopener,noreferrer");
+
+    setKeyError("");
+    setKeyAccepted(true);
+
+    if (V2_DOWNLOAD_URL) {
+      window.location.assign(V2_DOWNLOAD_URL);
+    }
   };
 
   return (
@@ -82,26 +104,112 @@ export default function SystemUpdate() {
         </div>
 
         <div className="mt-3 w-full max-w-sm">
-          <TcButton size="lg" variant="soft" onClick={download}>
+          <TcButton
+            size="lg"
+            variant="soft"
+            onClick={() => {
+              setTesterKey("");
+              setKeyError("");
+              setKeyAccepted(false);
+              setShowTesterDialog(true);
+            }}
+          >
             <Download size={17} />
             Скачать
           </TcButton>
         </div>
-
-        {downloadNotice && (
-          <div
-            role="alert"
-            className="mt-4 w-full max-w-sm rounded-2xl border px-4 py-3 flex items-center gap-3 text-left"
-            style={{
-              borderColor: "var(--tcy-danger)",
-              background: "color-mix(in srgb, var(--tcy-danger) 12%, transparent)",
-            }}
-          >
-            <AlertCircle size={22} className="tcy-danger shrink-0" />
-            <p className="text-[14px] font-bold tcy-danger">Обновление не вышло!</p>
-          </div>
-        )}
       </main>
+
+      {showTesterDialog && (
+        <div
+          className="fixed inset-0 z-[10080] flex items-center justify-center bg-black/55 px-5 py-6 backdrop-blur-sm"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeTesterDialog();
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tester-alpha-title"
+            className="w-full max-w-md rounded-[28px] border tcy-line tcy-card p-5 text-left shadow-2xl"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl tcy-card-strong tcy-accent">
+                <KeyRound size={21} />
+              </div>
+              <div className="min-w-0 flex-1 pr-1">
+                <h2 id="tester-alpha-title" className="text-[18px] font-extrabold tcy-text">
+                  Альфа версия TeleChat YouV2.0 Только для Тестеров
+                </h2>
+                <p className="mt-2 text-[13px] leading-5 tcy-dim">
+                  Введи выданный ключ доступа, чтобы продолжить скачивание тестовой версии.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeTesterDialog}
+                aria-label="Закрыть"
+                className="tcy-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card-strong tcy-dim"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={submitTesterKey} className="mt-5">
+              <label htmlFor="tester-alpha-key" className="mb-2 block text-[13px] font-semibold tcy-text">
+                Ключ доступа
+              </label>
+              <input
+                id="tester-alpha-key"
+                name="tester-alpha-key"
+                type="text"
+                value={testerKey}
+                onChange={(event) => {
+                  setTesterKey(event.target.value);
+                  setKeyError("");
+                  setKeyAccepted(false);
+                }}
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                placeholder="TCY-NEW-XXXX-XXXX"
+                className="h-12 w-full rounded-2xl border tcy-line tcy-card-strong px-4 text-[14px] tcy-text outline-none focus:border-[var(--tcy-accent)]"
+                aria-invalid={Boolean(keyError)}
+                aria-describedby={keyError ? "tester-alpha-error" : undefined}
+              />
+
+              {keyError && (
+                <p id="tester-alpha-error" role="alert" className="mt-2 flex items-start gap-2 text-[13px] tcy-danger">
+                  <AlertCircle size={17} className="mt-0.5 shrink-0" />
+                  {keyError}
+                </p>
+              )}
+
+              {keyAccepted && !V2_DOWNLOAD_URL && (
+                <div role="status" className="mt-3 rounded-2xl border tcy-line px-3 py-3">
+                  <p className="flex items-center gap-2 text-[13px] font-bold tcy-text">
+                    <CheckCircle2 size={17} className="tcy-accent" />
+                    Ключ принят
+                  </p>
+                  <p className="mt-1 text-[12px] leading-5 tcy-dim">
+                    APK-файл Альфа V2.0 пока не опубликован. Скачивание станет доступно, когда файл будет добавлен.
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-5 flex flex-col gap-2">
+                <TcButton type="submit" size="lg" disabled={!testerKey.trim()}>
+                  <KeyRound size={17} />
+                  Проверить ключ и скачать
+                </TcButton>
+                <TcButton type="button" size="lg" variant="soft" onClick={closeTesterDialog}>
+                  Отмена
+                </TcButton>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
