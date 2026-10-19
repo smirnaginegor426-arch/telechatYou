@@ -27,7 +27,8 @@ The new section is separate from the original TeleChat API. It:
 - stores the short-lived Matrix session token in sessionStorage rather than sending it to the TeleChat API;
 - stores Matrix cryptographic state in the browser's IndexedDB, namespaced by Matrix account and device;
 - lists encrypted Matrix rooms and only attempts to send text when the selected room has an encryption state event;
-- does not yet implement TeleChat You device-verification UI; do not assume recipients have been independently verified.
+- enables the Matrix SDK policy that blocks sharing room keys with unverified recipient devices by default;
+- does not yet implement TeleChat You device-verification UI, so test accounts must establish trust out-of-band with a compatible Matrix client. Do not assume devices have been independently verified.
 
 Only Matrix rooms created/received as encrypted rooms are shown in this beta section. The current UI must not be used for sensitive or secret conversations until homeserver deployment, two-device tests, and device verification/key recovery are complete. A separate Matrix homeserver and Matrix accounts are required. This is not an automatic bridge between existing TeleChat You accounts and Matrix IDs.
 
