@@ -18,7 +18,7 @@ The original TeleChat You chat stack stores message content in `messages.body` a
 
 ## Matrix integration now staged in the current client
 
-The current main app includes an experimental `/encrypted` screen, linked from Settings → Chats and media → Сквозное шифрование, and pins `matrix-js-sdk` to a specific version in the npm dependency tree.
+The current main app includes an experimental `/encrypted` screen, linked from Settings → Chats and media → Сквозное шифрование, and pins `matrix-js-sdk` to a specific version in the npm dependency tree. The homeserver address is intentionally controlled by `VITE_MATRIX_HOMESERVER_URL`, not entered freely on the login screen; when it is unset, login remains disabled.
 
 The new section is separate from the original TeleChat API. It:
 - connects directly from the browser/WebView to a Matrix homeserver over HTTPS (localhost HTTP is allowed for development);
@@ -38,7 +38,7 @@ Before using the new screen for sensitive conversations, the following are still
 2. Secret storage and encrypted key backup/recovery UX; test recovery after reinstall and when moving to another device.
 3. Test the complete flow against two real Matrix test accounts on separate browsers/devices, including messages in both directions, wrong credentials, network loss, device replacement and missing room keys.
 4. Verify the installed Android WebView's IndexedDB/WASM behavior with the released APK, not just desktop browser builds.
-5. Decide on a trusted Matrix homeserver. The current form lets a tester enter a homeserver; no TeleChat-operated Matrix deployment or automatic TCY-to-Matrix account provisioning is configured by these code changes.
+5. Decide on and deploy a trusted Matrix homeserver. The login form is disabled until the owner sets the public build-time variable `VITE_MATRIX_HOMESERVER_URL` to that HTTPS homeserver and rebuilds the frontend. The URL is configuration, not a secret. The current repository does not deploy a Matrix homeserver or automatically provision Matrix accounts from TeleChat You accounts.
 6. Encrypt media locally before upload and handle attachments/voice, message previews, reactions, pins, notifications and local-only search. The first screen implements text-only encrypted messages.
 7. Review hosting/CSP and supply-chain risks. Web E2EE cannot protect keys from malicious JavaScript delivered by a compromised site. Device verification helps with identity, but a compromised client can still expose plaintext on that device.
 
