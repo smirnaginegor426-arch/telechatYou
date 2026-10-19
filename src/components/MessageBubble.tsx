@@ -102,18 +102,21 @@ function FileAttachment({
   const attachmentMime = m.attachmentMime ?? "";
   const isAudio = attachmentMime.startsWith("audio/") || /\.(mp3|m4a|wav|ogg|opus|aac|flac|wma|weba|amr|aiff?|caf)$/i.test(attachmentName);
   const isVideo = attachmentMime.startsWith("video/") || /\.(mp4|m4v|mov|webm|mkv|avi|3gp|ogv|mpeg|mpg|flv|ts)$/i.test(attachmentName);
+  const [videoPreviewReady, setVideoPreviewReady] = useState(false);
+  const [videoPreviewFailed, setVideoPreviewFailed] = useState(false);
   if (isVideo) {
     return (
       <button
         type="button"
         onClick={() => {
-          if (!url || !m.attachmentKey) return;
+          // Do not wait for the preview URL: the full-screen viewer resolves it itself.
+          if (!m.attachmentKey) return;
           onVideoOpen?.(m.attachmentKey);
         }}
         aria-label="Открыть видео"
-        className="tcy-press relative block aspect-video w-[min(260px,70vw)] min-w-[180px] overflow-hidden rounded-[16px] bg-black p-0"
+        className="tcy-press relative block h-[260px] max-h-[42vh] w-[min(190px,55vw)] min-w-[150px] overflow-hidden rounded-[16px] bg-black p-0"
       >
-        {url ? (
+        {url && !videoPreviewFailed ? (
           <video
             src={url}
             muted
@@ -121,20 +124,31 @@ function FileAttachment({
             preload="metadata"
             tabIndex={-1}
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full object-contain"
             onLoadedData={(event) => {
+              setVideoPreviewReady(true);
               try {
                 if (event.currentTarget.duration > 0) event.currentTarget.currentTime = Math.min(0.08, event.currentTarget.duration);
               } catch { /* Keep the first available frame. */ }
             }}
+            onError={() => {
+              setVideoPreviewFailed(true);
+              setVideoPreviewReady(false);
+            }}
           />
         ) : (
-          <span className="tcy-skeleton absolute inset-0" />
+          <span className="absolute inset-0 bg-black" />
         )}
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10">
-          <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm">
-            <Play size={25} fill="currentColor" className="ml-0.5" />
-          </span>
+        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15">
+          {!videoPreviewReady && !videoPreviewFailed ? (
+            <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full border border-white/25 bg-black/45 text-white backdrop-blur-sm">
+              <LoaderCircle size={25} className="animate-spin" />
+            </span>
+          ) : (
+            <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-sm">
+              <Play size={25} fill="currentColor" className="ml-0.5" />
+            </span>
+          )}
         </span>
       </button>
     );
