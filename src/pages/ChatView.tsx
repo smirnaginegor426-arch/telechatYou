@@ -941,6 +941,7 @@ export default function ChatView() {
               const prev = visibleMessages[i - 1];
               const dayBreak = !prev || !sameDay(prev.createdAt, m.createdAt);
               const own = m.senderId === myId;
+              const commentsCount = channelCommentCounts.data?.find((item) => item.postId === m.id)?.count ?? 0;
               const showSender =
                 isGroup && (isChannel || (!own && (!prev || prev.senderId !== m.senderId || sameDay(prev.createdAt, m.createdAt) === false)));
               return (
@@ -992,13 +993,13 @@ export default function ChatView() {
                         type="button"
                         onClick={() => setCommentsPost(m)}
                         className="tcy-press inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-[12px] font-bold tcy-accent"
-                        aria-label={`Комментировать публикацию, комментариев ${channelCommentCounts.data?.find((item) => item.postId === m.id)?.count ?? 0}`}
+                        aria-label={`Комментировать публикацию, комментариев ${commentsCount}`}
                       >
                         <MessageCircle size={15} />
                         <span>Комментировать</span>
-                        {(channelCommentCounts.data?.find((item) => item.postId === m.id)?.count ?? 0) > 0 && (
+                        {commentsCount > 0 && (
                           <span className="min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] tcy-card-strong">
-                            {channelCommentCounts.data?.find((item) => item.postId === m.id)?.count}
+                            {commentsCount}
                           </span>
                         )}
                       </button>
