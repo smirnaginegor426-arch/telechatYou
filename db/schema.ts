@@ -332,6 +332,22 @@ export const reactions = mysqlTable(
   }),
 );
 
+/** One record per account per channel post, used for unique view counts. */
+export const channelMessageViews = mysqlTable(
+  "channel_message_views",
+  {
+    id: serial("id").primaryKey(),
+    messageId: bigint("messageId", { mode: "number", unsigned: true }).notNull(),
+    userId: userId(),
+    viewedAt: timestamp("viewedAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    messageUserUnique: uniqueIndex("channel_message_views_unique").on(t.messageId, t.userId),
+    messageIdx: index("channel_message_views_message_idx").on(t.messageId),
+    userIdx: index("channel_message_views_user_idx").on(t.userId),
+  }),
+);
+
 /** Stored files registry (object-storage keys + ownership) */
 export const files = mysqlTable("files", {
   id: serial("id").primaryKey(),
