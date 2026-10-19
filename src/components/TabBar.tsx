@@ -164,8 +164,8 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
       aria-label="Основная навигация"
       className="tcy-main-nav absolute bottom-0 left-0 right-0 z-30 safe-bottom tcy-no-select"
     >
-      <div className="tcy-island mx-5 mb-2 rounded-[22px] border tcy-line tcy-header-blur">
-        <div className="grid grid-cols-4 h-[56px]">
+      <div className="tcy-island mx-auto mb-2 w-[min(272px,calc(100vw-56px))] rounded-full border tcy-line tcy-header-blur">
+        <div className="grid grid-cols-4 h-[54px]">
           {tabs.map(({ to, label, plushLabel, icon: Icon, plushEmoji }) => {
             const active = activeTo === to;
             const highlighted = dragTarget ? dragTarget === to : active;
@@ -186,27 +186,27 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                   navigate(to);
                 }}
                 className={cn(
-                  "relative h-full min-w-0 flex flex-col items-center justify-center gap-0 rounded-[21px] p-0 outline-none touch-none transition-[color,transform] duration-300",
+                  "relative h-full min-w-0 flex flex-col items-center justify-center gap-0 rounded-full p-0 outline-none touch-none transition-[color,transform] duration-300 ease-out",
                   highlighted && "tcy-tab-highlight",
-                  dragTarget === to && "scale-[1.035]",
+                  dragTarget === to && "scale-[1.015]",
                 )}
                 style={{ color: highlighted ? "var(--tcy-selected-accent)" : "var(--tcy-faint)" }}
               >
                 {highlighted && (
                   <motion.span
                     layoutId="tcy-tab-orb"
-                    className="absolute inset-0 rounded-[20px] tcy-tab-orb pointer-events-none"
+                    className="absolute inset-0 rounded-full tcy-tab-orb pointer-events-none"
                     transition={
                       isPrivateTester
-                        ? { type: "spring", bounce: 0, duration: 0.5 }
-                        : { type: "spring", stiffness: 220, damping: 27, mass: 0.85 }
+                        ? { type: "tween", duration: 0.42, ease: [0.22, 1, 0.36, 1] }
+                        : { type: "spring", stiffness: 155, damping: 28, mass: 1.05 }
                     }
                   />
                 )}
                 <span className="tcy-tab-icon-wrap relative z-[1] flex h-10 items-center justify-center pointer-events-none">
                   <motion.span
                     animate={{ scale: highlighted ? (isPrivateTester ? 1.12 : 1.04) : 1, y: highlighted ? -1 : 0, rotate: isPrivateTester && highlighted ? [0, -3, 3, 0] : 0 }}
-                    transition={{ type: "spring", stiffness: 320, damping: 30, mass: 0.8 }}
+                    transition={{ type: "spring", stiffness: 210, damping: 28, mass: 0.95 }}
                     className={isPrivateTester ? "tcy-tab-emoji" : "inline-flex items-center justify-center"}
                     aria-hidden="true"
                   >
@@ -227,7 +227,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                       className="absolute -right-2 -top-0.5 tcy-tab-spark"
                       initial={{ opacity: 0, scale: 0.4, rotate: -35 }}
                       animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      transition={{ type: "spring", stiffness: 320, damping: 25 }}
+                      transition={{ type: "tween", duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
                     >
                       <Sparkles size={10} />
                     </motion.span>
@@ -240,7 +240,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                       initial={{ opacity: 0, y: 5, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: 12 }}
                       exit={{ opacity: 0, y: 4, height: 0 }}
-                      transition={{ duration: 0.24, ease: "easeOut" }}
+                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                       className="relative z-[1] overflow-hidden whitespace-nowrap text-[9px] font-bold leading-[12px] pointer-events-none"
                     >
                       {displayLabel}
