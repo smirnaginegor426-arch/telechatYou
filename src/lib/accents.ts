@@ -115,7 +115,7 @@ export function applyTheme(theme: "dark" | "light", accent: string) {
       : `color-mix(in srgb, ${selected.deep} 24%, transparent)`,
 
     /* Neutral base for ordinary headers, forms and ambient background. */
-    "--tcy-header": dark ? "rgba(20, 20, 24, 0.90)" : "rgba(250, 250, 252, 0.88)",
+    "--tcy-header": dark ? "rgba(20, 20, 24, 0.82)" : "rgba(250, 250, 252, 0.88)",
     "--tcy-glass-line": dark ? "rgba(255, 255, 255, 0.19)" : "rgba(24, 24, 27, 0.14)",
     "--tcy-input": dark ? "rgba(24, 24, 28, 0.58)" : "rgba(255, 255, 255, 0.62)",
     "--tcy-glow-1": dark ? "rgba(255, 255, 255, 0.035)" : "rgba(24, 24, 27, 0.035)",
