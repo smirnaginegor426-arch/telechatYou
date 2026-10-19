@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Mail,
   Palette,
-  Monitor,
   Copy,
   Database,
   Eye,
@@ -44,7 +43,6 @@ import { useTheme } from "@/hooks/useTheme";
 import { ACCENTS } from "@/lib/accents";
 import { getMediaSendPreferences, saveMediaSendPreferences, type MediaSendPreferences } from "@/lib/media-send-preferences";
 import { useExperimentalUI } from "@/hooks/useExperimentalUI";
-import { getSavedScreenColor, SCREEN_COLORS } from "@/lib/screen-colors";
 
 /**
  * Settings are split into sections that open as separate pages.
@@ -223,24 +221,6 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
           >
             <Check size={14} strokeWidth={3} color="var(--tcy-selected-on-accent)" />
           </span>
-        }
-      />
-      <SettingsRow
-        icon={<Monitor size={17} />}
-        title="Цвет экрана"
-        subtitle={`Текущий цвет: ${SCREEN_COLORS.find((option) => option.id === getSavedScreenColor())?.name ?? "Стандартный"}`}
-        onClick={() => navigate("/screen-color")}
-        right={
-          <span
-            aria-hidden="true"
-            className="h-7 w-7 rounded-full border"
-            style={{
-              background: SCREEN_COLORS.find((option) => option.id === getSavedScreenColor())?.id === "default"
-                ? "var(--tcy-bg-2)"
-                : SCREEN_COLORS.find((option) => option.id === getSavedScreenColor())?.color,
-              borderColor: "var(--tcy-glass-line)",
-            }}
-          />
         }
       />
       <SettingsRow
