@@ -376,6 +376,17 @@
   background-repeat: repeat, no-repeat, no-repeat;
 }
 
+/* Preserve the Telegram-style doodle tile size in the small wallpaper cards;
+   background-size: cover stretches the pattern and makes its icons look distorted. */
+.tcy-wallpaper-preview.tcy-wallpaper-bg--pattern-sky,
+.tcy-wallpaper-preview.tcy-wallpaper-bg--pattern-emerald,
+.tcy-wallpaper-preview.tcy-wallpaper-bg--pattern-lavender,
+.tcy-wallpaper-preview.tcy-wallpaper-bg--pattern-sunset,
+.tcy-wallpaper-preview.tcy-wallpaper-bg--pattern-coral,
+.tcy-wallpaper-preview.tcy-wallpaper-bg--pattern-teal {
+  background-size: 144px 144px, auto !important;
+}
+
 /* ---- skeleton shimmer ---- */
 @keyframes tcy-shimmer {
   from { background-position: 200% 0; }
