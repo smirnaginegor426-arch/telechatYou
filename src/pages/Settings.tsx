@@ -500,6 +500,12 @@ function SettingsInner({ sectionId }: { sectionId?: SettingsSectionId }) {
   const chatsRows = (
     <>
       <SettingsRow
+        icon={<ShieldCheck size={17} />}
+        title="Сквозное шифрование"
+        subtitle="Matrix E2EE · отдельные зашифрованные чаты"
+        onClick={() => navigate("/encrypted")}
+      />
+      <SettingsRow
         icon={<Keyboard size={17} />}
         title="Enter отправляет"
         subtitle="Иначе Enter — новая строка"
