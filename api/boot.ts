@@ -28,6 +28,51 @@ if (!isEmailDeliveryConfigured()) {
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
+// Security headers for both the app shell and API responses.
+// The CSP is deliberately limited to directives that should not block the app's
+// existing scripts/styles: it prevents framing, plugins and hostile base/form targets.
+app.use("*", async (c, next) => {
+  await next();
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("X-Frame-Options", "DENY");
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  c.header("X-Permitted-Cross-Domain-Policies", "none");
+  c.header("Permissions-Policy", "camera=(self), microphone=(self), geolocation=()");
+  c.header("Content-Security-Policy", "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'");
+
+  if (env.isProduction) {
+    c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+
+  if (new URL(c.req.url).pathname.startsWith("/api/")) {
+    c.header("Cache-Control", "private, no-store, max-age=0");
+    c.header("Pragma", "no-cache");
+  }
+});
+
+// Reject cross-site writes to the API to reduce CSRF risk. Same-origin app calls
+// retain Origin and Fetch Metadata headers in browsers and Android WebView.
+app.use("/api/*", async (c, next) => {
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(c.req.method.toUpperCase())) {
+    const origin = c.req.header("origin");
+    if (origin) {
+      let suppliedOrigin = "";
+      try {
+        suppliedOrigin = new URL(origin).origin;
+      } catch {
+        return c.json({ error: "Invalid request origin" }, 403);
+      }
+      if (suppliedOrigin !== new URL(c.req.url).origin) {
+        return c.json({ error: "Cross-origin request blocked" }, 403);
+      }
+    }
+    if (c.req.header("sec-fetch-site")?.toLowerCase() === "cross-site") {
+      return c.json({ error: "Cross-site request blocked" }, 403);
+    }
+  }
+  await next();
+});
+
 app.use(bodyLimit({ maxSize: 32 * 1024 * 1024 }));
 app.use("/api/trpc/*", async (c) => {
   return fetchRequestHandler({
