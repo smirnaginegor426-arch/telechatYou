@@ -1,30 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360">
-  <g fill="none" stroke="#92acd4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" opacity=".36">
-    <path d="M30 74h34a8 8 0 0 1 8 8v17a8 8 0 0 1-8 8H47l-10 8v-8h-7a8 8 0 0 1-8-8V82a8 8 0 0 1 8-8Z"/>
-    <path d="M286 30l5 10 10 2-8 7 2 10-9-5-9 5 2-10-8-7 10-2z"/>
-    <path d="M124 103c-9-12-27-2-19 10l19 18 19-18c8-12-10-22-19-10Z"/>
-    <circle cx="315" cy="132" r="17"/><circle cx="309" cy="128" r="1.8" fill="#92acd4"/><circle cx="321" cy="128" r="1.8" fill="#92acd4"/><path d="M308 137q7 7 14 0"/>
-    <path d="M28 175l7 7 7-7-7-7zM35 159v5M35 188v5M19 175h5M46 175h5"/>
-    <path d="M215 50v30m-15-15h30m-25-10 20 20m0-20-20 20"/>
-    <path d="M286 204l7 7 7-7-7-7zM293 188v5M293 220v5M277 204h5M304 204h5"/>
-    <path d="M90 245h29a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6h-11l-8 7v-7h-10a6 6 0 0 1-6-6v-20a6 6 0 0 1 6-6Z"/>
-    <circle cx="99" cy="260" r="1.7" fill="#92acd4"/><circle cx="108" cy="260" r="1.7" fill="#92acd4"/><circle cx="117" cy="260" r="1.7" fill="#92acd4"/>
-    <path d="M228 267v-13a10 10 0 0 1 20 0v13M224 267h28v24h-28zM235 276v6"/>
-    <path d="M39 306l12-7 12 7v15H39zM45 299v-7h12v7M46 313h10"/>
-    <path d="M169 203l6 6 6-6-6-6zM175 187v5M175 219v5M159 203h5M186 203h5"/>
-    <path d="M245 106c-5-7-16-2-11 6l11 10 11-10c5-8-6-13-11-6Z"/>
-    <path d="M149 300q12-12 24 0l-3 17h-18zM155 300v-5h12v5M155 307h12"/>
-    <circle cx="54" cy="34" r="13"/><path d="M48 33h.1M60 33h.1M49 39q5 5 10 0"/>
-    <path d="M318 279c-4-8-13-4-12 2-8-1-9 8-3 11l5 1 3 8 3-8 5-1c7-3 6-12-1-13Z"/>
-    <path d="M42 126q6-7 12 0q6-7 12 0q0 9-12 15q-12-6-12-15Z"/>
-    <path d="M185 145l8 2 5 8-5 8-8 2-5-8 5-10Z"/>
-    <circle cx="183" cy="266" r="3"/><circle cx="197" cy="277" r="2"/><circle cx="183" cy="288" r="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="420" viewBox="0 0 420 420">
+  <g fill="none" stroke="#9db8e4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".27">
+    <g transform="translate(25 64)">
+      <path d="M0 8a8 8 0 0 1 8-8h34a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8H22l-11 8v-8H8a8 8 0 0 1-8-8Z"/>
+      <path d="M13 13h1M24 13h1M35 13h1" stroke-width="2.8"/>
+    </g>
+    <g transform="translate(326 42)">
+      <path d="M15 0l4.1 9.5 10.4 1.1-7.8 7.1 2.1 10.1L15 22.5 6.2 27.8l2.1-10.1L.5 10.6l10.4-1.1Z"/>
+    </g>
+    <g transform="translate(268 105)">
+      <path d="M16 1c-5.5-7.1-16.7-1.2-13 7 2.1 4.7 13 13 13 13S27 12.7 29 8C32.7-.2 21.5-6.1 16 1Z"/>
+    </g>
+    <g transform="translate(80 155)">
+      <circle cx="19" cy="19" r="18"/>
+      <circle cx="13" cy="16" r="1.6" fill="#9db8e4"/><circle cx="25" cy="16" r="1.6" fill="#9db8e4"/>
+      <path d="M12 23q7 7 14 0"/>
+    </g>
+    <g transform="translate(345 176)">
+      <path d="M8 15V9a8 8 0 0 1 16 0v6M4 15h24v22H4zM16 23v6"/>
+    </g>
+    <g transform="translate(25 254)">
+      <path d="M5 4h31a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H23l-9 7v-7H5a6 6 0 0 1-6-6V10a6 6 0 0 1 6-6Z"/>
+      <path d="M9 19h.1M20 19h.1M31 19h.1" stroke-width="3"/>
+    </g>
+    <g transform="translate(257 260)">
+      <path d="M5 10h28l-2 25H7Z M10 10V5h18v5M12 18h14M12 24h10"/>
+    </g>
+    <g transform="translate(146 350)">
+      <path d="M8 9h22a7 7 0 0 1 7 7v19H1V16a7 7 0 0 1 7-7Z"/>
+      <path d="M15 9V5a4 4 0 0 1 8 0v4M12 21h14"/>
+    </g>
+    <g transform="translate(185 45)">
+      <path d="M13 0v7M13 31v7M0 19h7M19 19h7M4 6l5 5M22 27l5 5M27 6l-5 5M9 27l-5 5"/>
+    </g>
+    <g transform="translate(170 172)">
+      <path d="M14 0l3.5 10.5L28 14l-10.5 3.5L14 28l-3.5-10.5L0 14l10.5-3.5Z"/>
+    </g>
+    <g transform="translate(64 368)">
+      <path d="M15 3c-5-6-14-1-11 6 2 4 11 11 11 11S24 13 26 9C29 2 20-3 15 3Z"/>
+    </g>
+    <g transform="translate(350 330)">
+      <path d="M2 20a16 16 0 1 0 19-19A13 13 0 0 1 2 20Z"/>
+    </g>
+    <g transform="translate(220 310)">
+      <path d="M5 15c0-10 22-10 22 0v10H5Z M9 15v-6M23 15v-6M1 25h30M8 31h16"/>
+      <path d="M9 3c-2-3 2-4 0-7M19 3c-2-3 2-4 0-7"/>
+    </g>
+    <g transform="translate(330 248)">
+      <path d="M0 11q8-12 16 0q8-12 16 0q0 12-16 22Q0 23 0 11Z"/>
+    </g>
+    <g transform="translate(125 103)">
+      <circle cx="13" cy="13" r="2"/><circle cx="28" cy="8" r="1.4"/><circle cx="24" cy="25" r="1.8"/>
+    </g>
   </g>
-  <g fill="#92acd4" opacity=".42" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="600" letter-spacing=".2">
-    <text x="12" y="54" transform="rotate(-9 12 54)">TeleChatYou</text>
-    <text x="164" y="124" transform="rotate(7 164 124)">TeleChatYou</text>
-    <text x="20" y="226" transform="rotate(-5 20 226)">TeleChatYou</text>
-    <text x="174" y="343" transform="rotate(-8 174 343)">TeleChatYou</text>
-    <text x="218" y="234" transform="rotate(8 218 234)">TeleChatYou</text>
+  <g fill="#a8c0e7" opacity=".39" font-family="Arial, Helvetica, sans-serif" font-size="15" font-weight="600" letter-spacing=".25">
+    <text x="22" y="35">TeleChatYou</text>
+    <text x="197" y="144">TeleChatYou</text>
+    <text x="30" y="235">TeleChatYou</text>
+    <text x="190" y="305">TeleChatYou</text>
+    <text x="60" y="410">TeleChatYou</text>
   </g>
 </svg>
