@@ -1294,7 +1294,7 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
   border-radius: 8px !important;
 }
 #root .tcy-chat-list-scroll:not(:has(> .tcy-chat-list-item)) > .divide-y > div:first-child > .tcy-chat-list-item {
-  border-radius: 32px 32px 0 0 !important;
+  border-radius: 8px 8px 32px 32px !important;
 }
 #root .tcy-chat-list-scroll:has(> .tcy-chat-list-item) > .divide-y > div:first-child > .tcy-chat-list-item {
   border-radius: 8px !important;
