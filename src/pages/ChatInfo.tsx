@@ -44,14 +44,15 @@ import {
   chatWallpaperKey,
   isChatWallpaperId,
   isExperimentalWallpaper,
+  readGlobalChatWallpaper,
 } from "@/lib/chat-wallpapers";
 
 function readWallpaper(chatId: number) {
   try {
     const saved = localStorage.getItem(chatWallpaperKey(chatId));
-    return saved === "custom" || isChatWallpaperId(saved) ? saved : DEFAULT_CHAT_WALLPAPER;
+    return saved === "custom" || isChatWallpaperId(saved) ? saved : readGlobalChatWallpaper();
   } catch {
-    return DEFAULT_CHAT_WALLPAPER;
+    return readGlobalChatWallpaper();
   }
 }
 
