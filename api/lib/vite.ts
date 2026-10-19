@@ -18,6 +18,12 @@ const LEGACY_SHELL = path.join("legacy", "index.html");
  * account. Keep false so the current build is never globally exposed.
  */
 const SERVE_CURRENT_BUILD_TO_EVERYONE = false;
+/** Opt-in marker used by the Alpha V2.0 Android APK. */
+const ALPHA_BUILD_COOKIE = "tcy_build=alpha-v2";
+const isAlphaBuildRequested = (requestUrl: string) =>
+  new URL(requestUrl).searchParams.get("tcyBuild") === "alpha-v2";
+const hasAlphaBuildCookie = (headers: Headers) =>
+  (headers.get("cookie") ?? "").split(";").some((cookie) => cookie.trim() === ALPHA_BUILD_COOKIE);
 
 export function serveStaticFiles(app: App) {
   const distPath = path.resolve(import.meta.dirname, "../dist/public");
@@ -28,12 +34,15 @@ export function serveStaticFiles(app: App) {
   };
 
   /**
-   * Only the server-verified private account receives the current application.
-   * Everyone else, including signed-out visitors, receives the frozen legacy
-   * build. Fail closed if the requested shell was not produced by the build.
+   * The private experimental account and the Alpha V2.0 Android build receive
+   * the current application. The alpha marker is persisted in a WebView cookie
+   * so refreshes and direct navigation keep the same build. Everyone else gets
+   * the frozen legacy build. Fail closed if a shell is missing.
    */
-  const shellFor = async (headers: Headers): Promise<string | null> => {
+  const shellFor = async (headers: Headers, requestUrl: string): Promise<string | null> => {
+    const alphaBuild = isAlphaBuildRequested(requestUrl) || hasAlphaBuildCookie(headers);
     const experimental =
+      alphaBuild ||
       SERVE_CURRENT_BUILD_TO_EVERYONE ||
       isPrivateExperimentalUser(await getSessionUser(getSessionToken(headers)));
     const preferred = experimental ? CURRENT_SHELL : LEGACY_SHELL;
@@ -50,11 +59,15 @@ export function serveStaticFiles(app: App) {
     const token = getSessionToken(headers);
     const user = await getSessionUser(token);
     const matchedBy = privateExperimentalMatch(user);
+    const alphaBuild = isAlphaBuildRequested(c.req.url) || hasAlphaBuildCookie(headers);
 
     return c.json({
       build:
-        SERVE_CURRENT_BUILD_TO_EVERYONE || matchedBy !== "none" ? "current" : "legacy",
+        alphaBuild || SERVE_CURRENT_BUILD_TO_EVERYONE || matchedBy !== "none"
+          ? "current"
+          : "legacy",
       matchedBy,
+      alphaBuild,
       forcedForEveryone: SERVE_CURRENT_BUILD_TO_EVERYONE,
       signedIn: Boolean(user),
       userId: user?.id ?? null,
@@ -89,9 +102,16 @@ export function serveStaticFiles(app: App) {
   // session check below.
   app.use("*", async (c, next) => {
     if (c.req.method !== "GET") return next();
-    if (!isDocumentRequest(new URL(c.req.url).pathname)) return next();
+    const requestUrl = new URL(c.req.url);
+    if (!isDocumentRequest(requestUrl.pathname)) return next();
 
-    const shell = await shellFor(c.req.raw.headers);
+    // The Alpha APK opts into the current UI once, then keeps it across SPA
+    // navigation and page reloads via a first-party cookie in its WebView.
+    if (isAlphaBuildRequested(c.req.url)) {
+      c.header("Set-Cookie", `${ALPHA_BUILD_COOKIE}; Path=/; Max-Age=2592000; Secure; SameSite=Lax`);
+    }
+
+    const shell = await shellFor(c.req.raw.headers, c.req.url);
     if (!shell) {
       c.header("Cache-Control", "no-store");
       return c.text("The requested TeleChat You build is unavailable. Please try again later.", 503);
@@ -130,7 +150,7 @@ export function serveStaticFiles(app: App) {
       return c.json({ error: "Not Found" }, 404);
     }
 
-    const shell = await shellFor(c.req.raw.headers);
+    const shell = await shellFor(c.req.raw.headers, c.req.url);
     if (!shell) {
       c.header("Cache-Control", "no-store");
       return c.text("The requested TeleChat You build is unavailable. Please try again later.", 503);
