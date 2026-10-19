@@ -119,6 +119,22 @@ export const emailVerificationCodes = mysqlTable(
   }),
 );
 
+/** Server-side one-time access keys for TeleChat You Alpha APK downloads. */
+export const alphaAccessKeys = mysqlTable(
+  "alpha_access_keys",
+  {
+    id: serial("id").primaryKey(),
+    /** SHA-256 hash only; plaintext access keys are never stored in the database. */
+    keyHash: varchar("keyHash", { length: 64 }).notNull().unique(),
+    keyType: mysqlEnum("keyType", ["tester", "subscriber"]).default("tester").notNull(),
+    usedAt: timestamp("usedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    alphaAccessKeyUsedIdx: index("alpha_access_keys_used_idx").on(t.usedAt),
+  }),
+);
+
 // ===================== TeleChatYou schema =====================
 
 const userId = () => bigint("userId", { mode: "number", unsigned: true }).notNull();
