@@ -32,7 +32,7 @@ function PendingAttachmentTile({
   attachment: PendingAttachment;
   onRemove: () => void;
   onEdit: () => void;
-  onPreview: (url: string, name: string) => void;
+  onPreview: (file: File, name: string) => void;
 }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -51,7 +51,7 @@ function PendingAttachmentTile({
       <div className="relative h-[124px] w-[98px] shrink-0 overflow-hidden rounded-[17px] border border-white/15 bg-black/15 shadow-[0_5px_18px_rgba(0,0,0,0.12)]">
         <button
           type="button"
-          onClick={() => previewUrl && onPreview(previewUrl, attachment.file.name)}
+          onClick={() => onPreview(attachment.file, attachment.file.name)}
           className="absolute inset-0 block h-full w-full"
           aria-label={`Открыть фото ${attachment.file.name}`}
         >
@@ -145,6 +145,12 @@ export function Composer({
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [editingAttachmentId, setEditingAttachmentId] = useState<string | null>(null);
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; name: string } | null>(null);
+
+  useEffect(() => {
+    if (!previewPhoto?.url) return;
+    const url = previewPhoto.url;
+    return () => URL.revokeObjectURL(url);
+  }, [previewPhoto?.url]);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
@@ -478,9 +484,17 @@ export function Composer({
       for (const file of files) {
         const isVideo = file.type.toLowerCase().startsWith("video/") ||
           /\.(3gp|avi|flv|m4v|mkv|mov|mp4|mpeg|mpg|ogv|ts|webm)$/i.test(file.name);
-        const prepared = !isVideo && preferences.compressPhotos ? await compressPhoto(file) : file;
+        let prepared = file;
+        if (!isVideo && preferences.compressPhotos) {
+          try {
+            prepared = await compressPhoto(file);
+          } catch {
+            // If the browser cannot decode/compress this image, still attach the original.
+            prepared = file;
+          }
+        }
         preparedFiles.push({
-          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${preparedFiles.length}`,
           file: prepared,
           kind: isVideo ? "file" : "image",
         });
@@ -589,7 +603,10 @@ export function Composer({
                   setPreviewPhoto(null);
                   setEditingAttachmentId(attachment.id);
                 }}
-                onPreview={(url, name) => setPreviewPhoto({ url, name })}
+                onPreview={(file, name) => {
+                  const url = URL.createObjectURL(file);
+                  setPreviewPhoto({ url, name });
+                }}
               />
             ))}
           </div>
