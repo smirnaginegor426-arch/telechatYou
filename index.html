@@ -19,7 +19,7 @@
     <script>
       try {
         var savedAccent = localStorage.getItem("tcy-accent");
-        var accents = ["purple", "blue", "cyan", "green", "orange", "red", "pink"];
+        var accents = ["purple", "blue", "cyan", "green", "orange", "red", "pink", "none"];
         if (savedAccent && accents.indexOf(savedAccent) >= 0) {
           document.documentElement.dataset.accent = savedAccent;
         }
@@ -52,6 +52,7 @@
       html[data-accent="orange"] #tcy-boot { --boot-accent: #b99a7d; }
       html[data-accent="red"] #tcy-boot { --boot-accent: #b98991; }
       html[data-accent="pink"] #tcy-boot { --boot-accent: #b58da5; }
+      html[data-accent="none"] #tcy-boot { --boot-accent: #85858b; }
       html[data-theme="light"] #tcy-boot { --boot-accent: #78678f; }
       html[data-theme="light"][data-accent="blue"] #tcy-boot { --boot-accent: #58799c; }
       html[data-theme="light"][data-accent="cyan"] #tcy-boot { --boot-accent: #5f898e; }
@@ -59,6 +60,7 @@
       html[data-theme="light"][data-accent="orange"] #tcy-boot { --boot-accent: #92775d; }
       html[data-theme="light"][data-accent="red"] #tcy-boot { --boot-accent: #916873; }
       html[data-theme="light"][data-accent="pink"] #tcy-boot { --boot-accent: #906e84; }
+      html[data-theme="light"][data-accent="none"] #tcy-boot { --boot-accent: #71717a; }
 
       /* Mirrors ConnectionLoader: two dots split apart and merge back. */
       .tcy-boot-dots {
