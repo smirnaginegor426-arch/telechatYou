@@ -103,6 +103,10 @@ export async function initializeMatrixClient(session: MatrixSession): Promise<Ma
   try {
     // Isolate persistent Rust crypto state by Matrix account and device on this origin.
     await client.initRustCrypto({ cryptoDatabasePrefix: `tcy-matrix-${dbUser}-${dbDevice}` });
+    const crypto = client.getCrypto();
+    if (!crypto) throw new Error("Matrix E2EE не инициализирован. Подключение остановлено.");
+    // Fail closed for unverified recipient devices. They will not receive room keys.
+    crypto.globalBlacklistUnverifiedDevices = true;
     initializedClient = client;
     return client;
   } catch (error) {
