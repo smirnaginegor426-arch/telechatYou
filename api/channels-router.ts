@@ -6,6 +6,7 @@ import { getDb } from "./queries/connection";
 import { channelPostComments, channels, chatMembers, chats, messages, profiles } from "@db/schema";
 import { getChatMembers, getMembership, getProfilesByIds, touchChat } from "./queries/telechat";
 import { makeInviteToken, readInviteToken } from "./lib/invite";
+import { getChannelCommentsEnabled, setChannelCommentsEnabled } from "./lib/channel-comments";
 
 const channelUsername = z.string().trim().toLowerCase().min(3).max(32).regex(
   /^[a-z0-9_]+$/,
@@ -214,8 +215,10 @@ export const channelsRouter = createRouter({
         isPublic: input.isPublic,
         username,
         ...(input.description !== undefined ? { description: input.description } : {}),
-        ...(input.commentsEnabled !== undefined ? { commentsEnabled: input.commentsEnabled } : {}),
       }).where(eq(channels.chatId, input.chatId));
+      if (input.commentsEnabled !== undefined && community.kind === "channel") {
+        await setChannelCommentsEnabled(input.chatId, input.commentsEnabled);
+      }
       await touchChat(input.chatId);
 
       return { ok: true, username, isPublic: input.isPublic };
@@ -230,7 +233,7 @@ export const channelsRouter = createRouter({
       const channel = await getDb().query.channels.findFirst({
         where: and(eq(channels.chatId, input.chatId), eq(channels.kind, "channel")),
       });
-      if (!channel || !channel.commentsEnabled) return [];
+      if (!channel || !(await getChannelCommentsEnabled(input.chatId))) return [];
       const rows = await getDb()
         .select({
           postId: channelPostComments.postId,
@@ -251,7 +254,7 @@ export const channelsRouter = createRouter({
       const channel = await getDb().query.channels.findFirst({
         where: and(eq(channels.chatId, input.chatId), eq(channels.kind, "channel")),
       });
-      if (!channel || !channel.commentsEnabled) {
+      if (!channel || !(await getChannelCommentsEnabled(input.chatId))) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Комментарии в этом канале отключены" });
       }
       const post = await getDb().query.messages.findFirst({
@@ -305,7 +308,7 @@ export const channelsRouter = createRouter({
       const channel = await getDb().query.channels.findFirst({
         where: and(eq(channels.chatId, input.chatId), eq(channels.kind, "channel")),
       });
-      if (!channel || !channel.commentsEnabled) {
+      if (!channel || !(await getChannelCommentsEnabled(input.chatId))) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Комментарии в этом канале отключены" });
       }
       const post = await getDb().query.messages.findFirst({
