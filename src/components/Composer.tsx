@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, ClipboardPaste, Copy, FileText, FileUp, Image as ImageIcon, Images, Mic, Plus, Scissors, Sticker, Trash2, X } from "lucide-react";
+import { ArrowUp, Brush, ClipboardPaste, Copy, FileText, FileUp, Images, Mic, Plus, Scissors, Sticker, Trash2, X } from "lucide-react";
 import { StickerPicker } from "./StickerPicker";
 import type { StickerAsset, StickerPack } from "@/lib/stickers";
 import { formatDuration } from "@/lib/format";
 import { compressPhoto, getMediaSendPreferences, MEDIA_SEND_PREFERENCES_CHANGED_EVENT } from "@/lib/media-send-preferences";
 import { cn } from "@/lib/utils";
+import { PhotoEditor } from "./PhotoEditor";
 
 
 type PendingAttachment = { id: string; file: File; kind: "image" | "file" };
@@ -19,6 +20,141 @@ function isImageAttachment(file: File) {
   }
   return type.startsWith("image/") ||
     /\.(avif|bmp|gif|heic|heif|jpe?g|png|tiff?|webp)$/i.test(file.name);
+}
+
+
+function PendingAttachmentTile({
+  attachment,
+  onRemove,
+  onEdit,
+  onPreview,
+}: {
+  attachment: PendingAttachment;
+  onRemove: () => void;
+  onEdit: () => void;
+  onPreview: (url: string, name: string) => void;
+}) {
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (attachment.kind !== "image") {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(attachment.file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [attachment.file, attachment.kind]);
+
+  if (attachment.kind === "image") {
+    return (
+      <div className="relative h-[124px] w-[98px] shrink-0 overflow-hidden rounded-[17px] border border-white/15 bg-black/15 shadow-[0_5px_18px_rgba(0,0,0,0.12)]">
+        <button
+          type="button"
+          onClick={() => previewUrl && onPreview(previewUrl, attachment.file.name)}
+          className="absolute inset-0 block h-full w-full"
+          aria-label={`Открыть фото ${attachment.file.name}`}
+        >
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt={attachment.file.name || "Фото"}
+              className="h-full w-full object-cover"
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <span className="tcy-skeleton block h-full w-full" />
+          )}
+          <span className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/55 to-transparent" />
+        </button>
+        <button
+          type="button"
+          onClick={onEdit}
+          aria-label="Редактировать фото"
+          title="Редактировать фото"
+          className="tcy-press absolute right-1.5 top-1.5 flex h-9 w-9 items-center justify-center rounded-full border border-white/45 bg-white/25 text-white shadow-[0_4px_14px_rgba(0,0,0,0.22)] backdrop-blur-xl transition-transform hover:scale-105 active:scale-95"
+        >
+          <Brush size={17} strokeWidth={2.1} />
+        </button>
+        <span className="pointer-events-none absolute bottom-2 left-2 max-w-[56px] truncate text-[10px] font-bold text-white/90 drop-shadow">
+          Фото
+        </span>
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Удалить фото ${attachment.file.name}`}
+          className="tcy-press absolute bottom-1.5 right-1.5 flex h-7 w-7 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-lg backdrop-blur-md"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex max-w-[245px] shrink-0 items-center gap-2 rounded-[14px] border tcy-line tcy-card px-2.5 py-2">
+      <FileText size={16} className="tcy-accent shrink-0" />
+      <span className="max-w-[155px] truncate text-[11.5px] tcy-text">{attachment.file.name}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Удалить вложение ${attachment.file.name}`}
+        className="tcy-press flex h-6 w-6 shrink-0 items-center justify-center rounded-full tcy-faint"
+      >
+        <X size={13} />
+      </button>
+      {editingAttachmentId && (() => {
+        const attachment = pendingAttachments.find((item) => item.id === editingAttachmentId && item.kind === "image");
+        return attachment ? createPortal(
+          <PhotoEditor
+            key={attachment.id}
+            image={attachment.file}
+            onCancel={() => setEditingAttachmentId(null)}
+            onSave={(editedFile) => {
+              setPendingAttachments((current) => current.map((item) =>
+                item.id === attachment.id ? { ...item, file: editedFile } : item
+              ));
+              setEditingAttachmentId(null);
+            }}
+          />,
+          document.body,
+        ) : null;
+      })()}
+
+      <AnimatePresence>
+        {previewPhoto && createPortal(
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10050] flex flex-col bg-black/95 text-white"
+            onClick={() => setPreviewPhoto(null)}
+          >
+            <div className="flex items-center justify-between gap-3 px-4 py-3 safe-top" onClick={(event) => event.stopPropagation()}>
+              <span className="min-w-0 flex-1 truncate text-[13px] font-bold">{previewPhoto.name || "Фото"}</span>
+              <button
+                type="button"
+                onClick={() => setPreviewPhoto(null)}
+                aria-label="Закрыть фото"
+                className="tcy-press flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-xl"
+              >
+                <X size={19} />
+              </button>
+            </div>
+            <div className="flex min-h-0 flex-1 items-center justify-center p-3 pb-5" onClick={(event) => event.stopPropagation()}>
+              <img
+                src={previewPhoto.url}
+                alt={previewPhoto.name || "Фото"}
+                className="max-h-full max-w-full rounded-[18px] object-contain shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+              />
+            </div>
+          </motion.div>,
+          document.body,
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 type Props = {
@@ -55,6 +191,8 @@ export function Composer({
   const [attachOpen, setAttachOpen] = useState(false);
   const [preparingImage, setPreparingImage] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [editingAttachmentId, setEditingAttachmentId] = useState<string | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<{ url: string; name: string } | null>(null);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
@@ -489,27 +627,18 @@ export function Composer({
 
       <div className="px-3 pb-3 pt-1.5 safe-bottom">
         {pendingAttachments.length > 0 && !recording && (
-          <div className="flex flex-wrap gap-2 px-1 pb-2">
+          <div className="flex flex-nowrap items-center gap-2.5 overflow-x-auto no-scrollbar px-1 pb-2">
             {pendingAttachments.map((attachment) => (
-              <div
+              <PendingAttachmentTile
                 key={attachment.id}
-                className="max-w-full flex items-center gap-2 rounded-[14px] tcy-card border tcy-line px-2.5 py-2"
-              >
-                {attachment.kind === "image"
-                  ? <ImageIcon size={16} className="tcy-accent shrink-0" />
-                  : <FileText size={16} className="tcy-accent shrink-0" />}
-                <span className="max-w-[160px] truncate text-[11.5px] tcy-text">
-                  {attachment.file.name}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPendingAttachments((current) => current.filter((item) => item.id !== attachment.id))}
-                  aria-label={`Удалить вложение ${attachment.file.name}`}
-                  className="tcy-press w-5 h-5 rounded-full flex items-center justify-center tcy-faint shrink-0"
-                >
-                  <X size={13} />
-                </button>
-              </div>
+                attachment={attachment}
+                onRemove={() => setPendingAttachments((current) => current.filter((item) => item.id !== attachment.id))}
+                onEdit={() => {
+                  setPreviewPhoto(null);
+                  setEditingAttachmentId(attachment.id);
+                }}
+                onPreview={(url, name) => setPreviewPhoto({ url, name })}
+              />
             ))}
           </div>
         )}
