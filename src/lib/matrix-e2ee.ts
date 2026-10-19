@@ -96,15 +96,13 @@ export async function initializeMatrixClient(session: MatrixSession): Promise<Ma
     accessToken: session.accessToken,
     userId: session.userId,
     deviceId: session.deviceId,
-    // Keep Matrix crypto IndexedDB records separated across the distinct
-    // Matrix accounts/devices that might use the same TeleChat You origin.
-    cryptoDatabasePrefix: `tcy-matrix-${dbUser}-${dbDevice}`,
   });
   activeClient = client;
   activeSessionKey = identity;
 
   try {
-    await client.initRustCrypto();
+    // Isolate persistent Rust crypto state by Matrix account and device on this origin.
+    await client.initRustCrypto({ cryptoDatabasePrefix: `tcy-matrix-${dbUser}-${dbDevice}` });
     initializedClient = client;
     return client;
   } catch (error) {
@@ -136,7 +134,6 @@ export async function loginMatrix(
     identifier: { type: "m.id.user", user: cleanUsername },
     password,
     initial_device_display_name: "TeleChat You",
-    refresh_token: true,
   });
 
   if (!response.access_token || !response.user_id || !response.device_id) {
