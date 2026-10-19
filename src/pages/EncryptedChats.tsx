@@ -138,7 +138,7 @@ export default function EncryptedChats() {
       matrixClient.on(ClientEvent.Sync, onSync);
       matrixClient.on(RoomEvent.Timeline, onTimeline);
       startMatrixSync(matrixClient);
-      setNotice("Криптографический модуль Matrix инициализирован. Дождись синхронизации списка чатов.");
+      setNotice("E2EE инициализирован. Matrix не выдаёт ключи неподтверждённым устройствам; проверка устройств в TeleChat You пока не реализована.");
     } catch (cause) {
       setError(safeMatrixError(cause));
     } finally {
@@ -189,7 +189,7 @@ export default function EncryptedChats() {
       result.client.on(RoomEvent.Timeline, onTimeline);
       startMatrixSync(result.client);
       refreshClientState(result.client);
-      setNotice("E2EE-модуль инициализирован. Обычные чаты TeleChat You не изменены.");
+      setNotice("E2EE инициализирован. Matrix не выдаёт ключи неподтверждённым устройствам; проверка устройств в TeleChat You пока не реализована. Старые чаты не изменены.");
     } catch (cause) {
       setError(safeMatrixError(cause));
     } finally {
@@ -201,7 +201,7 @@ export default function EncryptedChats() {
     event.preventDefault();
     if (!client || !roomName.trim()) return;
     const invite = inviteUser.trim();
-    if (invite && !/^@[^s:]+:.+$/.test(invite)) {
+    if (invite && !/^@[^\\s:]+:.+$/.test(invite)) {
       setError("Matrix ID собеседника должен выглядеть так: @имя:сервер");
       return;
     }
@@ -314,7 +314,7 @@ export default function EncryptedChats() {
               </div>
               <h2 className="text-[18px] font-extrabold tcy-text">Подключить Matrix</h2>
               <p className="mt-2 text-[13px] leading-relaxed tcy-dim">
-                Для E2EE нужен отдельный Matrix-аккаунт и доступный homeserver. Эти данные не передаются серверу TeleChat You. Пароль используется только для входа на выбранный Matrix-сервер.
+                Для E2EE нужен отдельный Matrix-аккаунт и доступный homeserver. Пароль отправляется напрямую выбранному Matrix-серверу по HTTPS, не в API TeleChat You. Сам интерфейс загружается с сайта TeleChat You, поэтому доверяй исходному коду и используй эту бета-версию только для тестирования.
               </p>
             </div>
             <form onSubmit={handleLogin} className="space-y-3">
@@ -374,7 +374,7 @@ export default function EncryptedChats() {
                   <span className="flex h-9 w-9 items-center justify-center rounded-full tcy-card-strong"><LockKeyhole size={15} className="tcy-accent" /></span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-extrabold tcy-text">{selectedRoom.name}</p>
-                    <p className="text-[10.5px] tcy-dim">Содержимое шифруется Matrix SDK</p>
+                    <p className="text-[10.5px] tcy-dim">E2EE · ключи не выдаются неподтверждённым устройствам</p>
                   </div>
                   <ShieldCheck size={16} className="tcy-accent" />
                 </div>
