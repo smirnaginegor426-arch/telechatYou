@@ -648,7 +648,7 @@ export function Composer({
             <>
               <div className="relative shrink-0">
                 <AnimatePresence>
-                  {attachOpen && (
+                  {attachOpen && createPortal(
                     <motion.div
                       role="menu"
                       aria-label="Добавить вложение"
@@ -676,7 +676,8 @@ export function Composer({
                         <Images size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
                         <span>Галерея</span>
                       </button>
-                    </motion.div>
+                    </motion.div>,
+                    document.body,
                   )}
                 </AnimatePresence>
                 <button
