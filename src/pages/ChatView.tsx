@@ -539,7 +539,7 @@ export default function ChatView() {
   const status = isFavoritesChat
     ? "Личные сохранённые сообщения"
     : channel
-      ? channel.isPublic ? `Публичный канал · @${channel.username}` : "Приватный канал"
+      ? channel.isPublic && channel.username ? `@${channel.username}` : ""
       : info.data?.publicGroup?.isPublic && info.data.publicGroup.username
         ? `Публичная группа · @${info.data.publicGroup.username}`
         : isGroup
@@ -709,12 +709,14 @@ export default function ChatView() {
                 <span className="truncate">{title}</span>
                 {!isGroup && isTesterUsername(peer?.username, peer?.userId) && <TesterBadge />}
               </div>
-              <div
-                className="text-[12px] font-semibold truncate transition-colors"
-                style={{ color: online ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
-              >
-                {status}
-              </div>
+              {status && (
+                <div
+                  className="text-[12px] font-semibold truncate transition-colors"
+                  style={{ color: online ? "var(--tcy-accent)" : "var(--tcy-faint)" }}
+                >
+                  {status}
+                </div>
+              )}
             </div>
           </button>
           <button
