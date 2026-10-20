@@ -187,6 +187,7 @@ export function Composer({
     }
   });
   const [attachOpen, setAttachOpen] = useState(false);
+  const [attachPosition, setAttachPosition] = useState<{ left: number; bottom: number } | null>(null);
   const [preparingImage, setPreparingImage] = useState(false);
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
   const [editingAttachment, setEditingAttachment] = useState<PendingAttachment | null>(null);
@@ -213,6 +214,7 @@ export function Composer({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imgInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachmentButtonRef = useRef<HTMLButtonElement>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
@@ -510,6 +512,25 @@ export function Composer({
     void startRecording();
   };
 
+  const toggleAttachmentMenu = () => {
+    if (attachOpen) {
+      setAttachOpen(false);
+      return;
+    }
+    const rect = attachmentButtonRef.current?.getBoundingClientRect();
+    const menuWidth = 224;
+    setAttachPosition(
+      rect
+        ? {
+            left: Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8)),
+            bottom: Math.max(12, window.innerHeight - rect.top + 8),
+          }
+        : { left: 12, bottom: 120 },
+    );
+    setAttachOpen(true);
+    setStickerOpen(false);
+  };
+
   const hasText = text.trim().length > 0;
   const hasContent = hasText || pendingAttachments.length > 0;
 
@@ -583,6 +604,44 @@ export function Composer({
         }}
       />
 
+      {attachOpen && typeof document !== "undefined" && createPortal(
+        <div
+          role="menu"
+          aria-label="Добавить вложение"
+          className="fixed z-[2147483647] w-[216px] rounded-[16px] border p-1.5"
+          style={{
+            left: attachPosition?.left ?? 12,
+            bottom: attachPosition?.bottom ?? 120,
+            background: "var(--tcy-solid)",
+            borderColor: "var(--tcy-line)",
+            boxShadow: "0 14px 40px rgba(0,0,0,0.42)",
+            pointerEvents: "auto",
+          }}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setAttachOpen(false); fileInputRef.current?.click(); }}
+            className="tcy-press flex h-10 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[13px] font-medium"
+            style={{ color: "var(--tcy-text)" }}
+          >
+            <FileUp size={16} strokeWidth={1.8} className="shrink-0" />
+            <span>Загрузить файл</span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setAttachOpen(false); imgInputRef.current?.click(); }}
+            className="tcy-press flex h-10 w-full items-center gap-2.5 rounded-[10px] px-2.5 text-left text-[13px] font-medium"
+            style={{ color: "var(--tcy-text)" }}
+          >
+            <Images size={16} strokeWidth={1.8} className="shrink-0" />
+            <span>Галерея</span>
+          </button>
+        </div>,
+        document.body,
+      )}
+
       <AnimatePresence>
         {stickerOpen && !recording && (
           <StickerPicker
@@ -647,47 +706,10 @@ export function Composer({
           ) : (
             <>
               <div className="relative shrink-0">
-                {typeof document !== "undefined" && createPortal(
-                    <AnimatePresence>
-                      {attachOpen && (
-                    <motion.div
-                      key="attachment-menu"
-                      role="menu"
-                      aria-label="Добавить вложение"
-                      initial={{ opacity: 0, y: 7, scale: 0.97 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 6, scale: 0.97 }}
-                      transition={{ type: "spring", stiffness: 520, damping: 38 }}
-                      className="fixed bottom-[100px] left-3 z-[10060] w-[208px] rounded-[15px] border tcy-line tcy-solid p-1.5 shadow-xl"
-                    >
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
-                      >
-                        <FileUp size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
-                        <span>Загрузить файл</span>
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => imgInputRef.current?.click()}
-                        className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
-                      >
-                        <Images size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
-                        <span>Галерея</span>
-                      </button>
-                    </motion.div>
-                      )}
-                    </AnimatePresence>,
-                    document.body,
-                  )}
+
                 <button
-                  onClick={() => {
-                    setAttachOpen((v) => !v);
-                    setStickerOpen(false);
-                  }}
+                  ref={attachmentButtonRef}
+                  onClick={toggleAttachmentMenu}
                   className={cn(
                     "tcy-press tcy-glass-surface flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform",
                     attachOpen && "rotate-45",
