@@ -15,6 +15,7 @@ const INITIAL_ALPHA_KEYS: Array<{
   { key: "TCY-NEW-R8W2-Z6VN", keyType: "tester", alreadyUsed: false },
   { key: "TCY-NEW-H3JD-9BFT", keyType: "tester", alreadyUsed: false },
   { key: "TCY-ALPHA-7KQ9-M2VX-R8NP", keyType: "tester", alreadyUsed: false },
+  { key: "TCY-ALPHA-4M8Q-T2ZP-K6RW", keyType: "tester", alreadyUsed: false },
   // The owner confirmed this subscriber key had already been used.
   { key: "TCY-ALPHA-9R4K-P7WQ-X3ND", keyType: "subscriber", alreadyUsed: true },
 ];
