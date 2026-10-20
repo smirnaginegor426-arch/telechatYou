@@ -11,6 +11,7 @@ import { formatChatTime, isOnline } from "@/lib/format";
 
 export default function Search() {
   const navigate = useNavigate();
+  const me = trpc.profile.me.useQuery(undefined, { staleTime: 60_000 });
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const query = q.trim();
@@ -123,7 +124,7 @@ export default function Search() {
             {(users.data?.length ?? 0) > 0 && (
               <Section title="Люди">
                 {users.data!.map((p, i) => (
-                  <Row key={p.id} index={i} onClick={() => createDirect.mutate({ userId: p.userId })}>
+                  <Row key={p.id} index={i} onClick={() => p.userId === me.data?.profile?.userId ? navigate("/profile") : createDirect.mutate({ userId: p.userId })}>
                     <Avatar
                       name={contactNames[String(p.userId)] ?? p.displayName}
                       avatarKey={p.avatarKey}
@@ -144,7 +145,7 @@ export default function Search() {
                         </span>
                       </div>
                     </div>
-                    <span className="text-[12px] font-bold tcy-accent shrink-0">Написать</span>
+                    <span className="text-[12px] font-bold tcy-accent shrink-0">{p.userId === me.data?.profile?.userId ? "Профиль" : "Написать"}</span>
                   </Row>
                 ))}
               </Section>
