@@ -7,6 +7,7 @@ import {
   BellOff,
   Camera,
   Check,
+  ChevronDown,
   Copy,
   Crown,
   FileText,
@@ -126,6 +127,7 @@ export default function ChatInfo() {
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const [wallpaper, setWallpaper] = useState<string>(() => readWallpaper(chatId));
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(() => readWallpaperImage(chatId));
+  const [wallpaperOpen, setWallpaperOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const wallpaperFileRef = useRef<HTMLInputElement>(null);
   const directory = trpc.profile.directory.useQuery(undefined, { enabled: addOpen });
@@ -606,17 +608,29 @@ export default function ChatInfo() {
 
       {/* chat wallpaper */}
       <section className="mx-4 mt-6 rounded-[24px] tcy-card border tcy-line p-4">
-        <div className="flex items-center gap-3 mb-3.5">
-          <span className="w-9 h-9 rounded-[13px] flex items-center justify-center tcy-card-strong tcy-accent">
-            <ImageIcon size={17} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <h3 className="text-[14.5px] font-bold tcy-text">{channel ? "Обои канала" : "Обои чата"}</h3>
-            <p className="text-[11.5px] tcy-faint mt-0.5">Меняются только для вас на этом устройстве</p>
-          </div>
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <button
+            type="button"
+            onClick={() => setWallpaperOpen((open) => !open)}
+            aria-expanded={wallpaperOpen}
+            className="tcy-press flex h-11 min-w-0 items-center justify-center gap-2 rounded-[15px] border tcy-line tcy-card text-[13px] font-bold tcy-text"
+          >
+            <ImageIcon size={16} className="tcy-accent" />
+            Обои
+          </button>
+          <button
+            type="button"
+            onClick={() => setWallpaperOpen((open) => !open)}
+            aria-label={wallpaperOpen ? "Скрыть выбор обоев" : "Показать выбор обоев"}
+            aria-expanded={wallpaperOpen}
+            className="tcy-press flex h-11 min-w-0 items-center justify-center rounded-[15px] border tcy-line tcy-card tcy-text"
+          >
+            <ChevronDown size={19} className={`transition-transform duration-300 ${wallpaperOpen ? "rotate-180" : ""}`} />
+          </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`overflow-hidden transition-[max-height,opacity] duration-300 ${wallpaperOpen ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"}`}>
+          <div className="grid grid-cols-3 gap-3">
           {CHAT_WALLPAPERS.filter(
             (item) => experimentalUI || !isExperimentalWallpaper(item.id),
           ).map((item) => (
@@ -682,6 +696,7 @@ export default function ChatInfo() {
             Сбросить свои обои
           </button>
         )}
+        </div>
       </section>
 
       {/* members */}
