@@ -3,7 +3,7 @@ import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import type { AppRouter } from "../../api/router";
 
-/** vanilla (non-hook) client for imperative URL resolution */
+/** Vanilla client for imperative URL resolution without adding hook dependencies. */
 const vanilla = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
@@ -16,51 +16,93 @@ const vanilla = createTRPCClient<AppRouter>({
   ],
 });
 
-/** session-level cache: storage key -> presigned url */
-const cache = new Map<string, string>();
+type CachedUrl = { url: string; expiresAt: number };
+type RefreshDetail = { key: string };
+const REFRESH_EVENT = "tcy:refresh-file-url";
+// Signed storage URLs expire; refresh the local cache before they approach server expiry.
+const CACHE_TTL_MS = 7 * 60 * 1000;
+const cache = new Map<string, CachedUrl>();
 const pending = new Map<string, Promise<string | null>>();
 
-async function resolveKey(key: string): Promise<string | null> {
+async function resolveKey(key: string, force = false): Promise<string | null> {
+  if (force) {
+    cache.delete(key);
+    pending.delete(key);
+  }
+
   const hit = cache.get(key);
-  if (hit) return hit;
-  const p = pending.get(key);
-  if (p) return p;
-  const promise = vanilla.storage.urls
+  if (hit && hit.expiresAt > Date.now()) return hit.url;
+  if (hit) cache.delete(key);
+
+  const inFlight = pending.get(key);
+  if (inFlight) return inFlight;
+
+  let promise: Promise<string | null>;
+  promise = vanilla.storage.urls
     .query({ keys: [key] })
-    .then((r) => {
-      const url = r.urls[key] ?? null;
-      if (url) cache.set(key, url);
-      pending.delete(key);
+    .then((result) => {
+      const url = result.urls[key] ?? null;
+      // Do not let an older request overwrite a newer forced refresh.
+      if (pending.get(key) === promise) {
+        pending.delete(key);
+        if (url) cache.set(key, { url, expiresAt: Date.now() + CACHE_TTL_MS });
+      }
       return url;
     })
     .catch(() => {
-      pending.delete(key);
+      if (pending.get(key) === promise) pending.delete(key);
       return null;
     });
   pending.set(key, promise);
   return promise;
 }
 
-/** Resolve an object-storage key into a renderable URL (cached, ~10 min TTL from server). */
+/** Force a fresh URL after an image fails to load. */
+export function refreshFileUrl(key: string | null | undefined): void {
+  if (!key || typeof window === "undefined") return;
+  cache.delete(key);
+  pending.delete(key);
+  window.dispatchEvent(new CustomEvent<RefreshDetail>(REFRESH_EVENT, { detail: { key } }));
+}
+
+/** Resolve object-storage key; cached links are renewed before their expiry. */
 export function useFileUrl(key: string | null | undefined): string | null {
-  const [url, setUrl] = useState<string | null>(() => (key ? cache.get(key) ?? null : null));
+  const [url, setUrl] = useState<string | null>(() => {
+    if (!key) return null;
+    const cached = cache.get(key);
+    return cached && cached.expiresAt > Date.now() ? cached.url : null;
+  });
 
   useEffect(() => {
     if (!key) {
       setUrl(null);
       return;
     }
-    const hit = cache.get(key);
-    if (hit) {
-      setUrl(hit);
-      return;
-    }
+
     let alive = true;
-    resolveKey(key).then((u) => {
-      if (alive) setUrl(u);
-    });
+    const load = (force = false) => {
+      void resolveKey(key, force).then((nextUrl) => {
+        if (alive) setUrl(nextUrl);
+      });
+    };
+
+    const onRefresh = (event: Event) => {
+      const detail = (event as CustomEvent<RefreshDetail>).detail;
+      if (detail?.key === key) load(true);
+    };
+    window.addEventListener(REFRESH_EVENT, onRefresh);
+
+    const cached = cache.get(key);
+    if (cached && cached.expiresAt > Date.now()) {
+      setUrl(cached.url);
+    } else {
+      setUrl(null);
+      load();
+    }
+
     return () => {
       alive = false;
+      window.removeEventListener(REFRESH_EVENT, onRefresh);
     };
   }, [key]);
 
@@ -68,5 +110,5 @@ export function useFileUrl(key: string | null | undefined): string | null {
 }
 
 export function prefetchFileUrls(keys: (string | null | undefined)[]) {
-  keys.filter((k): k is string => !!k).forEach((k) => void resolveKey(k));
+  keys.filter((key): key is string => !!key).forEach((key) => void resolveKey(key));
 }
