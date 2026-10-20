@@ -998,26 +998,11 @@ export default function ChatView() {
                       setEditing(null);
                       setActionMsg(null);
                     }}
+                    showChannelComments={isChannel && !!info.data?.channel?.commentsEnabled}
+                    channelCommentsCount={commentsCount}
+                    onOpenChannelComments={() => setCommentsPost(m)}
                     experimental={experimentalUI}
-                  />
-                  {isChannel && info.data?.channel?.commentsEnabled && (
-                    <div className="mb-3 mt-1 flex px-5">
-                      <button
-                        type="button"
-                        onClick={() => setCommentsPost(m)}
-                        className="tcy-press inline-flex items-center gap-2 rounded-full px-2.5 py-1.5 text-[12px] font-bold tcy-accent"
-                        aria-label={`Комментировать публикацию, комментариев ${commentsCount}`}
-                      >
-                        <MessageCircle size={15} />
-                        <span>Комментировать</span>
-                        {commentsCount > 0 && (
-                          <span className="min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] tcy-card-strong">
-                            {commentsCount}
-                          </span>
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  />}
                 </div>
               );
             })
