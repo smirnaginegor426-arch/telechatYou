@@ -71,21 +71,6 @@ export default function Profile() {
 
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
-      <div
-        className="absolute right-4 z-40"
-        style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
-      >
-        <button
-          type="button"
-          aria-label="Редактировать профиль"
-          title="Редактировать профиль"
-          onClick={openEdit}
-          className="tcy-press flex h-10 w-10 items-center justify-center rounded-full tcy-gradient-accent tcy-shadow-accent"
-          style={{ color: "var(--tcy-selected-on-accent)" }}
-        >
-          <SquarePen size={19} strokeWidth={2.2} />
-        </button>
-      </div>
       <input
         ref={fileRef}
         type="file"
@@ -170,9 +155,10 @@ export default function Profile() {
             onClick={() => logout()}
             className="tcy-press flex w-full items-center gap-3.5 rounded-[20px] border px-4 py-4 text-left transition-colors"
             style={{
-              color: "#ff414e",
-              borderColor: "color-mix(in srgb, #ff414e 52%, transparent)",
-              background: "color-mix(in srgb, #ff414e 13%, var(--tcy-card))",
+              color: "#ffffff",
+              borderColor: "#ff303f",
+              background: "linear-gradient(135deg, #ff303f 0%, #d90024 100%)",
+              boxShadow: "0 6px 18px rgba(255, 30, 55, 0.22)",
             }}
           >
             <LogOut size={18} />
@@ -183,9 +169,10 @@ export default function Profile() {
             onClick={() => window.alert("Удаление аккаунта пока не подключено на сервере.")}
             className="tcy-press flex w-full items-center gap-3.5 rounded-[20px] border px-4 py-4 text-left transition-colors"
             style={{
-              color: "#ff414e",
-              borderColor: "color-mix(in srgb, #ff414e 52%, transparent)",
-              background: "color-mix(in srgb, #ff414e 13%, var(--tcy-card))",
+              color: "#ffffff",
+              borderColor: "#ff303f",
+              background: "linear-gradient(135deg, #ff303f 0%, #d90024 100%)",
+              boxShadow: "0 6px 18px rgba(255, 30, 55, 0.22)",
             }}
           >
             <Trash2 size={18} />
