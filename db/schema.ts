@@ -258,7 +258,9 @@ export const pinnedMessages = mysqlTable(
     id: serial("id").primaryKey(),
     chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull().unique(),
     messageId: bigint("messageId", { mode: "number", unsigned: true }).notNull(),
-    pinnedBy: userId(),
+    // userId is retained for compatibility with older server bundles; pinnedBy is the current alias.
+    userId: bigint("userId", { mode: "number", unsigned: true }),
+    pinnedBy: bigint("pinnedBy", { mode: "number", unsigned: true }),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
   },
   (t) => ({
