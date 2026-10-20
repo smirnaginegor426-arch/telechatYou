@@ -226,9 +226,11 @@ export function Composer({
           ) : (
             <>
               <div className="relative shrink-0">
-                <AnimatePresence>
-                  {attachOpen && createPortal(
+                {typeof document !== "undefined" && createPortal(
+                    <AnimatePresence>
+                      {attachOpen && (
                     <motion.div
+                      key="attachment-menu"
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -248,10 +250,11 @@ export function Composer({
                           <span className="text-[14.5px] font-semibold tcy-text">{a.label}</span>
                         </button>
                       ))}
-                    </motion.div>,
+                    </motion.div>
+                      )}
+                    </AnimatePresence>,
                     document.body,
                   )}
-                </AnimatePresence>
                 <button
                   onClick={() => {
                     setAttachOpen((v) => !v);
