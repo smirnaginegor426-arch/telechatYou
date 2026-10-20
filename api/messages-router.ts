@@ -224,9 +224,15 @@ export const messagesRouter = createRouter({
       await getDb().insert(pinnedMessages).values({
         chatId: input.chatId,
         messageId: input.messageId,
+        userId: ctx.user.id,
         pinnedBy: ctx.user.id,
       }).onDuplicateKeyUpdate({
-        set: { messageId: input.messageId, pinnedBy: ctx.user.id, createdAt: new Date() },
+        set: {
+          messageId: input.messageId,
+          userId: ctx.user.id,
+          pinnedBy: ctx.user.id,
+          createdAt: new Date(),
+        },
       });
       return { ok: true };
     }),
