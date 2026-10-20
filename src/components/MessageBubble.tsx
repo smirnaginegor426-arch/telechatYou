@@ -2,7 +2,7 @@
 import { useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Check, CheckCheck, CornerUpLeft, Download, Eye, FileText, Forward, LoaderCircle, Pencil, Play } from "lucide-react";
+import { Check, CheckCheck, CornerUpLeft, Download, Eye, FileText, Forward, LoaderCircle, MessageCircle, Pencil, Play } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { VoiceMessage } from "./VoiceMessage";
 import { MusicFilePlayer } from "./MusicFilePlayer";
@@ -231,6 +231,9 @@ export function MessageBubble({
   onStickerOpen,
   onReaction,
   onSwipeReply,
+  showChannelComments = false,
+  channelCommentsCount = 0,
+  onOpenChannelComments,
   onContextAction,
   onSelectToggle,
   highlighted = false,
@@ -251,6 +254,10 @@ export function MessageBubble({
   onStickerOpen?: (m: MessageItem) => void;
   onReaction: (m: MessageItem, emoji: string) => void;
   onSwipeReply?: (m: MessageItem) => void;
+  /** Keep the comments action visually attached to the channel post. */
+  showChannelComments?: boolean;
+  channelCommentsCount?: number;
+  onOpenChannelComments?: () => void;
   onContextAction?: (m: MessageItem) => void;
   onSelectToggle?: (m: MessageItem) => void;
   highlighted?: boolean;
@@ -476,10 +483,14 @@ export function MessageBubble({
         className={cn(
           "max-w-[78%] flex flex-col",
           own ? "items-end" : "items-start",
+          isChannel && showChannelComments && "rounded-[22px] border tcy-line tcy-shadow-soft",
         )}
         style={{
           transform: swipeProgress > 0.015 ? `translateX(${swipeDirection * swipeProgress * 54}px)` : "translateX(0)",
           transition: swipeRef.current ? "none" : "transform 160ms ease-out",
+          ...(isChannel && showChannelComments
+            ? { background: "var(--tcy-bubble-in)", borderColor: "var(--tcy-line)" }
+            : {}),
         }}
       >
         <div
@@ -506,23 +517,27 @@ export function MessageBubble({
               : experimental
                 ? "px-4 py-2.5"
                 : "px-3.5 py-2.5",
-            !isImage && !isPoll && !isStickerMessage && !hasMediaCaption && !isVideoAttachment &&
-              (own
-                ? "tcy-glass-own rounded-[22px] rounded-br-[8px]"
-                : "tcy-glass-peer rounded-[22px] rounded-bl-[8px] border tcy-line"),
+            isChannel && showChannelComments
+              ? "bg-transparent border-0 shadow-none rounded-none"
+              : !isImage && !isPoll && !isStickerMessage && !hasMediaCaption && !isVideoAttachment &&
+                (own
+                  ? "tcy-glass-own rounded-[22px] rounded-br-[8px]"
+                  : "tcy-glass-peer rounded-[22px] rounded-bl-[8px] border tcy-line"),
           )}
           style={
-            isImage || isPoll || isStickerMessage || hasMediaCaption || isVideoAttachment
-              ? {
-                  background: "transparent",
-                  color: "var(--tcy-text)",
-                }
-              : own
-                ? { color: "var(--tcy-bubble-own-fg)" }
-                : {
-                    background: "var(--tcy-bubble-in)",
+            isChannel && showChannelComments
+              ? { background: "transparent", color: "var(--tcy-text)" }
+              : isImage || isPoll || isStickerMessage || hasMediaCaption || isVideoAttachment
+                ? {
+                    background: "transparent",
                     color: "var(--tcy-text)",
                   }
+                : own
+                  ? { color: "var(--tcy-bubble-own-fg)" }
+                  : {
+                      background: "var(--tcy-bubble-in)",
+                      color: "var(--tcy-text)",
+                    }
           }
         >
           {isGroup && showSender && (!own || isChannel) && (
@@ -829,6 +844,24 @@ export function MessageBubble({
           )}
         </div>
 
+        {isChannel && showChannelComments && (
+          <div className="flex w-full shrink-0 items-center border-t tcy-line px-2 py-1.5">
+            <button
+              type="button"
+              onClick={onOpenChannelComments}
+              aria-label={`Открыть комментарии, комментариев ${channelCommentsCount}`}
+              className="tcy-press flex w-full min-w-0 items-center gap-2 rounded-[13px] px-2.5 py-2 text-left text-[12.5px] font-bold tcy-accent"
+            >
+              <MessageCircle size={16} className="shrink-0" />
+              <span className="flex-1">Комментарии</span>
+              {channelCommentsCount > 0 && (
+                <span className="min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10.5px] tcy-card-strong">
+                  {channelCommentsCount}
+                </span>
+              )}
+            </button>
+          </div>
+        )}
         {reactions.length > 0 && <div className="h-4" />}
       </div>
     </motion.div>
