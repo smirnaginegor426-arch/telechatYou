@@ -656,7 +656,7 @@ export function Composer({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 6, scale: 0.97 }}
                       transition={{ type: "spring", stiffness: 520, damping: 38 }}
-                      className="absolute bottom-[calc(100%+8px)] left-0 z-[10060] w-[208px] rounded-[15px] border tcy-line tcy-solid p-1.5 shadow-xl"
+                      className="fixed bottom-[100px] left-3 z-[10060] w-[208px] rounded-[15px] border tcy-line tcy-solid p-1.5 shadow-xl"
                     >
                       <button
                         type="button"
