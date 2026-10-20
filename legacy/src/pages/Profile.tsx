@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { AtSign, Camera, Check, LogOut, Pencil, Quote, SquarePen } from "lucide-react";
+import { AtSign, Camera, Check, LogOut, Quote, SquarePen, Trash2 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
@@ -140,9 +140,7 @@ export default function Profile() {
             {profile.bio}
           </p>
         )}
-        <TcButton size="sm" variant="soft" className="mt-5" onClick={openEdit}>
-          <Pencil size={14} /> Редактировать
-        </TcButton>
+
       </div>
 
       {/* info cards */}
@@ -166,13 +164,34 @@ export default function Profile() {
           </div>
         </div>
 
-        <button
-          onClick={() => logout()}
-          className="w-full rounded-[24px] tcy-card border tcy-line px-4 py-4 flex items-center gap-3.5 tcy-press"
-        >
-          <LogOut size={17} className="tcy-danger" />
-          <span className="text-[14.5px] font-semibold tcy-danger">Выйти из аккаунта</span>
-        </button>
+        <div className="space-y-2.5">
+          <button
+            type="button"
+            onClick={() => logout()}
+            className="tcy-press flex w-full items-center gap-3.5 rounded-[20px] border px-4 py-4 text-left transition-colors"
+            style={{
+              color: "#ff414e",
+              borderColor: "color-mix(in srgb, #ff414e 52%, transparent)",
+              background: "color-mix(in srgb, #ff414e 13%, var(--tcy-card))",
+            }}
+          >
+            <LogOut size={18} />
+            <span className="text-[14.5px] font-bold">Выйти из аккаунта</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => window.alert("Удаление аккаунта пока не подключено на сервере.")}
+            className="tcy-press flex w-full items-center gap-3.5 rounded-[20px] border px-4 py-4 text-left transition-colors"
+            style={{
+              color: "#ff414e",
+              borderColor: "color-mix(in srgb, #ff414e 52%, transparent)",
+              background: "color-mix(in srgb, #ff414e 13%, var(--tcy-card))",
+            }}
+          >
+            <Trash2 size={18} />
+            <span className="text-[14.5px] font-bold">Удалить аккаунт</span>
+          </button>
+        </div>
         <p className="text-center text-[11px] tcy-faint pt-1">
           TeleChatYou · ID {profile.userId}
         </p>
