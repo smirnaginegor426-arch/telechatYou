@@ -844,6 +844,7 @@ export function MessageBubble({
           )}
         </div>
 
+        {isChannel && showChannelComments && reactions.length > 0 && <div className="h-4" />}
         {isChannel && showChannelComments && (
           <div className="flex w-full shrink-0 items-center border-t tcy-line px-2 py-1.5">
             <button
@@ -862,7 +863,7 @@ export function MessageBubble({
             </button>
           </div>
         )}
-        {reactions.length > 0 && <div className="h-4" />}
+        {reactions.length > 0 && !(isChannel && showChannelComments) && <div className="h-4" />}
       </div>
     </motion.div>
   );
