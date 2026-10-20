@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { AtSign, Camera, Check, LogOut, Quote, SquarePen, Trash2 } from "lucide-react";
+import { AtSign, Camera, Check, LogOut, Quote, Trash2 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
@@ -157,8 +157,8 @@ export default function Profile() {
             style={{
               color: "#ffffff",
               borderColor: "#ff303f",
-              background: "linear-gradient(135deg, #ff303f 0%, #d90024 100%)",
-              boxShadow: "0 6px 18px rgba(255, 30, 55, 0.22)",
+              background: "#e5092b",
+              boxShadow: "0 4px 14px rgba(255, 20, 45, 0.28)",
             }}
           >
             <LogOut size={18} />
@@ -171,8 +171,8 @@ export default function Profile() {
             style={{
               color: "#ffffff",
               borderColor: "#ff303f",
-              background: "linear-gradient(135deg, #ff303f 0%, #d90024 100%)",
-              boxShadow: "0 6px 18px rgba(255, 30, 55, 0.22)",
+              background: "#e5092b",
+              boxShadow: "0 4px 14px rgba(255, 20, 45, 0.28)",
             }}
           >
             <Trash2 size={18} />
