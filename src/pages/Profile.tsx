@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { AtSign, Camera, Check, ChevronRight, Copy, ImagePlus, LogOut, MoreVertical, Pencil, Quote, RefreshCw, Sparkles, Trash2, UsersRound } from "lucide-react";
+import { AtSign, Camera, Check, ChevronRight, LogOut, Pencil, Quote, Sparkles, SquarePen, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,7 +15,6 @@ import { TcButton } from "@/components/TcButton";
 import { TcInput, TcTextarea } from "@/components/TcInput";
 import { fileToBase64 } from "@/lib/format";
 import { useTesterMode } from "@/hooks/useTesterMode";
-import { copyTextToClipboard, profileShareUrl } from "@/lib/share-links";
 
 type PlushProfilePrefs = { status: string; background: string };
 const PLUSH_STATUSES = ["🌼 На связи", "🎮 Играю", "🎨 Рисую", "🌙 Сплю", "📚 Учусь", "🎧 Слушаю музыку", "☕ Отдыхаю"];
@@ -56,8 +55,6 @@ export default function Profile() {
   const [error, setError] = useState("");
   const [avatarToEdit, setAvatarToEdit] = useState<File | null>(null);
   const [avatarPreviewOpen, setAvatarPreviewOpen] = useState(false);
-  const [actionsOpen, setActionsOpen] = useState(false);
-  const [deleteAvatarOpen, setDeleteAvatarOpen] = useState(false);
   const [plushCustomizeOpen, setPlushCustomizeOpen] = useState(false);
   const [plushPrefs, setPlushPrefs] = useState<PlushProfilePrefs | null>(null);
   const [framesOpen, setFramesOpen] = useState(false);
@@ -66,7 +63,6 @@ export default function Profile() {
   const [frameFlight, setFrameFlight] = useState<FrameFlight | null>(null);
   const frameOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
-  const actionsRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const update = trpc.profile.update.useMutation({
@@ -122,23 +118,6 @@ export default function Profile() {
     }
   }, [isPrivateTester, profile?.userId, plushPrefs]);
 
-  useEffect(() => {
-    if (!actionsOpen) return;
-    const handlePointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Node && !actionsRef.current?.contains(event.target)) {
-        setActionsOpen(false);
-      }
-    };
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setActionsOpen(false);
-    };
-    document.addEventListener("pointerdown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [actionsOpen]);
 
   const openEdit = () => {
     if (!profile) return;
@@ -193,26 +172,6 @@ export default function Profile() {
     setFramesOpen(false);
   };
 
-  const copyProfileLink = async () => {
-    if (!profile) return;
-    const copied = await copyTextToClipboard(profileShareUrl(profile.username));
-    if (copied) toast.success("Ссылка на профиль скопирована");
-    else toast.error("Не удалось скопировать ссылку");
-    setActionsOpen(false);
-  };
-
-  const removeAvatar = async () => {
-    try {
-      await update.mutateAsync({ avatarKey: null });
-      setAvatarPreviewOpen(false);
-      setDeleteAvatarOpen(false);
-      setActionsOpen(false);
-      toast.success("Аватарка удалена");
-    } catch (cause) {
-      toast.error(cause instanceof Error ? cause.message : "Не удалось удалить аватарку");
-    }
-  };
-
   if (me.isLoading || !profile) {
     return (
       <div className="h-full flex flex-col items-center pt-24 px-8 gap-5">
@@ -226,82 +185,19 @@ export default function Profile() {
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
       <div
-        ref={actionsRef}
         className="absolute right-4 z-40"
         style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
       >
         <button
           type="button"
-          aria-label="Действия с профилем"
-          aria-expanded={actionsOpen}
-          onClick={() => setActionsOpen((open) => !open)}
-          className="tcy-press flex h-11 w-11 items-center justify-center rounded-full tcy-card border tcy-line tcy-text"
+          aria-label="Редактировать профиль"
+          title="Редактировать профиль"
+          onClick={openEdit}
+          className="tcy-press flex h-10 w-10 items-center justify-center rounded-full tcy-gradient-accent tcy-shadow-accent"
+          style={{ color: "var(--tcy-selected-on-accent)" }}
         >
-          <MoreVertical size={20} />
+          <SquarePen size={19} strokeWidth={2.2} />
         </button>
-        <AnimatePresence>
-          {actionsOpen && (
-            <motion.div
-              role="menu"
-              initial={{ opacity: 0, y: -8, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.97 }}
-              transition={{ duration: 0.16, ease: "easeOut" }}
-              className="absolute right-0 top-[calc(100%+8px)] w-64 origin-top-right rounded-[20px] tcy-card border tcy-line p-1.5 shadow-2xl backdrop-blur-2xl"
-            >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={copyProfileLink}
-                className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-text"
-              >
-                <Copy size={17} className="tcy-accent" />
-                <span>Скопировать ссылку</span>
-              </button>
-              {!profile.avatarKey ? (
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setActionsOpen(false);
-                    fileRef.current?.click();
-                  }}
-                  className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-text"
-                >
-                  <ImagePlus size={17} className="tcy-accent" />
-                  <span>Добавить аватарку</span>
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setActionsOpen(false);
-                      fileRef.current?.click();
-                    }}
-                    className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-text"
-                  >
-                    <RefreshCw size={17} className="tcy-accent" />
-                    <span>Заменить аватарку</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setActionsOpen(false);
-                      setDeleteAvatarOpen(true);
-                    }}
-                    className="tcy-press flex w-full items-center gap-3 rounded-[14px] px-3.5 py-3 text-left text-[13.5px] font-semibold tcy-danger"
-                  >
-                    <Trash2 size={17} />
-                    <span>Удалить аватарку</span>
-                  </button>
-                </>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
       <input
         ref={fileRef}
@@ -559,15 +455,6 @@ export default function Profile() {
         </div>
       </BottomSheet>
 
-      <BottomSheet open={deleteAvatarOpen} onClose={() => setDeleteAvatarOpen(false)} title="Удалить аватарку?">
-        <div className="px-5 pb-5 space-y-4">
-          <p className="text-[13.5px] leading-relaxed tcy-dim">Текущая фотография профиля будет удалена. Вместо неё будет отображаться стандартная аватарка.</p>
-          <div className="flex items-center justify-end gap-2">
-            <TcButton size="sm" variant="soft" onClick={() => setDeleteAvatarOpen(false)}>Отмена</TcButton>
-            <TcButton size="sm" variant="danger" loading={update.isPending} onClick={removeAvatar}><Trash2 size={15} /> Удалить</TcButton>
-          </div>
-        </div>
-      </BottomSheet>
 
       {/* edit sheet */}
       <BottomSheet open={editOpen} onClose={() => setEditOpen(false)} title="Редактировать профиль">
