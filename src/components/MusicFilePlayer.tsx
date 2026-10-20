@@ -68,7 +68,7 @@ export function MusicFilePlayer({
 
   return (
     <div
-      className="w-[min(300px,74vw)] rounded-[18px] border px-3 py-2.5"
+      className="box-border w-[min(300px,74vw)] max-w-full min-w-0 overflow-hidden rounded-[18px] border px-3 py-2.5"
       style={{
         background: own
           ? "color-mix(in srgb, var(--tcy-bubble-own-bg) 92%, transparent)"
