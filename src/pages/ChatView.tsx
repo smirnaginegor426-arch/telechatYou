@@ -1001,7 +1001,7 @@ export default function ChatView() {
                     channelCommentsCount={commentsCount}
                     onOpenChannelComments={() => setCommentsPost(m)}
                     experimental={experimentalUI}
-                  />}
+                  />
                 </div>
               );
             })
