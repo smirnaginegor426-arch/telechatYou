@@ -191,33 +191,6 @@ export function Composer({
         }}
       />
 
-      {/* attach popover */}
-      <AnimatePresence>
-        {attachOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 500, damping: 36 }}
-            className="absolute bottom-[72px] left-3 tcy-solid border tcy-line rounded-[22px] p-2 tcy-shadow-soft z-30 min-w-[190px]"
-          >
-            {[
-              { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
-              { label: "Файл", emoji: "📎", fn: () => fileInputRef.current?.click() },
-            ].map((a) => (
-              <button
-                key={a.label}
-                onClick={a.fn}
-                className="tcy-press w-full flex items-center gap-3 px-3.5 py-3 rounded-[16px] text-left hover:bg-[color:var(--tcy-card)]"
-              >
-                <span className="text-[20px]">{a.emoji}</span>
-                <span className="text-[14.5px] font-semibold tcy-text">{a.label}</span>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="px-3 pb-3 pt-1.5 safe-bottom">
         <div
           className={cn(
@@ -251,20 +224,47 @@ export function Composer({
             </div>
           ) : (
             <>
-              <button
-                onClick={() => {
-                  setAttachOpen((v) => !v);
-                  setEmojiOpen(false);
-                }}
-                className={cn(
-                  "tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform",
-                  attachOpen && "rotate-45",
-                )}
-                style={{ background: "var(--tcy-card-strong)", color: "var(--tcy-dim)" }}
-                aria-label="Прикрепить"
-              >
-                <Plus size={21} />
-              </button>
+              <div className="relative shrink-0">
+                <AnimatePresence>
+                  {attachOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 36 }}
+                      className="absolute bottom-[calc(100%+8px)] left-0 tcy-solid border tcy-line rounded-[22px] p-2 tcy-shadow-soft z-[10060] min-w-[190px]"
+                    >
+                      {[
+                        { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
+                        { label: "Файл", emoji: "📎", fn: () => fileInputRef.current?.click() },
+                      ].map((a) => (
+                        <button
+                          key={a.label}
+                          onClick={a.fn}
+                          className="tcy-press w-full flex items-center gap-3 px-3.5 py-3 rounded-[16px] text-left hover:bg-[color:var(--tcy-card)]"
+                        >
+                          <span className="text-[20px]">{a.emoji}</span>
+                          <span className="text-[14.5px] font-semibold tcy-text">{a.label}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <button
+                  onClick={() => {
+                    setAttachOpen((v) => !v);
+                    setEmojiOpen(false);
+                  }}
+                  className={cn(
+                    "tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform",
+                    attachOpen && "rotate-45",
+                  )}
+                  style={{ background: "var(--tcy-card-strong)", color: "var(--tcy-dim)" }}
+                  aria-label="Прикрепить"
+                >
+                  <Plus size={21} />
+                </button>
+              </div>
               <textarea
                 ref={inputRef}
                 value={text}
