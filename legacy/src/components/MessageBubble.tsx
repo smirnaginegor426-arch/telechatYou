@@ -113,7 +113,7 @@ export function MessageBubble({
           {showSender && <Avatar name={m.sender?.displayName ?? "?"} avatarKey={m.sender?.avatarKey} size={28} />}
         </div>
       )}
-      <div className={cn("max-w-[78%] flex flex-col", own ? "items-end" : "items-start")}>
+      <div className={cn("w-fit max-w-[78%] min-w-0 flex flex-col", own ? "items-end" : "items-start")}>
         <div
           onContextMenu={(e) => {
             e.preventDefault();
