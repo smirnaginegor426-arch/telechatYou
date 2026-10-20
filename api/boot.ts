@@ -118,7 +118,37 @@ app.use("/api/trpc/*", async (c) => {
     router: appRouter,
     createContext,
     onError({ error, path, type, req }) {
-      const cause = error.cause instanceof Error ? error.cause : undefined;
+      // Drizzle/MySQL can wrap driver failures several levels deep. Log the
+      // bounded cause chain so production errors reveal the actual DB code.
+      const causes: Array<{
+        name?: string;
+        code?: string | number;
+        errno?: number;
+        sqlState?: string;
+        message?: string;
+      }> = [];
+      const visited = new Set<object>();
+      let current: unknown = error;
+      while (current && typeof current === "object" && !visited.has(current) && causes.length < 8) {
+        visited.add(current);
+        const item = current as {
+          name?: unknown;
+          code?: unknown;
+          errno?: unknown;
+          sqlState?: unknown;
+          message?: unknown;
+          cause?: unknown;
+        };
+        causes.push({
+          ...(typeof item.name === "string" ? { name: item.name } : {}),
+          ...(typeof item.code === "string" || typeof item.code === "number" ? { code: item.code } : {}),
+          ...(typeof item.errno === "number" ? { errno: item.errno } : {}),
+          ...(typeof item.sqlState === "string" ? { sqlState: item.sqlState } : {}),
+          ...(typeof item.message === "string" ? { message: item.message.slice(0, 1200) } : {}),
+        });
+        current = item.cause;
+      }
+      const rootCause = causes[causes.length - 1];
       console.error(JSON.stringify({
         event: "trpc.error",
         procedure: path ?? "unknown",
@@ -127,9 +157,12 @@ app.use("/api/trpc/*", async (c) => {
         requestPath: new URL(req.url).pathname,
         code: error.code,
         message: error.message,
-        causeMessage: cause?.message,
+        causeMessage: rootCause?.message,
+        causeCode: rootCause?.code,
+        causeErrno: rootCause?.errno,
+        causeSqlState: rootCause?.sqlState,
+        causeChain: causes.slice(1),
         stack: error.stack,
-        causeStack: cause?.stack,
       }));
     },
   });
