@@ -303,6 +303,9 @@
 
 /* Soft gear circles: replace square circular UI chips with a rounded cog silhouette.
    Avatar components and pill-shaped controls are deliberately excluded. */
+#root .rounded-full[class~="h-2"][class~="w-2"]:not(.tcy-skeleton):not(.animate-spin),
+#root .rounded-full[class~="h-3"][class~="w-3"]:not(.tcy-skeleton):not(.animate-spin),
+#root .rounded-full[class~="h-4"][class~="w-4"]:not(.tcy-skeleton):not(.animate-spin),
 #root .rounded-full[class~="h-5"][class~="w-5"]:not(.tcy-skeleton):not(.animate-spin),
 #root .rounded-full[class~="h-6"][class~="w-6"]:not(.tcy-skeleton):not(.animate-spin),
 #root .rounded-full[class~="h-7"][class~="w-7"]:not(.tcy-skeleton):not(.animate-spin),
