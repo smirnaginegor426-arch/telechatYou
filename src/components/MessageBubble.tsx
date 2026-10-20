@@ -481,7 +481,7 @@ export function MessageBubble({
       <div
         ref={bubbleRef}
         className={cn(
-          "w-fit max-w-[78%] min-w-0 flex flex-col",
+          "h-fit w-fit max-w-[78%] min-w-0 flex flex-col self-start",
           own ? "items-end" : "items-start",
           isChannel && showChannelComments && "rounded-[22px] border tcy-line tcy-shadow-soft",
         )}
@@ -511,7 +511,7 @@ export function MessageBubble({
           }}
           onDoubleClick={() => { if (!selectionMode) onReaction(m, "❤️"); }}
           className={cn(
-            "relative select-none cursor-default tcy-no-select",
+            "relative h-fit w-fit max-w-full select-none cursor-default tcy-no-select",
             isImage || isPoll || isStickerMessage || hasMediaCaption || isVideoAttachment
               ? "p-0 border-0 bg-transparent shadow-none"
               : experimental
@@ -846,7 +846,7 @@ export function MessageBubble({
 
         {isChannel && showChannelComments && reactions.length > 0 && <div className="h-4" />}
         {isChannel && showChannelComments && (
-          <div className="flex w-full shrink-0 items-center border-t tcy-line px-2 py-1.5">
+          <div className="flex h-fit w-full shrink-0 items-center border-t tcy-line px-2 py-1.5">
             <button
               type="button"
               onClick={onOpenChannelComments}
