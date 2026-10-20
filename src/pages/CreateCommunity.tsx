@@ -374,7 +374,18 @@ function SimpleChannelWizard() {
               <h2 className="mt-7 text-[27px] leading-tight font-black tcy-text">
                 {isChannel ? "Как назовем канал?" : "Как назовем группу?"}
               </h2>
-              <p className="mt-2.5 max-w-[320px] text-[13.5px] leading-relaxed tcy-dim">
+              <div className="mt-5 w-full max-w-[420px] text-left">
+                <TcInput
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value.slice(0, 96))}
+                  maxLength={96}
+                  placeholder={isChannel ? "Название канала" : "Название группы"}
+                  autoFocus
+                  autoComplete="off"
+                  onKeyDown={(e) => { if (e.key === "Enter" && trimmedTitle) setStep("type"); }}
+                />
+              </div>
+              <p className="mt-3 max-w-[320px] text-[13.5px] leading-relaxed tcy-dim">
                 Название увидят {kindRole} — его можно будет изменить в любой момент.
               </p>
             </motion.section>
@@ -517,24 +528,13 @@ function SimpleChannelWizard() {
         >
         <div className="mx-auto w-full max-w-[560px]">
           {step === "name" && (
-            <div className="space-y-3">
-              <TcInput
-                value={title}
-                onChange={(e) => setTitle(e.target.value.slice(0, 96))}
-                maxLength={96}
-                placeholder={isChannel ? "Название канала" : "Название группы"}
-                autoFocus
-                autoComplete="off"
-                onKeyDown={(e) => { if (e.key === "Enter" && trimmedTitle) setStep("type"); }}
-              />
-              <TcButton
-                size="lg"
-                disabled={!trimmedTitle}
-                onClick={() => { setError(""); setStep("type"); }}
-              >
-                Продолжить <ChevronRight size={18} />
-              </TcButton>
-            </div>
+            <TcButton
+              size="lg"
+              disabled={!trimmedTitle}
+              onClick={() => { setError(""); setStep("type"); }}
+            >
+              Продолжить <ChevronRight size={18} />
+            </TcButton>
           )}
           {step === "type" &&
             (done ? (
