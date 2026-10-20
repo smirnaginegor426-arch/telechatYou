@@ -9,6 +9,7 @@ import { env } from "./lib/env";
 import { storage, StorageError } from "./lib/storage";
 import { getSessionToken, getSessionUser } from "./lib/session";
 import { ensureCommunitySchema } from "./lib/community-schema";
+import { ensureFilesSchema } from "./lib/files-schema";
 import { ensureRecoverySecretSchema } from "./lib/recovery-secret-schema";
 import { ensureAccountSecurityPasswordSchema } from "./lib/account-security-password-schema";
 import { ensurePinnedMessageSchema } from "./lib/pinned-message-schema";
@@ -248,6 +249,7 @@ app.all("/api/*", (c) => c.json({
 
 if (env.isProduction) {
   await ensureCommunitySchema();
+  await ensureFilesSchema();
   await ensureRecoverySecretSchema();
   await ensureAccountSecurityPasswordSchema();
   await ensurePinnedMessageSchema();
