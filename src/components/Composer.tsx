@@ -597,40 +597,6 @@ export function Composer({
         )}
       </AnimatePresence>
 
-      {/* compact attachment chooser */}
-      <AnimatePresence>
-        {attachOpen && (
-          <motion.div
-            role="menu"
-            aria-label="Добавить вложение"
-            initial={{ opacity: 0, y: 7, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 520, damping: 38 }}
-            className="absolute bottom-[72px] left-3 z-30 w-[208px] rounded-[15px] border tcy-line tcy-solid p-1.5 shadow-xl"
-          >
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => fileInputRef.current?.click()}
-              className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
-            >
-              <FileUp size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
-              <span>Загрузить файл</span>
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => imgInputRef.current?.click()}
-              className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
-            >
-              <Images size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
-              <span>Галерея</span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <div className="px-3 pb-3 pt-1.5 safe-bottom" hidden={stickerOpen}>
         {pendingAttachments.length > 0 && !recording && (
           <div className="flex flex-nowrap items-center gap-2.5 overflow-x-auto no-scrollbar px-1 pb-2">
@@ -680,21 +646,55 @@ export function Composer({
             </div>
           ) : (
             <>
-              <button
-                onClick={() => {
-                  setAttachOpen((v) => !v);
-                  setStickerOpen(false);
-                }}
-                className={cn(
-                  "tcy-press tcy-glass-surface flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform",
-                  attachOpen && "rotate-45",
-                )}
-                style={{ color: "var(--tcy-dim)" }}
-                disabled={preparingImage}
-                aria-label="Прикрепить"
-              >
-                <Plus size={21} />
-              </button>
+              <div className="relative shrink-0">
+                <AnimatePresence>
+                  {attachOpen && (
+                    <motion.div
+                      role="menu"
+                      aria-label="Добавить вложение"
+                      initial={{ opacity: 0, y: 7, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                      transition={{ type: "spring", stiffness: 520, damping: 38 }}
+                      className="absolute bottom-[calc(100%+8px)] left-0 z-[10060] w-[208px] rounded-[15px] border tcy-line tcy-solid p-1.5 shadow-xl"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
+                      >
+                        <FileUp size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
+                        <span>Загрузить файл</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => imgInputRef.current?.click()}
+                        className="tcy-press w-full h-9 flex items-center gap-2.5 rounded-[9px] px-2.5 text-left text-[13px] font-medium tcy-text hover:bg-[color:var(--tcy-card)]"
+                      >
+                        <Images size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
+                        <span>Галерея</span>
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <button
+                  onClick={() => {
+                    setAttachOpen((v) => !v);
+                    setStickerOpen(false);
+                  }}
+                  className={cn(
+                    "tcy-press tcy-glass-surface flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-transform",
+                    attachOpen && "rotate-45",
+                  )}
+                  style={{ color: "var(--tcy-dim)" }}
+                  disabled={preparingImage}
+                  aria-label="Прикрепить"
+                >
+                  <Plus size={21} />
+                </button>
+              </div>
               <textarea
                 ref={inputRef}
                 value={text}
