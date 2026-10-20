@@ -328,16 +328,22 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="space-y-2.5">
+        <div
+          className="overflow-hidden rounded-[20px] border"
+          style={{
+            borderColor: "#913345",
+            background: "#b82036",
+            boxShadow: "0 3px 12px rgba(160, 25, 48, 0.12)",
+          }}
+        >
           <button
             type="button"
             onClick={() => logout()}
-            className="tcy-press flex w-full items-center gap-3.5 rounded-[20px] border px-4 py-4 text-left transition-colors"
+            className="tcy-press flex w-full items-center gap-3.5 border-0 px-4 py-4 text-left transition-colors"
             style={{
               color: "#ffffff",
-              borderColor: "#ff303f",
-              background: "#e5092b",
-              boxShadow: "0 4px 14px rgba(255, 20, 45, 0.28)",
+              background: "#c0273d",
+              boxShadow: "none",
             }}
           >
             <LogOut size={18} />
@@ -346,12 +352,12 @@ export default function Profile() {
           <button
             type="button"
             onClick={() => window.alert("Удаление аккаунта пока не подключено на сервере.")}
-            className="tcy-press flex w-full items-center gap-3.5 rounded-[20px] border px-4 py-4 text-left transition-colors"
+            className="tcy-press flex w-full items-center gap-3.5 border-0 border-t px-4 py-4 text-left transition-colors"
             style={{
               color: "#ffffff",
-              borderColor: "#ff303f",
-              background: "#e5092b",
-              boxShadow: "0 4px 14px rgba(255, 20, 45, 0.28)",
+              borderTopColor: "rgba(255, 255, 255, 0.14)",
+              background: "#b82036",
+              boxShadow: "none",
             }}
           >
             <Trash2 size={18} />
