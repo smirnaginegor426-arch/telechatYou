@@ -52,6 +52,15 @@ export async function ensurePinnedMessageSchema(): Promise<void> {
     "ALTER TABLE pinned_messages ADD COLUMN pinnedBy BIGINT UNSIGNED NULL",
   );
 
+  // Either column may have been NOT NULL in an older deployment. Keep both nullable
+  // so a rolling deployment running either old or new code can insert its own field.
+  await getDb().execute(sql.raw(
+    "ALTER TABLE pinned_messages MODIFY COLUMN userId BIGINT UNSIGNED NULL",
+  ));
+  await getDb().execute(sql.raw(
+    "ALTER TABLE pinned_messages MODIFY COLUMN pinnedBy BIGINT UNSIGNED NULL",
+  ));
+
   // Backfill the counterpart for existing rows without overwriting either value.
   await getDb().execute(sql.raw(
     "UPDATE pinned_messages SET userId = COALESCE(userId, pinnedBy), pinnedBy = COALESCE(pinnedBy, userId) WHERE userId IS NULL OR pinnedBy IS NULL",
