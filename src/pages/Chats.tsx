@@ -33,21 +33,6 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
   const contactNames = contactNamesQuery.data?.names ?? {};
   const me = trpc.profile.me.useQuery();
   const [selectedChatIds, setSelectedChatIds] = useState<number[]>([]);
-  const [botArchived, setBotArchived] = useState(() => {
-    try {
-      return typeof window !== "undefined" && window.localStorage.getItem("tcy-telechatyou-bot-archived") === "true";
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem("tcy-telechatyou-bot-archived", String(botArchived));
-    } catch {
-      // Archive state remains session-local when storage is unavailable.
-    }
-  }, [botArchived]);
   const [isOnline, setIsOnline] = useState(() =>
     typeof navigator === "undefined" ? true : navigator.onLine,
   );
@@ -101,8 +86,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     Number(isFavoritesChat(b)) - Number(isFavoritesChat(a)),
   );
   const shown = showArchived ? archived : active;
-  const showBotRow = showArchived ? botArchived : !botArchived;
-  const hasArchived = archived.length > 0 || botArchived;
+  const hasArchived = archived.length > 0;
   const archivedUnread = archived.reduce((s, i) => s + i.unread, 0);
 
   const selectedItems = shown.filter((item) => selectedChatIds.includes(item.chat.id));
@@ -319,40 +303,6 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
             </div>
           </section>
         )}
-        {showBotRow && (
-          <div className="tcy-chat-list-item flex items-center gap-2 px-3 py-2.5">
-            <button
-              type="button"
-              onClick={() => navigate("/chat/telechatyou")}
-              className="flex min-w-0 flex-1 items-center gap-3.5 py-0.5 text-left"
-            >
-              <img
-                src="/telechatyou-bot-avatar.svg"
-                alt=""
-                draggable={false}
-                className="w-[54px] h-[54px] shrink-0 object-cover rounded-[30%]"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-2">
-                  <span>TeleChatYou</span>
-                  <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md tcy-gradient-accent" style={{ color: "var(--tcy-selected-on-accent)" }}>BOT</span>
-                </div>
-                <div className="text-[13.5px] tcy-dim truncate mt-0.5">
-                  {botArchived ? "В архиве" : "Официальный бот · напишите start"}
-                </div>
-              </div>
-            </button>
-            <button
-              type="button"
-              aria-label={botArchived ? "Вернуть бота из архива" : "Архивировать бота"}
-              title={botArchived ? "Вернуть из архива" : "В архив"}
-              onClick={() => setBotArchived((value) => !value)}
-              className="tcy-press flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-card tcy-dim"
-            >
-              {botArchived ? <ArchiveRestore size={17} /> : <Archive size={17} />}
-            </button>
-          </div>
-        )}
         {list.isLoading ? (
           <div className="pt-1">
             {[...Array(6)].map((_, i) => (
@@ -366,7 +316,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
             hint="Проверьте подключение к сети и попробуйте ещё раз."
             action={<TcButton onClick={() => list.refetch()}>Повторить</TcButton>}
           />
-        ) : shown.length === 0 && !showBotRow ? (
+        ) : shown.length === 0 ? (
           <EmptyState
             icon={<MessagesSquare size={34} />}
             title={showArchived ? "Архив пуст" : "Пока нет чатов"}
