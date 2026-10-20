@@ -540,13 +540,15 @@ export default function ChatInfo() {
           <h1 className="text-[20px] font-extrabold tcy-text text-center">{name}</h1>
           {!isGroup && isTesterUsername(peer?.username, peer?.userId) && <TesterBadge />}
         </div>
-        <p className="mt-1 text-[12.5px] tcy-faint font-semibold">
-          {channel
-            ? `${channel.isPublic ? `@${channel.username}` : "Приватный канал"} · ${data.members.length} подписчиков`
-            : isGroup
-              ? `${publicGroup?.isPublic && publicGroup.username ? `@${publicGroup.username} · ` : ""}${data.members.length} участников`
-              : `@${peer?.username} · ${isOnline(peer?.lastSeenAt) ? "в сети" : "не в сети"}`}
-        </p>
+        {(!channel || (channel.isPublic && !!channel.username)) && (
+          <p className="mt-1 text-[12.5px] tcy-faint font-semibold">
+            {channel
+              ? `@${channel.username}`
+              : isGroup
+                ? `${publicGroup?.isPublic && publicGroup.username ? `@${publicGroup.username} · ` : ""}${data.members.length} участников`
+                : `@${peer?.username} · ${isOnline(peer?.lastSeenAt) ? "в сети" : "не в сети"}`}
+          </p>
+        )}
         {(channel?.description || publicGroup?.description) && (
           <p className="mt-2.5 text-center text-[13px] tcy-dim max-w-[300px] whitespace-pre-wrap">{channel?.description ?? publicGroup?.description}</p>
         )}
