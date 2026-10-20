@@ -26,6 +26,7 @@ export function Composer({
   const [text, setText] = useState("");
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
+  const [attachPosition, setAttachPosition] = useState<{ left: number; bottom: number } | null>(null);
   const [recording, setRecording] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
   const [cancelHint, setCancelHint] = useState(false);
@@ -33,6 +34,7 @@ export function Composer({
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imgInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachmentButtonRef = useRef<HTMLButtonElement>(null);
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
@@ -164,6 +166,25 @@ export function Composer({
     stopRecording(true);
   };
 
+  const toggleAttachmentMenu = () => {
+    if (attachOpen) {
+      setAttachOpen(false);
+      return;
+    }
+    const rect = attachmentButtonRef.current?.getBoundingClientRect();
+    const menuWidth = 224;
+    setAttachPosition(
+      rect
+        ? {
+            left: Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8)),
+            bottom: Math.max(12, window.innerHeight - rect.top + 8),
+          }
+        : { left: 12, bottom: 120 },
+    );
+    setAttachOpen(true);
+    setEmojiOpen(false);
+  };
+
   const hasText = text.trim().length > 0;
 
   return (
@@ -191,6 +212,44 @@ export function Composer({
           setAttachOpen(false);
         }}
       />
+
+      {attachOpen && typeof document !== "undefined" && createPortal(
+        <div
+          role="menu"
+          aria-label="Добавить вложение"
+          className="fixed z-[2147483647] min-w-[190px] rounded-[18px] border p-2"
+          style={{
+            left: attachPosition?.left ?? 12,
+            bottom: attachPosition?.bottom ?? 120,
+            background: "var(--tcy-solid)",
+            borderColor: "var(--tcy-line)",
+            boxShadow: "0 14px 40px rgba(0,0,0,0.42)",
+            pointerEvents: "auto",
+          }}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setAttachOpen(false); imgInputRef.current?.click(); }}
+            className="tcy-press flex w-full items-center gap-3 rounded-[13px] px-3.5 py-3 text-left"
+            style={{ color: "var(--tcy-text)" }}
+          >
+            <span className="text-[20px]">🖼️</span>
+            <span className="text-[14px] font-semibold">Фотография</span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setAttachOpen(false); fileInputRef.current?.click(); }}
+            className="tcy-press flex w-full items-center gap-3 rounded-[13px] px-3.5 py-3 text-left"
+            style={{ color: "var(--tcy-text)" }}
+          >
+            <span className="text-[20px]">📎</span>
+            <span className="text-[14px] font-semibold">Файл</span>
+          </button>
+        </div>,
+        document.body,
+      )}
 
       <div className="px-3 pb-3 pt-1.5 safe-bottom">
         <div
@@ -226,40 +285,10 @@ export function Composer({
           ) : (
             <>
               <div className="relative shrink-0">
-                {typeof document !== "undefined" && createPortal(
-                    <AnimatePresence>
-                      {attachOpen && (
-                    <motion.div
-                      key="attachment-menu"
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 36 }}
-                      className="fixed bottom-[100px] left-3 tcy-solid border tcy-line rounded-[22px] p-2 tcy-shadow-soft z-[10060] min-w-[190px]"
-                    >
-                      {[
-                        { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
-                        { label: "Файл", emoji: "📎", fn: () => fileInputRef.current?.click() },
-                      ].map((a) => (
-                        <button
-                          key={a.label}
-                          onClick={a.fn}
-                          className="tcy-press w-full flex items-center gap-3 px-3.5 py-3 rounded-[16px] text-left hover:bg-[color:var(--tcy-card)]"
-                        >
-                          <span className="text-[20px]">{a.emoji}</span>
-                          <span className="text-[14.5px] font-semibold tcy-text">{a.label}</span>
-                        </button>
-                      ))}
-                    </motion.div>
-                      )}
-                    </AnimatePresence>,
-                    document.body,
-                  )}
+
                 <button
-                  onClick={() => {
-                    setAttachOpen((v) => !v);
-                    setEmojiOpen(false);
-                  }}
+                  ref={attachmentButtonRef}
+                  onClick={toggleAttachmentMenu}
                   className={cn(
                     "tcy-press w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-transform",
                     attachOpen && "rotate-45",
