@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Mic, Plus, SendHorizonal, Smile, Trash2 } from "lucide-react";
 import { EmojiPicker } from "./EmojiPicker";
@@ -226,7 +227,7 @@ export function Composer({
             <>
               <div className="relative shrink-0">
                 <AnimatePresence>
-                  {attachOpen && (
+                  {attachOpen && createPortal(
                     <motion.div
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -247,7 +248,8 @@ export function Composer({
                           <span className="text-[14.5px] font-semibold tcy-text">{a.label}</span>
                         </button>
                       ))}
-                    </motion.div>
+                    </motion.div>,
+                    document.body,
                   )}
                 </AnimatePresence>
                 <button
