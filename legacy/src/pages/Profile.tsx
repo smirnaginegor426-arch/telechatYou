@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { AtSign, Camera, Check, LogOut, Pencil, Quote } from "lucide-react";
+import { AtSign, Camera, Check, LogOut, Pencil, Quote, SquarePen } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar } from "@/components/Avatar";
@@ -71,6 +71,21 @@ export default function Profile() {
 
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar pb-32">
+      <div
+        className="absolute right-4 z-40"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+      >
+        <button
+          type="button"
+          aria-label="Редактировать профиль"
+          title="Редактировать профиль"
+          onClick={openEdit}
+          className="tcy-press flex h-10 w-10 items-center justify-center rounded-full tcy-gradient-accent tcy-shadow-accent"
+          style={{ color: "var(--tcy-selected-on-accent)" }}
+        >
+          <SquarePen size={19} strokeWidth={2.2} />
+        </button>
+      </div>
       <input
         ref={fileRef}
         type="file"
