@@ -152,9 +152,9 @@ export default function Profile() {
         <div
           className="overflow-hidden rounded-[20px] border"
           style={{
-            borderColor: "#913345",
-            background: "#b82036",
-            boxShadow: "0 3px 12px rgba(160, 25, 48, 0.12)",
+            borderColor: "#68404a",
+            background: "#59343d",
+            boxShadow: "0 2px 8px rgba(48, 24, 30, 0.10)",
           }}
         >
           <button
@@ -163,7 +163,7 @@ export default function Profile() {
             className="tcy-press flex w-full items-center gap-3.5 border-0 px-4 py-4 text-left transition-colors"
             style={{
               color: "#ffffff",
-              background: "#c0273d",
+              background: "#63404a",
               boxShadow: "none",
             }}
           >
@@ -177,7 +177,7 @@ export default function Profile() {
             style={{
               color: "#ffffff",
               borderTopColor: "rgba(255, 255, 255, 0.14)",
-              background: "#b82036",
+              background: "#59343d",
               boxShadow: "none",
             }}
           >
