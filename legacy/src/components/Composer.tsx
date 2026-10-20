@@ -232,7 +232,7 @@ export function Composer({
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
                       transition={{ type: "spring", stiffness: 500, damping: 36 }}
-                      className="absolute bottom-[calc(100%+8px)] left-0 tcy-solid border tcy-line rounded-[22px] p-2 tcy-shadow-soft z-[10060] min-w-[190px]"
+                      className="fixed bottom-[100px] left-3 tcy-solid border tcy-line rounded-[22px] p-2 tcy-shadow-soft z-[10060] min-w-[190px]"
                     >
                       {[
                         { label: "Фотография", emoji: "🖼️", fn: () => imgInputRef.current?.click() },
