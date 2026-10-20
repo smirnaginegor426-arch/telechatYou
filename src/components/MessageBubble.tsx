@@ -518,7 +518,7 @@ export function MessageBubble({
                 ? "px-4 py-2.5"
                 : "px-3.5 py-2.5",
             isChannel && showChannelComments
-              ? "bg-transparent border-0 shadow-none rounded-none"
+              ? "bg-transparent border-0 shadow-none rounded-none px-3 py-1.5"
               : !isImage && !isPoll && !isStickerMessage && !hasMediaCaption && !isVideoAttachment &&
                 (own
                   ? "tcy-glass-own rounded-[22px] rounded-br-[8px]"
@@ -846,7 +846,7 @@ export function MessageBubble({
 
         {isChannel && showChannelComments && reactions.length > 0 && <div className="h-4" />}
         {isChannel && showChannelComments && (
-          <div className="flex h-fit w-full shrink-0 items-center border-t tcy-line px-2 py-1.5">
+          <div className="flex h-fit self-stretch shrink-0 items-center border-t tcy-line px-2 py-1">
             <button
               type="button"
               onClick={onOpenChannelComments}
