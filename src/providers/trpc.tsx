@@ -39,32 +39,45 @@ const trpcClient = trpc.createClient({
         }
 
         const payload: unknown = await response.clone().json().catch(() => null);
+        const isRecord = (value: unknown): value is Record<string, unknown> =>
+          value !== null && typeof value === "object" && !Array.isArray(value);
         const entries = Array.isArray(payload) ? payload : [payload];
-        const isTrpcEnvelope = entries.length > 0 && entries.every((entry) =>
-          entry !== null &&
-          typeof entry === "object" &&
-          ("result" in entry || "error" in entry),
-        );
+        // Do not accept any arbitrary { error: ... } JSON as a tRPC response.
+        // CSRF middleware, a reverse proxy, or an upstream error page can otherwise
+        // pass this loose check and be misreported by tRPC as "Unable to transform...".
+        const isTrpcEnvelope = entries.length > 0 && entries.every((entry) => {
+          if (!isRecord(entry)) return false;
+          const result = entry.result;
+          if (isRecord(result) && "data" in result) return true;
+          const error = entry.error;
+          if (!isRecord(error)) return false;
+          const errorPayload = isRecord(error.json) ? error.json : error;
+          return typeof errorPayload.code === "number" && typeof errorPayload.message === "string";
+        });
         if (!isTrpcEnvelope) {
-          const payloadRecord = payload && typeof payload === "object" && !Array.isArray(payload)
-            ? payload as Record<string, unknown>
-            : undefined;
+          const firstEntry: unknown = Array.isArray(payload) ? payload[0] : payload;
+          const payloadRecord = isRecord(firstEntry) ? firstEntry : undefined;
           const errorValue = payloadRecord?.error;
-          const errorRecord = errorValue && typeof errorValue === "object"
-            ? errorValue as Record<string, unknown>
-            : undefined;
-          const detail = typeof errorRecord?.message === "string"
-            ? errorRecord.message
-            : typeof payloadRecord?.message === "string"
-              ? payloadRecord.message
-              : undefined;
-          console.error("[tRPC transport] Unexpected JSON envelope", {
+          const errorRecord = isRecord(errorValue) ? errorValue : undefined;
+          const nestedError = errorRecord && isRecord(errorRecord.json) ? errorRecord.json : undefined;
+          const detail = typeof errorValue === "string"
+            ? errorValue
+            : typeof errorRecord?.message === "string"
+              ? errorRecord.message
+              : typeof nestedError?.message === "string"
+                ? nestedError.message
+                : typeof payloadRecord?.message === "string"
+                  ? payloadRecord.message
+                  : undefined;
+          const responsePreview = JSON.stringify(firstEntry)?.slice(0, 500) ?? "(не удалось прочитать тело ответа)";
+          console.error("[tRPC transport] Unexpected JSON response", {
             path: requestPath,
             status: response.status,
             detail,
+            responsePreview,
           });
           throw new Error(
-            `API вернул JSON не в формате tRPC (HTTP ${response.status})${detail ? `: ${detail}` : ". Проверь адрес API и логи Render."}`,
+            `API вернул ответ не в формате tRPC (HTTP ${response.status})${detail ? `: ${detail}` : `. Ответ: ${responsePreview}`}`,
           );
         }
         return response;
