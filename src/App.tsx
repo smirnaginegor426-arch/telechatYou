@@ -22,7 +22,6 @@ import RegisterWizard from "@/pages/RegisterWizard";
 import RegisterWizardLegacy from "@/pages/RegisterWizardLegacy";
 import Chats from "@/pages/Chats";
 import ChatView from "@/pages/ChatView";
-import TeleChatYouBot from "@/pages/TeleChatYouBot";
 import ChatInfo from "@/pages/ChatInfo";
 import RenameChat from "@/pages/RenameChat";
 import Contacts from "@/pages/Contacts";
@@ -209,7 +208,6 @@ useEffect(() => {
         >
           <Routes location={location}>
             <Route path="/" element={desktopHome ? <div className="h-full" /> : <Chats />} />
-            <Route path="/chat/telechatyou" element={<TeleChatYouBot />} />
             <Route path="/chat/:id" element={<ChatView />} />
             <Route path="/chat/:id/info" element={<ChatInfo />} />
             <Route path="/rename-chat/:chatId" element={<RenameChat />} />
