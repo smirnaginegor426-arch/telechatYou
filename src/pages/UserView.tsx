@@ -24,6 +24,8 @@ export default function UserView() {
   const autoOpen = new URLSearchParams(location.search).get("open") === "1";
   const autoOpenKeyRef = useRef<string | null>(null);
   const utils = trpc.useUtils();
+  const currentProfile = trpc.profile.me.useQuery(undefined, { staleTime: 60_000 });
+  const myUserId = currentProfile.data?.profile?.userId;
   const profileById = trpc.profile.byId.useQuery(
     { userId: parsedUserId },
     { enabled: !!id && Number.isFinite(parsedUserId), retry: false },
@@ -68,12 +70,16 @@ export default function UserView() {
   // Mention links navigate here immediately, then this page resolves the name
   // into a direct chat or a public channel/group and opens it automatically.
   useEffect(() => {
-    if (!autoOpen || !username || loading) return;
+    if (!autoOpen || !username || loading || currentProfile.isLoading) return;
     const key = username.toLowerCase();
     if (autoOpenKeyRef.current === key) return;
 
     if (p) {
       autoOpenKeyRef.current = key;
+      if (p.userId === myUserId) {
+        navigate("/profile", { replace: true });
+        return;
+      }
       createDirect.mutate({ userId: p.userId });
       return;
     }
@@ -87,7 +93,7 @@ export default function UserView() {
     // The profile and public-channel lookups both finished without a match.
     autoOpenKeyRef.current = key;
     navigate(`/@${username}`, { replace: true });
-  }, [autoOpen, username, loading, p?.userId, channel?.username, createDirect, joinPublicChannel, navigate]);
+  }, [autoOpen, username, loading, currentProfile.isLoading, myUserId, p?.userId, channel?.username, createDirect, joinPublicChannel, navigate]);
 
   return (
     <div className="relative h-full overflow-y-auto no-scrollbar">
