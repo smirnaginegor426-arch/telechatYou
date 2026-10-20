@@ -79,8 +79,10 @@ app.use("*", async (c, next) => {
   }
 });
 
-// Reject cross-site writes to the API to reduce CSRF risk. Same-origin app calls
-// retain Origin and Fetch Metadata headers in browsers and Android WebView.
+// Reject cross-site writes to the API to reduce CSRF risk. Render terminates HTTPS
+// before forwarding requests to this process, so c.req.url may use HTTP internally.
+// Compare Origin against the externally visible scheme (X-Forwarded-Proto) and Host;
+// comparing it to c.req.url.origin can incorrectly block every legitimate POST.
 app.use("/api/*", async (c, next) => {
   if (["POST", "PUT", "PATCH", "DELETE"].includes(c.req.method.toUpperCase())) {
     const origin = c.req.header("origin");
@@ -89,14 +91,49 @@ app.use("/api/*", async (c, next) => {
       try {
         suppliedOrigin = new URL(origin).origin;
       } catch {
-        return c.json({ error: "Invalid request origin" }, 403);
+        console.warn(JSON.stringify({
+          event: "security.csrf_origin_rejected",
+          method: c.req.method,
+          path: new URL(c.req.url).pathname,
+          reason: "invalid_origin",
+        }));
+        return c.json({ error: { code: "FORBIDDEN", message: "Invalid request origin" } }, 403);
       }
-      if (suppliedOrigin !== new URL(c.req.url).origin) {
-        return c.json({ error: "Cross-origin request blocked" }, 403);
+
+      const requestUrl = new URL(c.req.url);
+      const forwardedProto = c.req.header("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+      const publicProtocol = forwardedProto === "https" || forwardedProto === "http"
+        ? forwardedProto
+        : requestUrl.protocol.slice(0, -1);
+      const publicHost = c.req.header("host")?.trim() || requestUrl.host;
+      let expectedOrigin = requestUrl.origin;
+      try {
+        expectedOrigin = new URL(`${publicProtocol}://${publicHost}`).origin;
+      } catch {
+        // Keep requestUrl.origin as a safe fallback if proxy headers are malformed.
+      }
+
+      if (suppliedOrigin !== expectedOrigin) {
+        console.warn(JSON.stringify({
+          event: "security.csrf_origin_rejected",
+          method: c.req.method,
+          path: requestUrl.pathname,
+          suppliedOrigin,
+          expectedOrigin,
+          internalOrigin: requestUrl.origin,
+          forwardedProto: forwardedProto || null,
+        }));
+        return c.json({ error: { code: "FORBIDDEN", message: "Cross-origin request blocked" } }, 403);
       }
     }
     if (c.req.header("sec-fetch-site")?.toLowerCase() === "cross-site") {
-      return c.json({ error: "Cross-site request blocked" }, 403);
+      console.warn(JSON.stringify({
+        event: "security.csrf_origin_rejected",
+        method: c.req.method,
+        path: new URL(c.req.url).pathname,
+        reason: "fetch_metadata_cross_site",
+      }));
+      return c.json({ error: { code: "FORBIDDEN", message: "Cross-site request blocked" } }, 403);
     }
   }
   await next();
