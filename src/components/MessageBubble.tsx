@@ -481,7 +481,7 @@ export function MessageBubble({
       <div
         ref={bubbleRef}
         className={cn(
-          "max-w-[78%] flex flex-col",
+          "w-fit max-w-[78%] min-w-0 flex flex-col",
           own ? "items-end" : "items-start",
           isChannel && showChannelComments && "rounded-[22px] border tcy-line tcy-shadow-soft",
         )}
