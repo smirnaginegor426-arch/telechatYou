@@ -647,9 +647,11 @@ export function Composer({
           ) : (
             <>
               <div className="relative shrink-0">
-                <AnimatePresence>
-                  {attachOpen && createPortal(
+                {typeof document !== "undefined" && createPortal(
+                    <AnimatePresence>
+                      {attachOpen && (
                     <motion.div
+                      key="attachment-menu"
                       role="menu"
                       aria-label="Добавить вложение"
                       initial={{ opacity: 0, y: 7, scale: 0.97 }}
@@ -676,10 +678,11 @@ export function Composer({
                         <Images size={16} strokeWidth={1.8} className="shrink-0 tcy-dim" />
                         <span>Галерея</span>
                       </button>
-                    </motion.div>,
+                    </motion.div>
+                      )}
+                    </AnimatePresence>,
                     document.body,
                   )}
-                </AnimatePresence>
                 <button
                   onClick={() => {
                     setAttachOpen((v) => !v);
