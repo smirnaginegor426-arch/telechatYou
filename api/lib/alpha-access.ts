@@ -28,6 +28,7 @@ const INITIAL_ALPHA_KEY_HASHES: Array<{
   alreadyUsed: boolean;
 }> = [
   { keyHash: "fa1dafcba838c3b23892c2081fdc0cacc1a6f9b6c60fa239e9709d891017a696", keyType: "tester", alreadyUsed: false },
+  { keyHash: "5fa58660379cc92c76dc9145de9bd7a4565e9576f331fb1868f1e540b409f922", keyType: "tester", alreadyUsed: false },
 ];
 
 function hashAlphaKey(key: string): string {
