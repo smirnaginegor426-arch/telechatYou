@@ -106,9 +106,11 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     const participants = item.chat.directKey.split(":");
     return participants.length === 2 && participants[0] === participants[1];
   };
-  const active = items.filter((i) => !i.membership.archived).sort((a, b) =>
-    Number(isFavoritesChat(b)) - Number(isFavoritesChat(a)),
-  );
+  const active = items.filter((i) => !i.membership.archived).sort((a, b) => {
+    const favoritesFirst = Number(isFavoritesChat(b)) - Number(isFavoritesChat(a));
+    if (favoritesFirst !== 0) return favoritesFirst;
+    return Number(b.membership.pinned) - Number(a.membership.pinned);
+  });
   const archived = items.filter((i) => i.membership.archived).sort((a, b) =>
     Number(isFavoritesChat(b)) - Number(isFavoritesChat(a)),
   );
@@ -377,9 +379,34 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
                     current.includes(item.chat.id) ? current : [...current, item.chat.id],
                   )}
                   onClick={() => navigate(`/chat/${item.chat.id}`)}
-                  onArchive={
-                    !showArchived && !isFavoritesChat(item)
-                      ? () => flags.mutate({ chatId: item.chat.id, archived: true })
+                  leftSwipeAction={
+                    isFavoritesChat(item)
+                      ? undefined
+                      : showArchived
+                        ? {
+                            kind: "restore" as const,
+                            label: "В чаты",
+                            onTrigger: () => flags.mutate({ chatId: item.chat.id, archived: false }),
+                          }
+                        : item.membership.pinned
+                          ? {
+                              kind: "unpin" as const,
+                              label: "Открепить",
+                              onTrigger: () => flags.mutate({ chatId: item.chat.id, pinned: false }),
+                            }
+                          : {
+                              kind: "archive" as const,
+                              label: "Архив",
+                              onTrigger: () => flags.mutate({ chatId: item.chat.id, archived: true }),
+                            }
+                  }
+                  rightSwipeAction={
+                    !showArchived && !isFavoritesChat(item) && !item.membership.pinned
+                      ? {
+                          kind: "pin" as const,
+                          label: "Закрепить",
+                          onTrigger: () => flags.mutate({ chatId: item.chat.id, pinned: true }),
+                        }
                       : undefined
                   }
                   onAvatarClick={() => {
