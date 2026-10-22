@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
+import { Archive, Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { TesterBadge } from "@/components/TesterBadge";
 import { isTesterUsername } from "@/lib/testers";
@@ -52,6 +52,7 @@ export function ChatItem({
   selecting = false,
   onToggleSelect,
   onLongPress,
+  onArchive,
 }: {
   item: ChatListItem;
   contactNames?: Record<string, string>;
@@ -62,6 +63,7 @@ export function ChatItem({
   selecting?: boolean;
   onToggleSelect?: () => void;
   onLongPress?: () => void;
+  onArchive?: () => void;
 }) {
   const isDirect = item.chat.type === "direct";
   const directParts = item.chat.directKey?.split(":") ?? [];
@@ -74,6 +76,13 @@ export function ChatItem({
   const pressTimer = useRef<number | null>(null);
   const pressStart = useRef<{ x: number; y: number } | null>(null);
   const longPressTriggered = useRef(false);
+  const swipeStart = useRef<{ x: number; y: number; base: number } | null>(null);
+  const swipeActive = useRef(false);
+  const swipeOffsetRef = useRef(0);
+  const suppressClick = useRef(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipeDragging, setSwipeDragging] = useState(false);
+  const ARCHIVE_REVEAL_WIDTH = 100;
 
   const clearPressTimer = () => {
     if (pressTimer.current !== null) {
@@ -85,7 +94,12 @@ export function ChatItem({
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
     longPressTriggered.current = false;
+    suppressClick.current = false;
     pressStart.current = { x: event.clientX, y: event.clientY };
+    swipeStart.current = !selecting && onArchive
+      ? { x: event.clientX, y: event.clientY, base: swipeOffsetRef.current }
+      : null;
+    swipeActive.current = false;
     clearPressTimer();
     if (selecting) return;
 
@@ -97,6 +111,30 @@ export function ChatItem({
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const start = swipeStart.current;
+    if (start && onArchive && !selecting) {
+      const dx = event.clientX - start.x;
+      const dy = event.clientY - start.y;
+      const horizontal = Math.abs(dx) > Math.abs(dy) * 1.15;
+      if (
+        !swipeActive.current &&
+        horizontal &&
+        (dx < -12 || (start.base > 0 && dx > 12))
+      ) {
+        swipeActive.current = true;
+        setSwipeDragging(true);
+        suppressClick.current = true;
+        clearPressTimer();
+        pressStart.current = null;
+      }
+      if (swipeActive.current) {
+        const nextOffset = Math.max(0, Math.min(ARCHIVE_REVEAL_WIDTH, start.base - dx));
+        swipeOffsetRef.current = nextOffset;
+        setSwipeOffset(nextOffset);
+        return;
+      }
+    }
+
     if (!pressStart.current || pressTimer.current === null) return;
     if (Math.hypot(event.clientX - pressStart.current.x, event.clientY - pressStart.current.y) > 12) {
       clearPressTimer();
@@ -104,12 +142,33 @@ export function ChatItem({
     }
   };
 
-  const handlePointerEnd = () => {
+  const handlePointerEnd = (cancelled = false) => {
     clearPressTimer();
     pressStart.current = null;
+    const wasSwipe = swipeActive.current;
+    if (wasSwipe) {
+      const shouldArchive =
+        !cancelled &&
+        swipeOffsetRef.current >= ARCHIVE_REVEAL_WIDTH - 1 &&
+        !selecting &&
+        !!onArchive;
+      swipeActive.current = false;
+      setSwipeDragging(false);
+      swipeStart.current = null;
+      swipeOffsetRef.current = 0;
+      setSwipeOffset(0);
+      suppressClick.current = true;
+      if (shouldArchive) onArchive?.();
+      return;
+    }
+    swipeStart.current = null;
   };
 
   const handleRowClick = () => {
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
     if (longPressTriggered.current) {
       longPressTriggered.current = false;
       return;
@@ -129,28 +188,57 @@ export function ChatItem({
   };
 
   return (
-    <motion.div
-      role="button"
-      tabIndex={0}
-      aria-pressed={selecting ? selected : undefined}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.035, 0.3), type: "spring", stiffness: 300, damping: 30 }}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerEnd}
-      onPointerCancel={handlePointerEnd}
-      onContextMenu={(event) => event.preventDefault()}
-      onClick={handleRowClick}
-      onKeyDown={(event) => {
-        if (event.target !== event.currentTarget) return;
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          handleRowClick();
-        }
-      }}
-      className={`tcy-chat-list-item w-full flex items-center gap-3.5 px-4 py-3 text-left transition-colors ${selected ? "tcy-chat-list-item-selected" : ""}`}
-    >
+    <div className="tcy-chat-item-swipe-container relative overflow-hidden" style={{ touchAction: "pan-y" }}>
+      {onArchive && !selecting && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-0 right-0 z-0 flex w-[100px] items-center justify-center select-none"
+          style={{ pointerEvents: "none" }}
+        >
+          <motion.div
+            className="flex flex-col items-center justify-center gap-1.5"
+            animate={{
+              opacity: Math.min(1, swipeOffset / 26),
+              scale: 0.82 + Math.min(1, swipeOffset / ARCHIVE_REVEAL_WIDTH) * 0.18,
+            }}
+            transition={swipeDragging ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 30 }}
+          >
+            <span
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-[17px] border tcy-line"
+              style={{
+                color: "var(--tcy-selected-accent)",
+                background: "color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card))",
+              }}
+            >
+              <Archive size={22} strokeWidth={2.1} />
+            </span>
+            <span className="text-[11.5px] leading-none font-bold tcy-dim">Архив</span>
+          </motion.div>
+        </div>
+      )}
+      <motion.div
+        role="button"
+        tabIndex={0}
+        aria-pressed={selecting ? selected : undefined}
+        initial={{ opacity: 0, y: 12, x: 0 }}
+        animate={{ opacity: 1, y: 0, x: -swipeOffset }}
+        transition={swipeDragging ? { duration: 0 } : { delay: Math.min(index * 0.035, 0.3), type: "spring", stiffness: 420, damping: 30 }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={() => handlePointerEnd(false)}
+        onPointerCancel={() => handlePointerEnd(true)}
+        onContextMenu={(event) => event.preventDefault()}
+        onClick={handleRowClick}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget) return;
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleRowClick();
+          }
+        }}
+        className={`tcy-chat-list-item relative z-10 w-full flex items-center gap-3.5 px-4 py-3 text-left transition-colors ${selected ? "tcy-chat-list-item-selected" : ""}`}
+        style={{ touchAction: "pan-y" }}
+      >
       {selecting && (
         <span
           aria-hidden="true"
@@ -247,6 +335,7 @@ export function ChatItem({
           </span>
         </div>
       </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
