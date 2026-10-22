@@ -1360,3 +1360,33 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
   -webkit-mask-position: center;
   mask-position: center;
 }
+
+
+/* Swipe-to-archive chat row: keep the row's normal geometry inside a clipping shell. */
+#root .tcy-chat-list-scroll .tcy-chat-item-swipe-container {
+  width: calc(100% - 20px) !important;
+  margin: 3px 10px !important;
+  border-radius: 8px;
+  isolation: isolate;
+}
+#root .tcy-chat-list-scroll .tcy-chat-item-swipe-container > .tcy-chat-list-item {
+  width: 100% !important;
+  margin: 0 !important;
+  border-radius: inherit !important;
+  will-change: transform;
+}
+#root .tcy-chat-list-scroll:not(:has(> .tcy-chat-item-swipe-container)) > .divide-y > div:first-child > .tcy-chat-item-swipe-container {
+  border-radius: 32px 32px 8px 8px !important;
+}
+#root .tcy-chat-list-scroll:has(> .tcy-chat-item-swipe-container) > .divide-y > div:first-child > .tcy-chat-item-swipe-container {
+  border-radius: 8px !important;
+}
+#root .tcy-chat-list-scroll > .divide-y > div:last-child > .tcy-chat-item-swipe-container {
+  border-radius: 8px 8px 32px 32px !important;
+}
+#root .tcy-chat-list-scroll:not(:has(> .tcy-chat-item-swipe-container)) > .divide-y > div:only-child > .tcy-chat-item-swipe-container {
+  border-radius: 32px !important;
+}
+#root .tcy-chat-list-scroll:has(> .tcy-chat-item-swipe-container) > .divide-y > div:only-child > .tcy-chat-item-swipe-container {
+  border-radius: 8px 8px 32px 32px !important;
+}
