@@ -920,9 +920,9 @@ html[data-tcy-experimental="true"] body > *:not(#root) * {
 
 
 .tcy-favorite-chat-avatar {
-  background: color-mix(in srgb, var(--tcy-selected-accent) 17%, var(--tcy-card-strong));
-  color: color-mix(in srgb, var(--tcy-selected-accent) 86%, white);
-  border: 1px solid color-mix(in srgb, var(--tcy-selected-accent) 22%, var(--tcy-line));
+  background: transparent !important;
+  color: inherit;
+  border: 0 !important;
 }
 
 
