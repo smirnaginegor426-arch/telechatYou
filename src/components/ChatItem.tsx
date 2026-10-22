@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Archive, Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
+import { Archive, ArchiveRestore, Pin, PinOff, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { TesterBadge } from "@/components/TesterBadge";
 import { isTesterUsername } from "@/lib/testers";
@@ -9,6 +9,11 @@ import { formatChatTime } from "@/lib/format";
 import type { RouterOutput } from "@/types/api";
 
 type ChatListItem = RouterOutput["chats"]["list"][number];
+type ChatSwipeAction = {
+  kind: "archive" | "restore" | "pin" | "unpin";
+  label: string;
+  onTrigger: () => void;
+};
 
 // A swipe can move the row away from the pointer before the browser dispatches
 // its synthetic click. Suppress that click across the whole list, not only on
@@ -57,7 +62,8 @@ export function ChatItem({
   selecting = false,
   onToggleSelect,
   onLongPress,
-  onArchive,
+  leftSwipeAction,
+  rightSwipeAction,
 }: {
   item: ChatListItem;
   contactNames?: Record<string, string>;
@@ -68,7 +74,10 @@ export function ChatItem({
   selecting?: boolean;
   onToggleSelect?: () => void;
   onLongPress?: () => void;
-  onArchive?: () => void;
+  /** Revealed at the right edge when the row is swiped left. */
+  leftSwipeAction?: ChatSwipeAction;
+  /** Revealed at the left edge when the row is swiped right. */
+  rightSwipeAction?: ChatSwipeAction;
 }) {
   const isDirect = item.chat.type === "direct";
   const directParts = item.chat.directKey?.split(":") ?? [];
@@ -104,7 +113,7 @@ export function ChatItem({
     longPressTriggered.current = false;
     suppressClick.current = false;
     pressStart.current = { x: event.clientX, y: event.clientY };
-    swipeStart.current = !selecting && onArchive
+    swipeStart.current = !selecting && (leftSwipeAction || rightSwipeAction)
       ? { x: event.clientX, y: event.clientY, base: swipeOffsetRef.current }
       : null;
     swipeActive.current = false;
@@ -120,14 +129,16 @@ export function ChatItem({
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
     const start = swipeStart.current;
-    if (start && onArchive && !selecting) {
+    if (start && !selecting) {
       const dx = event.clientX - start.x;
       const dy = event.clientY - start.y;
       const horizontal = Math.abs(dx) > Math.abs(dy) * 1.15;
+      const canSwipeLeft = Boolean(leftSwipeAction) || start.base < 0;
+      const canSwipeRight = Boolean(rightSwipeAction) || start.base > 0;
       if (
         !swipeActive.current &&
         horizontal &&
-        (dx < -12 || (start.base > 0 && dx > 12))
+        ((dx < -12 && canSwipeLeft) || (dx > 12 && canSwipeRight))
       ) {
         swipeActive.current = true;
         setSwipeDragging(true);
@@ -137,7 +148,10 @@ export function ChatItem({
       }
       if (swipeActive.current) {
         event.preventDefault();
-        const nextOffset = Math.max(0, Math.min(ARCHIVE_REVEAL_WIDTH, start.base - dx));
+        const nextOffset = Math.max(
+          -ARCHIVE_REVEAL_WIDTH,
+          Math.min(ARCHIVE_REVEAL_WIDTH, start.base + dx),
+        );
         swipeOffsetRef.current = nextOffset;
         setSwipeOffset(nextOffset);
         return;
@@ -156,11 +170,15 @@ export function ChatItem({
     pressStart.current = null;
     const wasSwipe = swipeActive.current;
     if (wasSwipe) {
-      const shouldArchive =
+      const reachedFullReveal =
         !cancelled &&
-        swipeOffsetRef.current >= ARCHIVE_REVEAL_WIDTH - 1 &&
         !selecting &&
-        !!onArchive;
+        Math.abs(swipeOffsetRef.current) >= ARCHIVE_REVEAL_WIDTH - 1;
+      const actionToRun = reachedFullReveal
+        ? swipeOffsetRef.current < 0
+          ? leftSwipeAction?.onTrigger
+          : rightSwipeAction?.onTrigger
+        : undefined;
       swipeActive.current = false;
       setSwipeDragging(false);
       swipeStart.current = null;
@@ -170,7 +188,7 @@ export function ChatItem({
       // Keep a list-wide guard long enough to cover delayed touch-generated
       // clicks that may otherwise land on the row revealed underneath.
       suppressChatRowClickUntil = Date.now() + 700;
-      if (shouldArchive) onArchive?.();
+      actionToRun?.();
       return;
     }
     swipeStart.current = null;
@@ -214,7 +232,7 @@ export function ChatItem({
 
   return (
     <div className="tcy-chat-item-swipe-container relative overflow-hidden" style={{ touchAction: "pan-y" }}>
-      {onArchive && !selecting && (
+      {leftSwipeAction && !selecting && (
         <div
           aria-hidden="true"
           className="absolute inset-y-0 right-0 z-0 flex w-[100px] items-center justify-center select-none"
@@ -223,8 +241,8 @@ export function ChatItem({
           <motion.div
             className="flex flex-col items-center justify-center gap-1.5"
             animate={{
-              opacity: Math.min(1, swipeOffset / 26),
-              scale: 0.82 + Math.min(1, swipeOffset / ARCHIVE_REVEAL_WIDTH) * 0.18,
+              opacity: swipeOffset < 0 ? Math.min(1, Math.abs(swipeOffset) / 26) : 0,
+              scale: 0.82 + Math.min(1, Math.abs(swipeOffset) / ARCHIVE_REVEAL_WIDTH) * 0.18,
             }}
             transition={swipeDragging ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 30 }}
           >
@@ -235,9 +253,42 @@ export function ChatItem({
                 background: "color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card))",
               }}
             >
-              <Archive size={22} strokeWidth={2.1} />
+              {leftSwipeAction.kind === "archive" ? <Archive size={22} strokeWidth={2.1} />
+                : leftSwipeAction.kind === "restore" ? <ArchiveRestore size={22} strokeWidth={2.1} />
+                : leftSwipeAction.kind === "pin" ? <Pin size={22} strokeWidth={2.1} />
+                : <PinOff size={22} strokeWidth={2.1} />}
             </span>
-            <span className="text-[11.5px] leading-none font-bold tcy-dim">Архив</span>
+            <span className="text-[11.5px] leading-none font-bold tcy-dim">{leftSwipeAction.label}</span>
+          </motion.div>
+        </div>
+      )}
+      {rightSwipeAction && !selecting && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-y-0 left-0 z-0 flex w-[100px] items-center justify-center select-none"
+          style={{ pointerEvents: "none" }}
+        >
+          <motion.div
+            className="flex flex-col items-center justify-center gap-1.5"
+            animate={{
+              opacity: swipeOffset > 0 ? Math.min(1, swipeOffset / 26) : 0,
+              scale: 0.82 + Math.min(1, Math.abs(swipeOffset) / ARCHIVE_REVEAL_WIDTH) * 0.18,
+            }}
+            transition={swipeDragging ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 30 }}
+          >
+            <span
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-[17px] border tcy-line"
+              style={{
+                color: "var(--tcy-selected-accent)",
+                background: "color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card))",
+              }}
+            >
+              {rightSwipeAction.kind === "archive" ? <Archive size={22} strokeWidth={2.1} />
+                : rightSwipeAction.kind === "restore" ? <ArchiveRestore size={22} strokeWidth={2.1} />
+                : rightSwipeAction.kind === "pin" ? <Pin size={22} strokeWidth={2.1} />
+                : <PinOff size={22} strokeWidth={2.1} />}
+            </span>
+            <span className="text-[11.5px] leading-none font-bold tcy-dim">{rightSwipeAction.label}</span>
           </motion.div>
         </div>
       )}
@@ -246,7 +297,7 @@ export function ChatItem({
         tabIndex={0}
         aria-pressed={selecting ? selected : undefined}
         initial={{ opacity: 0, y: 12, x: 0 }}
-        animate={{ opacity: 1, y: 0, x: -swipeOffset }}
+        animate={{ opacity: 1, y: 0, x: swipeOffset }}
         transition={
           swipeDragging
             ? { duration: 0 }
