@@ -81,7 +81,7 @@ export function serveStaticFiles(app: App) {
       accountSwitcherActive: Boolean(getActiveAccountSlotId(headers)),
       sessionCookies: getSessionCookieDiagnostics(headers),
       privateTesterUserId: 1633623,
-      privateTesterUserIds: [1633623, 848009, 3838382],
+      privateTesterUserIds: [1633623, 848009, 3838382, 5750238],
       shells: {
         current: readShell(CURRENT_SHELL) !== null,
         legacy: readShell(LEGACY_SHELL) !== null,
