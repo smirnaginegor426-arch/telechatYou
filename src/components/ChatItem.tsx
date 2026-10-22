@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
 import { Archive, Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
