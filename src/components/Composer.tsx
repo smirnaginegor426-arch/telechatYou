@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUp, Brush, ClipboardPaste, Copy, FileText, FileUp, Images, Mic, Plus, Scissors, Sticker, Trash2, X } from "lucide-react";
+import { ArrowUp, Brush, ClipboardPaste, Copy, FileText, FileUp, Images, Mic, Plus, Scissors, Trash2, X } from "lucide-react";
 import { StickerPicker } from "./StickerPicker";
 import type { StickerAsset, StickerPack } from "@/lib/stickers";
 import { formatDuration } from "@/lib/format";
@@ -745,7 +745,24 @@ export function Composer({
                 aria-label="Стикеры"
                 aria-expanded={stickerOpen}
               >
-                <Sticker size={22} />
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M7.2 1.7H16.7C19.4 1.7 21.4 3.7 21.4 6.3V14.1L11.7 22.2H7.2C4.6 22.2 2.6 20.3 2.6 17.8C2.6 16.7 4.9 15.9 4.9 14.4C4.9 12.8 2.6 12 2.6 10.5C2.6 9 4.9 8.2 4.9 6.6C4.9 5 2.6 4.4 2.6 3.8C2.6 2.6 4.5 1.7 7.2 1.7Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M21.4 14.1H16.6C13.8 14.1 11.7 16.3 11.7 19.1V22.2L21.4 14.1Z"
+                    fill="currentColor"
+                    opacity="0.48"
+                  />
+                </svg>
               </button>
               )}
               <div className="relative w-11 h-11 shrink-0">
