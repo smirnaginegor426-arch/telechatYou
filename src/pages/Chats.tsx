@@ -273,9 +273,9 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
         }}
         onTouchMove={(event) => {
           const start = archiveTouchStart.current;
-          if (start === null || !hasArchived || showArchived) return;
+          if (start === null || showArchived) return;
           const current = event.touches[0]?.clientY;
-          if (current !== undefined && current - start >= 58) {
+          if (current !== undefined && current - start >= 82) {
             setArchiveGestureVisible(true);
             archiveTouchStart.current = null;
           }
@@ -288,7 +288,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
           }
         }}
       >
-        {!showArchived && archiveGestureVisible && hasArchived && !selectedChatIds.length && (
+        {!showArchived && archiveGestureVisible && !selectedChatIds.length && (
           <button
             type="button"
             onClick={() => {
@@ -394,11 +394,7 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
                               label: "Открепить",
                               onTrigger: () => flags.mutate({ chatId: item.chat.id, pinned: false }),
                             }
-                          : {
-                              kind: "archive" as const,
-                              label: "Архив",
-                              onTrigger: () => flags.mutate({ chatId: item.chat.id, archived: true }),
-                            }
+                          : undefined
                   }
                   rightSwipeAction={
                     !showArchived && !isFavoritesChat(item) && !item.membership.pinned
