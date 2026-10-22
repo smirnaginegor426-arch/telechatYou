@@ -231,7 +231,15 @@ export function ChatItem({
   };
 
   return (
-    <div className="tcy-chat-item-swipe-container relative overflow-hidden" style={{ touchAction: "pan-y" }}>
+    <div
+      className="tcy-chat-item-swipe-container relative overflow-hidden"
+      style={{ touchAction: "pan-y" }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={() => handlePointerEnd(false)}
+      onPointerCancel={() => handlePointerEnd(true)}
+      onClick={handleRowClick}
+    >
       {leftSwipeAction && !selecting && (
         <div
           aria-hidden="true"
@@ -307,12 +315,7 @@ export function ChatItem({
                 x: { type: "spring", stiffness: 420, damping: 30 },
               }
         }
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={() => handlePointerEnd(false)}
-        onPointerCancel={() => handlePointerEnd(true)}
         onContextMenu={(event) => event.preventDefault()}
-        onClick={handleRowClick}
         onKeyDown={(event) => {
           if (event.target !== event.currentTarget) return;
           if (event.key === "Enter" || event.key === " ") {
