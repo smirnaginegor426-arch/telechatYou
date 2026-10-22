@@ -158,6 +158,11 @@ export function ChatItem({
       swipeOffsetRef.current = 0;
       setSwipeOffset(0);
       suppressClick.current = true;
+      // Native click follows pointerup; clear the guard after that click cycle
+      // in case the shifted row is no longer the click target.
+      window.setTimeout(() => {
+        suppressClick.current = false;
+      }, 0);
       if (shouldArchive) onArchive?.();
       return;
     }
@@ -226,7 +231,15 @@ export function ChatItem({
         aria-pressed={selecting ? selected : undefined}
         initial={{ opacity: 0, y: 12, x: 0 }}
         animate={{ opacity: 1, y: 0, x: -swipeOffset }}
-        transition={swipeDragging ? { duration: 0 } : { delay: Math.min(index * 0.035, 0.3), type: "spring", stiffness: 420, damping: 30 }}
+        transition={
+          swipeDragging
+            ? { duration: 0 }
+            : {
+                opacity: { delay: Math.min(index * 0.035, 0.3), type: "spring", stiffness: 300, damping: 30 },
+                y: { delay: Math.min(index * 0.035, 0.3), type: "spring", stiffness: 300, damping: 30 },
+                x: { type: "spring", stiffness: 420, damping: 30 },
+              }
+        }
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={() => handlePointerEnd(false)}
