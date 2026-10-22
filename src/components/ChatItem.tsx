@@ -179,6 +179,10 @@ export function ChatItem({
 
   const handleAvatarClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    if (suppressClick.current) {
+      suppressClick.current = false;
+      return;
+    }
     if (longPressTriggered.current) {
       longPressTriggered.current = false;
       return;
