@@ -96,7 +96,7 @@ export function ChatItem({
   const suppressClick = useRef(false);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [swipeDragging, setSwipeDragging] = useState(false);
-  const ARCHIVE_REVEAL_WIDTH = 100;
+  const ARCHIVE_REVEAL_WIDTH = 116;
 
   const clearPressTimer = () => {
     if (pressTimer.current !== null) {
@@ -243,60 +243,52 @@ export function ChatItem({
       {leftSwipeAction && !selecting && (
         <div
           aria-hidden="true"
-          className="absolute inset-y-0 right-0 z-0 flex w-[100px] items-center justify-center select-none"
+          className="absolute inset-y-0 right-0 z-0 flex w-[116px] items-center justify-center select-none"
           style={{ pointerEvents: "none" }}
         >
           <motion.div
-            className="flex flex-col items-center justify-center gap-1.5"
+            className="flex h-[calc(100%-8px)] w-[calc(100%-8px)] flex-col items-center justify-center gap-1 rounded-[18px] border tcy-line px-1"
+            style={{
+              color: "var(--tcy-selected-accent)",
+              background: "color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card))",
+            }}
             animate={{
               opacity: swipeOffset < 0 ? Math.min(1, Math.abs(swipeOffset) / 26) : 0,
-              scale: 0.82 + Math.min(1, Math.abs(swipeOffset) / ARCHIVE_REVEAL_WIDTH) * 0.18,
+              scale: 0.92 + Math.min(1, Math.abs(swipeOffset) / ARCHIVE_REVEAL_WIDTH) * 0.08,
             }}
             transition={swipeDragging ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 30 }}
           >
-            <span
-              className="flex h-[50px] w-[50px] items-center justify-center rounded-[17px] border tcy-line"
-              style={{
-                color: "var(--tcy-selected-accent)",
-                background: "color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card))",
-              }}
-            >
-              {leftSwipeAction.kind === "archive" ? <Archive size={22} strokeWidth={2.1} />
-                : leftSwipeAction.kind === "restore" ? <ArchiveRestore size={22} strokeWidth={2.1} />
-                : leftSwipeAction.kind === "pin" ? <Pin size={22} strokeWidth={2.1} />
-                : <PinOff size={22} strokeWidth={2.1} />}
-            </span>
-            <span className="text-[11.5px] leading-none font-bold tcy-dim">{leftSwipeAction.label}</span>
+            {leftSwipeAction.kind === "archive" ? <Archive size={22} strokeWidth={2.1} />
+              : leftSwipeAction.kind === "restore" ? <ArchiveRestore size={22} strokeWidth={2.1} />
+              : leftSwipeAction.kind === "pin" ? <Pin size={22} strokeWidth={2.1} />
+              : <PinOff size={22} strokeWidth={2.1} />}
+            <span className="text-[11.5px] leading-none font-bold text-center">{leftSwipeAction.label}</span>
           </motion.div>
         </div>
       )}
       {rightSwipeAction && !selecting && (
         <div
           aria-hidden="true"
-          className="absolute inset-y-0 left-0 z-0 flex w-[100px] items-center justify-center select-none"
+          className="absolute inset-y-0 left-0 z-0 flex w-[116px] items-center justify-center select-none"
           style={{ pointerEvents: "none" }}
         >
           <motion.div
-            className="flex flex-col items-center justify-center gap-1.5"
+            className="flex h-[calc(100%-8px)] w-[calc(100%-8px)] flex-col items-center justify-center gap-1 rounded-[18px] border tcy-line px-1"
+            style={{
+              color: "var(--tcy-selected-accent)",
+              background: "color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card))",
+            }}
             animate={{
               opacity: swipeOffset > 0 ? Math.min(1, swipeOffset / 26) : 0,
-              scale: 0.82 + Math.min(1, Math.abs(swipeOffset) / ARCHIVE_REVEAL_WIDTH) * 0.18,
+              scale: 0.92 + Math.min(1, Math.abs(swipeOffset) / ARCHIVE_REVEAL_WIDTH) * 0.08,
             }}
             transition={swipeDragging ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 30 }}
           >
-            <span
-              className="flex h-[50px] w-[50px] items-center justify-center rounded-[17px] border tcy-line"
-              style={{
-                color: "var(--tcy-selected-accent)",
-                background: "color-mix(in srgb, var(--tcy-selected-accent) 13%, var(--tcy-card))",
-              }}
-            >
-              {rightSwipeAction.kind === "archive" ? <Archive size={22} strokeWidth={2.1} />
-                : rightSwipeAction.kind === "restore" ? <ArchiveRestore size={22} strokeWidth={2.1} />
-                : rightSwipeAction.kind === "pin" ? <Pin size={22} strokeWidth={2.1} />
-                : <PinOff size={22} strokeWidth={2.1} />}
-            </span>
-            <span className="text-[11.5px] leading-none font-bold tcy-dim">{rightSwipeAction.label}</span>
+            {rightSwipeAction.kind === "archive" ? <Archive size={22} strokeWidth={2.1} />
+              : rightSwipeAction.kind === "restore" ? <ArchiveRestore size={22} strokeWidth={2.1} />
+              : rightSwipeAction.kind === "pin" ? <Pin size={22} strokeWidth={2.1} />
+              : <PinOff size={22} strokeWidth={2.1} />}
+            <span className="text-[11.5px] leading-none font-bold text-center">{rightSwipeAction.label}</span>
           </motion.div>
         </div>
       )}
