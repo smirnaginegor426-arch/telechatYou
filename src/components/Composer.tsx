@@ -735,7 +735,7 @@ export function Composer({
                   }
                 }}
                 placeholder="Сообщение…"
-                className="tcy-composer-input flex-1 bg-transparent outline-none resize-none text-[15px] tcy-text placeholder:text-[color:var(--tcy-faint)] py-2.5 max-h-[120px] no-scrollbar leading-[1.4]"
+                className="tcy-composer-input flex-1 bg-transparent outline-none resize-none text-[15px] tcy-text placeholder:text-[color:var(--tcy-faint)] py-2.5 -translate-y-0.5 max-h-[120px] no-scrollbar leading-[1.4]"
               />
               {stickersEnabled && (
               <button
