@@ -115,7 +115,6 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
     Number(isFavoritesChat(b)) - Number(isFavoritesChat(a)),
   );
   const shown = showArchived ? archived : active;
-  const hasArchived = archived.length > 0;
   const archivedUnread = archived.reduce((s, i) => s + i.unread, 0);
 
   const selectedItems = shown.filter((item) => selectedChatIds.includes(item.chat.id));
