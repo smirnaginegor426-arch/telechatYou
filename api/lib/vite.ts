@@ -31,6 +31,8 @@ const LEGACY_BUILD_USER_IDS = new Set<number>([
 const ALPHA_BUILD_COOKIE = "tcy_build=alpha-v2";
 const isAlphaBuildRequested = (requestUrl: string) =>
   new URL(requestUrl).searchParams.get("tcyBuild") === "alpha-v2";
+const isLegacyBuildRequested = (requestUrl: string) =>
+  new URL(requestUrl).searchParams.get("tcyBuild") === "legacy-v1";
 const hasAlphaBuildCookie = (headers: Headers) =>
   (headers.get("cookie") ?? "").split(";").some((cookie) => cookie.trim() === ALPHA_BUILD_COOKIE);
 
@@ -51,9 +53,11 @@ export function serveStaticFiles(app: App) {
   const shellFor = async (headers: Headers, requestUrl: string): Promise<string | null> => {
     const user = await getSessionUser(getSessionToken(headers));
     const forcedLegacy = Boolean(user && LEGACY_BUILD_USER_IDS.has(user.id));
+    const requestedLegacy = isLegacyBuildRequested(requestUrl);
     const alphaBuild = isAlphaBuildRequested(requestUrl) || hasAlphaBuildCookie(headers);
     const experimental =
       !forcedLegacy &&
+      !requestedLegacy &&
       (alphaBuild ||
         SERVE_CURRENT_BUILD_TO_EVERYONE ||
         isPrivateExperimentalUser(user));
@@ -72,16 +76,18 @@ export function serveStaticFiles(app: App) {
     const user = await getSessionUser(token);
     const matchedBy = privateExperimentalMatch(user);
     const forcedLegacy = Boolean(user && LEGACY_BUILD_USER_IDS.has(user.id));
+    const requestedLegacy = isLegacyBuildRequested(c.req.url);
     const alphaBuild = isAlphaBuildRequested(c.req.url) || hasAlphaBuildCookie(headers);
 
     return c.json({
       build:
-        !forcedLegacy && (alphaBuild || SERVE_CURRENT_BUILD_TO_EVERYONE || matchedBy !== "none")
+        !forcedLegacy && !requestedLegacy && (alphaBuild || SERVE_CURRENT_BUILD_TO_EVERYONE || matchedBy !== "none")
           ? "current"
           : "legacy",
       matchedBy,
       alphaBuild,
       forcedLegacy,
+      requestedLegacy,
       forcedForEveryone: SERVE_CURRENT_BUILD_TO_EVERYONE,
       signedIn: Boolean(user),
       userId: user?.id ?? null,
