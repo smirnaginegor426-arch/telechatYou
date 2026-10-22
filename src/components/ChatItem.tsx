@@ -112,6 +112,12 @@ export function ChatItem({
     suppressChatRowClickUntil = 0;
     longPressTriggered.current = false;
     suppressClick.current = false;
+    // Keep tracking the gesture even if the finger leaves the row while swiping.
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture can be unavailable in older WebViews; normal handlers remain as fallback.
+    }
     pressStart.current = { x: event.clientX, y: event.clientY };
     swipeStart.current = !selecting && (leftSwipeAction || rightSwipeAction)
       ? { x: event.clientX, y: event.clientY, base: swipeOffsetRef.current }
@@ -173,7 +179,7 @@ export function ChatItem({
       const reachedFullReveal =
         !cancelled &&
         !selecting &&
-        Math.abs(swipeOffsetRef.current) >= ARCHIVE_REVEAL_WIDTH - 1;
+        Math.abs(swipeOffsetRef.current) >= Math.round(ARCHIVE_REVEAL_WIDTH * 0.78);
       const actionToRun = reachedFullReveal
         ? swipeOffsetRef.current < 0
           ? leftSwipeAction?.onTrigger
