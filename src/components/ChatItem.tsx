@@ -10,6 +10,11 @@ import type { RouterOutput } from "@/types/api";
 
 type ChatListItem = RouterOutput["chats"]["list"][number];
 
+// A swipe can move the row away from the pointer before the browser dispatches
+// its synthetic click. Suppress that click across the whole list, not only on
+// the row that was dragged, so the next row (often Saved Messages) cannot open.
+let suppressChatRowClickUntil = 0;
+
 function lastMessagePreview(item: ChatListItem): React.ReactNode {
   const m = item.lastMessage;
   if (!m) return "Нет сообщений";
@@ -93,6 +98,9 @@ export function ChatItem({
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    // A new pointer gesture is intentional; only the synthetic click from the
+    // previous swipe should be ignored.
+    suppressChatRowClickUntil = 0;
     longPressTriggered.current = false;
     suppressClick.current = false;
     pressStart.current = { x: event.clientX, y: event.clientY };
@@ -128,6 +136,7 @@ export function ChatItem({
         pressStart.current = null;
       }
       if (swipeActive.current) {
+        event.preventDefault();
         const nextOffset = Math.max(0, Math.min(ARCHIVE_REVEAL_WIDTH, start.base - dx));
         swipeOffsetRef.current = nextOffset;
         setSwipeOffset(nextOffset);
@@ -158,18 +167,21 @@ export function ChatItem({
       swipeOffsetRef.current = 0;
       setSwipeOffset(0);
       suppressClick.current = true;
-      // Native click follows pointerup; clear the guard after that click cycle
-      // in case the shifted row is no longer the click target.
-      window.setTimeout(() => {
-        suppressClick.current = false;
-      }, 0);
+      // Keep a list-wide guard long enough to cover delayed touch-generated
+      // clicks that may otherwise land on the row revealed underneath.
+      suppressChatRowClickUntil = Date.now() + 700;
       if (shouldArchive) onArchive?.();
       return;
     }
     swipeStart.current = null;
   };
 
-  const handleRowClick = () => {
+  const handleRowClick = (event?: ReactMouseEvent<HTMLDivElement>) => {
+    if (Date.now() < suppressChatRowClickUntil) {
+      event?.preventDefault();
+      event?.stopPropagation();
+      return;
+    }
     if (suppressClick.current) {
       suppressClick.current = false;
       return;
@@ -184,6 +196,10 @@ export function ChatItem({
 
   const handleAvatarClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    if (Date.now() < suppressChatRowClickUntil) {
+      event.preventDefault();
+      return;
+    }
     if (suppressClick.current) {
       suppressClick.current = false;
       return;
