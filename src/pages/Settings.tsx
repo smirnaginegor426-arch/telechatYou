@@ -86,6 +86,7 @@ const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
 
 /** Top corners are rounded on the first row and bottom corners on the last row of each group. */
 function sectionRadius(index: number, count: number): string {
+  if (count <= 1) return "22px";
   if (index === 0) return "22px 22px 0px 0px";
   if (index === count - 1) return "0px 0px 22px 22px";
   return "0px";
