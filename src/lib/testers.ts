@@ -14,6 +14,7 @@ const TESTERS = [
 export const PRIVATE_EXPERIMENTAL_USERS = [
   { username: "teste", userId: 1633623 },
   { username: "artemizzz", userId: 848009 },
+  { username: "asasa", userId: 5750238 },
 ] as const;
 
 /** Backwards-compatible export for code that expects the original account. */
