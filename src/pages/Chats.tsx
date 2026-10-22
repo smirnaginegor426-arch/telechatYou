@@ -350,6 +350,11 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
                     current.includes(item.chat.id) ? current : [...current, item.chat.id],
                   )}
                   onClick={() => navigate(`/chat/${item.chat.id}`)}
+                  onArchive={
+                    !showArchived && !isFavoritesChat(item)
+                      ? () => flags.mutate({ chatId: item.chat.id, archived: true })
+                      : undefined
+                  }
                   onAvatarClick={() => {
                     const direct = item.chat.type === "direct";
                     setAvatarPreview({
