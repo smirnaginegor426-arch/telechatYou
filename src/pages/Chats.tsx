@@ -394,7 +394,11 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
                               label: "Открепить",
                               onTrigger: () => flags.mutate({ chatId: item.chat.id, pinned: false }),
                             }
-                          : undefined
+                          : {
+                              kind: "archive" as const,
+                              label: "Архив",
+                              onTrigger: () => flags.mutate({ chatId: item.chat.id, archived: true }),
+                            }
                   }
                   rightSwipeAction={
                     !showArchived && !isFavoritesChat(item) && !item.membership.pinned
