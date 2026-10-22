@@ -75,11 +75,13 @@ const SETTINGS_SECTIONS: { id: SettingsSectionId; title: string; subtitle: strin
   { id: "about", title: "О приложении", subtitle: "Версия 2.0.0", icon: Info },
 ];
 
-/** Названия групп — по одной на три раздела (вкладки). */
+/** Группы настроек по смыслу: внешний вид, общение, аккаунт и дополнительные функции. */
 const SETTINGS_GROUPS: { heading: string; ids: SettingsSectionId[] }[] = [
-  { heading: "Оформление", ids: ["appearance", "notifications", "chats"] },
-  { heading: "Аккаунт", ids: ["email", "security", "e2ee", "privacy"] },
-  { heading: "Прочее", ids: ["data", "seasonal", "about"] },
+  { heading: "Оформление", ids: ["appearance"] },
+  { heading: "Общение", ids: ["notifications", "chats", "privacy", "e2ee"] },
+  { heading: "Аккаунт и безопасность", ids: ["email", "security"] },
+  { heading: "Данные и язык", ids: ["data"] },
+  { heading: "Дополнительно", ids: ["seasonal", "about"] },
 ];
 
 /** Top corners are rounded on the first row and bottom corners on the last row of each group. */
