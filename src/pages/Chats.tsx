@@ -70,7 +70,34 @@ export default function Chats({ desktopPanel = false }: { desktopPanel?: boolean
   }, []);
 
   const invalidate = () => utils.chats.list.invalidate();
-  const flags = trpc.chats.setFlags.useMutation({ onSuccess: invalidate });
+  const flags = trpc.chats.setFlags.useMutation({
+    // Update the list immediately so a successful archive swipe does not wait
+    // for the server round-trip before the row disappears.
+    onMutate: async (variables) => {
+      await utils.chats.list.cancel();
+      const previous = utils.chats.list.getData();
+      const patch = {
+        ...(variables.pinned === undefined ? {} : { pinned: variables.pinned }),
+        ...(variables.muted === undefined ? {} : { muted: variables.muted }),
+        ...(variables.archived === undefined ? {} : { archived: variables.archived }),
+        ...(variables.archived ? { pinned: false } : {}),
+      };
+      utils.chats.list.setData(undefined, (current) =>
+        current?.map((item) =>
+          item.chat.id === variables.chatId
+            ? { ...item, membership: { ...item.membership, ...patch } }
+            : item,
+        ),
+      );
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous !== undefined) {
+        utils.chats.list.setData(undefined, context.previous);
+      }
+    },
+    onSettled: () => utils.chats.list.invalidate(),
+  });
   const remove = trpc.chats.remove.useMutation({ onSuccess: invalidate });
 
   const items = list.data ?? [];
