@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { motion } from "framer-motion";
-import { Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic, Star } from "lucide-react";
+import { Pin, VolumeX, Check, CheckCheck, Image as ImageIcon, FileText, Mic } from "lucide-react";
 import { Avatar } from "./Avatar";
 import { TesterBadge } from "@/components/TesterBadge";
 import { isTesterUsername } from "@/lib/testers";
@@ -164,17 +164,32 @@ export function ChatItem({
           {selected && <Check size={15} strokeWidth={3} />}
         </span>
       )}
-      <button
-        type="button"
-        aria-label={isDirect ? `Открыть аватар пользователя ${title}` : `Открыть аватар ${title}`}
-        onClick={handleAvatarClick}
-        className="tcy-press rounded-full shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--tcy-selected-accent)]"
-      >
-        {isFavorites ? (
-          <span className="tcy-favorite-chat-avatar flex h-[54px] w-[54px] items-center justify-center rounded-[30%]">
-            <Star size={25} fill="currentColor" strokeWidth={1.6} />
-          </span>
-        ) : (
+      {isFavorites ? (
+        <span
+          className="tcy-favorite-chat-avatar flex h-[54px] w-[54px] items-center justify-center rounded-[30%]"
+          aria-label="Избранное"
+        >
+          <svg width="54" height="54" viewBox="0 0 54 54" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="tcy-favorite-bookmark-gradient" x1="5" y1="4" x2="49" y2="51" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#49B8F0" />
+                <stop offset="1" stopColor="#168FE5" />
+              </linearGradient>
+            </defs>
+            <circle cx="27" cy="27" r="27" fill="url(#tcy-favorite-bookmark-gradient)" />
+            <path
+              d="M17 14.2C17 12 18.8 10.2 21 10.2H33C35.2 10.2 37 12 37 14.2V40.4L27 33.6L17 40.4V14.2Z"
+              fill="white"
+            />
+          </svg>
+        </span>
+      ) : (
+        <button
+          type="button"
+          aria-label={isDirect ? `Открыть аватар пользователя ${title}` : `Открыть аватар ${title}`}
+          onClick={handleAvatarClick}
+          className="tcy-press rounded-full shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[color:var(--tcy-selected-accent)]"
+        >
           <Avatar
             name={title}
             avatarKey={isDirect ? item.peer?.avatarKey : item.chat.avatarKey}
@@ -182,8 +197,8 @@ export function ChatItem({
             lastSeenAt={isDirect ? item.peer?.lastSeenAt : null}
             showOnline={isDirect}
           />
-        )}
-      </button>
+        </button>
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline justify-between gap-2">
           <span className="font-bold text-[15.5px] tcy-text truncate flex items-center gap-1.5">
