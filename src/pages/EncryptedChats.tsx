@@ -334,7 +334,7 @@ export default function EncryptedChats() {
               </div>
               <h2 className="text-[18px] font-extrabold tcy-text">Подключить Matrix</h2>
               <p className="mt-2 text-[13px] leading-relaxed tcy-dim">
-                Для E2EE нужен отдельный Matrix-аккаунт и доступный homeserver. Пароль отправляется напрямую выбранному Matrix-серверу по HTTPS, не в API TeleChat You. Сам интерфейс загружается с сайта TeleChat You, поэтому доверяй исходному коду и используй эту бета-версию только для тестирования.
+                Для E2EE нужен отдельный Matrix-аккаунт. По умолчанию используется бесплатный публичный сервер matrix.org; владелец может указать другой доверенный HTTPS-сервер при сборке. Пароль отправляется напрямую этому Matrix-серверу по HTTPS, не в API TeleChat You. Сервер всё равно может видеть метаданные — например, участников комнаты и время активности. Сам интерфейс загружается с сайта TeleChat You, поэтому используй эту бета-версию только для тестирования.
               </p>
             </div>
             <form onSubmit={handleLogin} className="space-y-3">
@@ -345,7 +345,7 @@ export default function EncryptedChats() {
                 </div>
                 {!homeserver && (
                   <p className="px-1 text-[11px] leading-relaxed tcy-dim">
-                    Подключение отключено до настройки доверенного HTTPS Matrix homeserver. Адрес задаётся владельцем при сборке приложения — ввод Matrix-пароля на произвольный сервер запрещён.
+                    Настроенный адрес Matrix-сервера некорректен. Для безопасности вход отключён: пароль не будет отправлен, пока владелец не задаст корректный HTTPS-сервер при сборке.
                   </p>
                 )}
               </div>
