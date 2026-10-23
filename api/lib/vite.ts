@@ -23,10 +23,6 @@ const LEGACY_SHELL = path.join("legacy", "index.html");
  * accounts. Keep false so the current build is never globally exposed.
  */
 const SERVE_CURRENT_BUILD_TO_EVERYONE = false;
-/** Accounts explicitly kept on the legacy build, even if their APK has the Alpha V2.0 marker. */
-const LEGACY_BUILD_USER_IDS = new Set<number>([
-  848007, // @delover — rolled back from V2.0
-]);
 /** Opt-in marker used by the Alpha V2.0 Android APK. */
 const ALPHA_BUILD_COOKIE = "tcy_build=alpha-v2";
 const isAlphaBuildRequested = (requestUrl: string) =>
@@ -52,13 +48,14 @@ export function serveStaticFiles(app: App) {
    */
   const shellFor = async (headers: Headers, requestUrl: string): Promise<string | null> => {
     const user = await getSessionUser(getSessionToken(headers));
-    const forcedLegacy = Boolean(user && LEGACY_BUILD_USER_IDS.has(user.id));
-    const requestedLegacy = isLegacyBuildRequested(requestUrl);
+    // @delover (848007) was previously rolled back; always restore this account to V2,
+    // even if its browser still has the old legacy-v1 URL marker.
+    const requestedLegacy = isLegacyBuildRequested(requestUrl) && user?.id !== 848007;
     const alphaBuild = isAlphaBuildRequested(requestUrl) || hasAlphaBuildCookie(headers);
     const experimental =
-      !forcedLegacy &&
       !requestedLegacy &&
-      (alphaBuild ||
+      (user?.id === 848007 ||
+        alphaBuild ||
         SERVE_CURRENT_BUILD_TO_EVERYONE ||
         isPrivateExperimentalUser(user));
     const preferred = experimental ? CURRENT_SHELL : LEGACY_SHELL;
@@ -75,18 +72,17 @@ export function serveStaticFiles(app: App) {
     const token = getSessionToken(headers);
     const user = await getSessionUser(token);
     const matchedBy = privateExperimentalMatch(user);
-    const forcedLegacy = Boolean(user && LEGACY_BUILD_USER_IDS.has(user.id));
-    const requestedLegacy = isLegacyBuildRequested(c.req.url);
+    // The delover account is restored to V2 even if an old legacy URL is bookmarked.
+    const requestedLegacy = isLegacyBuildRequested(c.req.url) && user?.id !== 848007;
     const alphaBuild = isAlphaBuildRequested(c.req.url) || hasAlphaBuildCookie(headers);
 
     return c.json({
       build:
-        !forcedLegacy && !requestedLegacy && (alphaBuild || SERVE_CURRENT_BUILD_TO_EVERYONE || matchedBy !== "none")
+        !requestedLegacy && (user?.id === 848007 || alphaBuild || SERVE_CURRENT_BUILD_TO_EVERYONE || matchedBy !== "none")
           ? "current"
           : "legacy",
       matchedBy,
       alphaBuild,
-      forcedLegacy,
       requestedLegacy,
       forcedForEveryone: SERVE_CURRENT_BUILD_TO_EVERYONE,
       signedIn: Boolean(user),
@@ -96,7 +92,7 @@ export function serveStaticFiles(app: App) {
       accountSwitcherActive: Boolean(getActiveAccountSlotId(headers)),
       sessionCookies: getSessionCookieDiagnostics(headers),
       privateTesterUserId: 1633623,
-      privateTesterUserIds: [1633623, 848009, 3838382, 5750238],
+      privateTesterUserIds: [1633623, 848007, 848009, 3838382, 5750238],
       shells: {
         current: readShell(CURRENT_SHELL) !== null,
         legacy: readShell(LEGACY_SHELL) !== null,
