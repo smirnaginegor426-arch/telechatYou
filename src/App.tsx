@@ -277,7 +277,7 @@ function Gate({ plush }: { plush: boolean }) {
 
 export default function App() {
   const location = useLocation();
-  const { user: authUser, isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const { enabled: isPrivateTester } = useTesterMode({ enabled: isAuthenticated });
 
