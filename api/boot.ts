@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import type { HttpBindings } from "@hono/node-server";
@@ -73,7 +73,10 @@ app.use("*", async (c, next) => {
     c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   }
 
-  if (new URL(c.req.url).pathname.startsWith("/api/")) {
+  const pathname = new URL(c.req.url).pathname;
+  // File responses set their own private cache policy after authorization.
+  // Keep JSON/API responses uncached as before.
+  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/files/")) {
     c.header("Cache-Control", "private, no-store, max-age=0");
     c.header("Pragma", "no-cache");
   }
@@ -207,6 +210,11 @@ app.use("/api/trpc/*", async (c) => {
 
 // Local disk files are private and available only to signed-in users.
 app.get("/api/files/*", async (c) => {
+  // Failures are never cached. Authorized immutable file keys switch to a short,
+  // account-private cache after the membership check succeeds.
+  c.header("Cache-Control", "private, no-store, max-age=0");
+  c.header("Pragma", "no-cache");
+
   const token = getSessionToken(c.req.raw.headers);
   const user = await getSessionUser(token);
   if (!user) return c.json({ error: "Authentication required" }, 401);
@@ -217,13 +225,36 @@ app.get("/api/files/*", async (c) => {
       // Use 404 for both unknown and unauthorized keys to avoid key enumeration.
       return c.json({ error: "File not found" }, 404);
     }
-    const meta = await storage.headFile({ fileKey: key });
-    const bytes = await storage.readFile({ fileKey: key });
+
+    // Upload keys are unique and immutable. A key-based ETag allows repeat views
+    // to revalidate after authorization without downloading the same bytes again.
+    const etag = `"tcy-${createHash("sha256").update(key).digest("hex")}"`;
+    const cacheControl = "private, max-age=300, must-revalidate";
+    const requestEtags = c.req.header("if-none-match")?.split(",").map((value) => value.trim()) ?? [];
+    if (requestEtags.includes(etag) || requestEtags.includes("*")) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          "Cache-Control": cacheControl,
+          "ETag": etag,
+          "Vary": "Cookie",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
+    }
+
+    // Metadata and bytes previously came from two serial storage requests.
+    // Run them together so Cloudinary/S3 latency does not add up twice.
+    const [meta, bytes] = await Promise.all([
+      storage.headFile({ fileKey: key }),
+      storage.readFile({ fileKey: key }),
+    ]);
     const headers = new Headers({
       "Content-Type": meta.contentType,
-      "Content-Length": String(meta.size),
-      // This endpoint serves private or shared media; never keep bytes in a shared browser cache.
-      "Cache-Control": "private, no-store, max-age=0",
+      "Content-Length": String(bytes.byteLength),
+      "Cache-Control": cacheControl,
+      "ETag": etag,
+      "Vary": "Cookie",
       "X-Content-Type-Options": "nosniff",
     });
     if (c.req.query("download") === "1") {
