@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { chatShareUrl, copyTextToClipboard, profileShareUrl } from "@/lib/share-links";
 import { useTheme } from "@/hooks/useTheme";
 import { Avatar } from "@/components/Avatar";
+import { Lightbox } from "@/components/Lightbox";
 import { TesterBadge } from "@/components/TesterBadge";
 import { isTesterUsername } from "@/lib/testers";
 import { AvatarEditor } from "@/components/AvatarEditor";
@@ -128,6 +129,7 @@ export default function ChatInfo() {
   const [wallpaper, setWallpaper] = useState<string>(() => readWallpaper(chatId));
   const [wallpaperImage, setWallpaperImage] = useState<string | null>(() => readWallpaperImage(chatId));
   const [wallpaperOpen, setWallpaperOpen] = useState(false);
+  const [previewMediaKey, setPreviewMediaKey] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const wallpaperFileRef = useRef<HTMLInputElement>(null);
   const directory = trpc.profile.directory.useQuery(undefined, { enabled: addOpen });
@@ -206,16 +208,24 @@ export default function ChatInfo() {
     else toast.error("Не удалось скопировать ссылку");
   };
 
-  // shared media/files: load recent messages and pick attachments
-  const recentMedia = trpc.messages.list.useQuery({ chatId });
+  // Fetch only attachment metadata once the main profile is ready. The dedicated
+  // endpoint avoids hydrating replies/reactions/polls for a gallery preview.
+  const recentMedia = trpc.messages.media.useQuery(
+    { chatId, limit: 80 },
+    {
+      enabled: Number.isSafeInteger(chatId) && chatId > 0 && info.isSuccess,
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+    },
+  );
   const media = useMemo(
-    () => (recentMedia.data?.items ?? []).filter((m) => !m.deletedAt && m.kind === "image"),
+    () => (recentMedia.data?.items ?? []).filter((m) => m.kind === "image" && !!m.attachmentKey),
     [recentMedia.data],
   );
   const docs = useMemo(
     () =>
       (recentMedia.data?.items ?? []).filter(
-        (m) => !m.deletedAt && (m.kind === "file" || m.kind === "voice"),
+        (m) => (m.kind === "file" || m.kind === "voice") && !!m.attachmentKey,
       ),
     [recentMedia.data],
   );
@@ -789,7 +799,13 @@ export default function ChatInfo() {
           </h4>
           <div className="mx-4 grid grid-cols-3 gap-1.5">
             {media.slice(0, 9).map((m) => (
-              <MediaThumb key={m.id} attachmentKey={m.attachmentKey} />
+              <MediaThumb
+                key={m.id}
+                attachmentKey={m.attachmentKey}
+                onOpen={() => {
+                  if (m.attachmentKey) setPreviewMediaKey(m.attachmentKey);
+                }}
+              />
             ))}
           </div>
         </div>
@@ -1058,6 +1074,13 @@ export default function ChatInfo() {
           </footer>
         </motion.div>
       )}
+      {previewMediaKey && (
+        <Lightbox
+          imageKey={previewMediaKey}
+          name={name ? `${name} · Фото` : "Фото"}
+          onClose={() => setPreviewMediaKey(null)}
+        />
+      )}
       <AvatarEditor
         file={avatarToEdit}
         onCancel={() => setAvatarToEdit(null)}
@@ -1068,17 +1091,35 @@ export default function ChatInfo() {
   );
 }
 
-function MediaThumb({ attachmentKey }: { attachmentKey: string | null }) {
+function MediaThumb({
+  attachmentKey,
+  onOpen,
+}: {
+  attachmentKey: string | null;
+  onOpen: () => void;
+}) {
   const url = useFileUrl(attachmentKey);
   return (
-    <div className="aspect-square rounded-[16px] overflow-hidden tcy-card">
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label="Открыть фотографию"
+      className="aspect-square min-w-0 rounded-[16px] overflow-hidden tcy-card tcy-press text-left"
+    >
       {url ? (
-        <img src={url} className="w-full h-full object-cover" loading="lazy" alt="" />
+        <img
+          src={url}
+          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
+          alt=""
+        />
       ) : (
         <div className="w-full h-full flex items-center justify-center tcy-faint">
           <ImageIcon size={18} />
         </div>
       )}
-    </div>
+    </button>
   );
 }
