@@ -24,15 +24,24 @@ function sessionIdentity(session: MatrixSession): string {
   return `${session.baseUrl}|${session.userId}|${session.deviceId}`;
 }
 
+/** Trusted free public Matrix homeserver used when the owner has not configured another one. */
+export const DEFAULT_MATRIX_HOMESERVER = "https://matrix.org";
+
 /** Public build-time configuration. The login form never accepts an arbitrary homeserver URL. */
-export function getConfiguredMatrixHomeserver(): string | null {
-  const raw = import.meta.env.VITE_MATRIX_HOMESERVER_URL?.trim();
-  if (!raw) return null;
+export function resolveMatrixHomeserver(raw?: string | null): string | null {
+  const candidate = raw?.trim();
+  if (!candidate) return DEFAULT_MATRIX_HOMESERVER;
   try {
-    return normalizeHomeserverUrl(raw);
+    return normalizeHomeserverUrl(candidate);
   } catch {
+    // An explicitly misconfigured server must fail closed rather than silently
+    // sending a user's Matrix credentials to a different homeserver.
     return null;
   }
+}
+
+export function getConfiguredMatrixHomeserver(): string | null {
+  return resolveMatrixHomeserver(import.meta.env.VITE_MATRIX_HOMESERVER_URL);
 }
 
 export function normalizeHomeserverUrl(raw: string): string {
