@@ -279,15 +279,6 @@ export default function App() {
   const location = useLocation();
   const { user: authUser, isAuthenticated, isLoading } = useAuth();
 
-  // If the Alpha APK opened before its session finished loading, switch
-  // @delover to the legacy shell once the authenticated account is known.
-  useEffect(() => {
-    if (isLoading || !isAuthenticated || Number(authUser?.id) !== 848007) return;
-    const url = new URL(window.location.href);
-    if (url.searchParams.get("tcyBuild") === "legacy-v1") return;
-    url.searchParams.set("tcyBuild", "legacy-v1");
-    window.location.replace(`${url.pathname}${url.search}${url.hash}`);
-  }, [authUser?.id, isAuthenticated, isLoading]);
   const { enabled: isPrivateTester } = useTesterMode({ enabled: isAuthenticated });
 
   // React has committed its first frame: hand the screen over from the static
