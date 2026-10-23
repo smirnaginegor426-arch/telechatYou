@@ -5,6 +5,7 @@
 import type { PublicUser } from "./session";
 
 const PRIVATE_EXPERIMENTAL_USER_IDS = new Set<number>([
+  848007, // @delover — restored to V2.0
   1633623,
   848009, // @artemizzz — tester ID 848009
   3838382, // @bank — tester ID 3838382
