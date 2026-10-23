@@ -21,6 +21,7 @@ The original TeleChat You chat stack stores message content in `messages.body` a
 The current main app includes an experimental `/encrypted` screen, linked from Settings → Account → Сквозное шифрование, and pins `matrix-js-sdk` to a specific version in the npm dependency tree. The homeserver address is intentionally controlled by `VITE_MATRIX_HOMESERVER_URL`, not entered freely on the login screen; when it is unset, login remains disabled.
 
 The new section is separate from the original TeleChat API. It:
+- defaults to the public Matrix.org homeserver over HTTPS when `VITE_MATRIX_HOMESERVER_URL` is unset; the owner can override it with a trusted HTTPS homeserver at build time. An invalid explicit override disables login rather than silently switching destinations;
 - connects directly from the browser/WebView to a Matrix homeserver over HTTPS (localhost HTTP is allowed for development);
 - uses Matrix account credentials, separate from the TeleChat You username/password;
 - initializes the Matrix SDK's Rust/WASM E2EE support;
@@ -30,7 +31,7 @@ The new section is separate from the original TeleChat API. It:
 - enables the Matrix SDK policy that blocks sharing room keys with unverified recipient devices by default;
 - does not yet implement TeleChat You device-verification UI, so test accounts must establish trust out-of-band with a compatible Matrix client. Do not assume devices have been independently verified.
 
-Only Matrix rooms created/received as encrypted rooms are shown in this beta section. The current UI must not be used for sensitive or secret conversations until homeserver deployment, two-device tests, and device verification/key recovery are complete. A separate Matrix homeserver and Matrix accounts are required. This is not an automatic bridge between existing TeleChat You accounts and Matrix IDs.
+Only Matrix rooms created/received as encrypted rooms are shown in this beta section. The current UI must not be used for sensitive or secret conversations until homeserver deployment, two-device tests, and device verification/key recovery are complete. A separate Matrix account is required. The default matrix.org service is free to try, but its operator can still observe account/room membership and activity metadata even when encrypted room message bodies are protected. This is not an automatic bridge between existing TeleChat You accounts and Matrix IDs.
 
 ## Beta limitations — do not describe this as a finished security feature yet
 
@@ -39,7 +40,7 @@ Before using the new screen for sensitive conversations, the following are still
 2. Secret storage and encrypted key backup/recovery UX; test recovery after reinstall and when moving to another device.
 3. Test the complete flow against two real Matrix test accounts on separate browsers/devices, including messages in both directions, wrong credentials, network loss, device replacement and missing room keys.
 4. Verify the installed Android WebView's IndexedDB/WASM behavior with the released APK, not just desktop browser builds.
-5. Decide on and deploy a trusted Matrix homeserver. The login form is disabled until the owner sets the public build-time variable `VITE_MATRIX_HOMESERVER_URL` to that HTTPS homeserver and rebuilds the frontend. The URL is configuration, not a secret. The current repository does not deploy a Matrix homeserver or automatically provision Matrix accounts from TeleChat You accounts.
+5. Choose a trusted Matrix homeserver. If `VITE_MATRIX_HOMESERVER_URL` is unset, the client uses `https://matrix.org`; the owner can override this at build time. The URL is configuration, not a secret. The current repository does not deploy a Matrix homeserver or automatically provision Matrix accounts from TeleChat You accounts.
 6. Encrypt media locally before upload and handle attachments/voice, message previews, reactions, pins, notifications and local-only search. The first screen implements text-only encrypted messages.
 7. Review hosting/CSP and supply-chain risks. Web E2EE cannot protect keys from malicious JavaScript delivered by a compromised site. Device verification helps with identity, but a compromised client can still expose plaintext on that device.
 
