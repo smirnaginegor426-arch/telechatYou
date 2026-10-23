@@ -1642,3 +1642,72 @@ html[data-theme="light"] #root .tcy-settings-page .tcy-island {
     animation: none !important;
   }
 }
+
+
+/* Keep liquid-glass depth, use the matte dark-theme palette in every theme. */
+#root .tcy-main-nav .tcy-island,
+#root .tcy-settings-page .tcy-island {
+  background:
+    radial-gradient(125% 180% at 0% -15%, rgba(255,255,255,.075), transparent 48%),
+    radial-gradient(110% 150% at 100% 120%, color-mix(in srgb, var(--tcy-selected-accent) 7%, transparent), transparent 64%),
+    linear-gradient(135deg, rgba(255,255,255,.035), rgba(255,255,255,.008) 48%, rgba(255,255,255,.025)),
+    #141418 !important;
+  -webkit-backdrop-filter: blur(30px) saturate(1.15) !important;
+  backdrop-filter: blur(30px) saturate(1.15) !important;
+  border-color: rgba(255,255,255,.105) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.095),
+    inset 0 -1px 0 rgba(255,255,255,.025),
+    0 10px 25px -15px rgba(0,0,0,.34) !important;
+}
+
+#root .tcy-main-nav .tcy-island::before,
+#root .tcy-settings-page .tcy-island::before {
+  background:
+    radial-gradient(120% 150% at 8% -12%, rgba(255,255,255,.11), transparent 53%),
+    radial-gradient(95% 135% at 100% 120%, color-mix(in srgb, var(--tcy-selected-accent) 8%, transparent), transparent 64%),
+    linear-gradient(112deg, rgba(255,255,255,.035), transparent 38%, rgba(255,255,255,.008) 64%, rgba(255,255,255,.025)) !important;
+  animation: tcy-liquid-glass-flow 13s ease-in-out infinite alternate !important;
+}
+
+#root .tcy-main-nav .tcy-tab-orb,
+#root .tcy-settings-page .tcy-tab-orb {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.018) 55%, color-mix(in srgb, var(--tcy-selected-accent) 7%, transparent)),
+    #1b1b21 !important;
+  border-color: rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.15) !important;
+  backdrop-filter: blur(18px) saturate(1.15) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10), 0 3px 10px -7px rgba(0,0,0,.4) !important;
+}
+
+/* Match the width slider to the same calm matte palette. */
+#root .tcy-navigation-width-range {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.045), rgba(255,255,255,.012)),
+    #141418 !important;
+  border-color: rgba(255,255,255,.11) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -2px 4px rgba(0,0,0,.18) !important;
+}
+#root .tcy-navigation-width-range::-webkit-slider-runnable-track {
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--tcy-selected-accent) 62%, #777 38%) 0%,
+      color-mix(in srgb, var(--tcy-selected-accent) 50%, #555 50%) var(--range-progress),
+      rgba(255,255,255,.09) var(--range-progress),
+      rgba(255,255,255,.055) 100%) !important;
+}
+#root .tcy-navigation-width-range::-webkit-slider-thumb {
+  border-color: rgba(255,255,255,.25) !important;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,.34), transparent 45%),
+    linear-gradient(145deg, color-mix(in srgb, var(--tcy-selected-accent) 30%, #777), #303038) !important;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.24), 0 2px 6px rgba(0,0,0,.25) !important;
+}
+#root .tcy-navigation-width-range::-moz-range-thumb {
+  border-color: rgba(255,255,255,.25) !important;
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,.34), transparent 45%),
+    linear-gradient(145deg, color-mix(in srgb, var(--tcy-selected-accent) 30%, #777), #303038) !important;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.24), 0 2px 6px rgba(0,0,0,.25) !important;
+}
