@@ -1,5 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { normalizeHomeserverUrl } from "./matrix-e2ee";
+import { DEFAULT_MATRIX_HOMESERVER, normalizeHomeserverUrl, resolveMatrixHomeserver } from "./matrix-e2ee";
+
+describe("resolveMatrixHomeserver", () => {
+  it("uses the public Matrix.org homeserver when no override is configured", () => {
+    expect(DEFAULT_MATRIX_HOMESERVER).toBe("https://matrix.org");
+    expect(resolveMatrixHomeserver()).toBe(DEFAULT_MATRIX_HOMESERVER);
+    expect(resolveMatrixHomeserver("   ")).toBe(DEFAULT_MATRIX_HOMESERVER);
+  });
+
+  it("accepts an owner-configured HTTPS homeserver", () => {
+    expect(resolveMatrixHomeserver("https://matrix.example.org/")).toBe("https://matrix.example.org");
+  });
+
+  it("fails closed for an invalid explicit homeserver instead of silently changing destination", () => {
+    expect(resolveMatrixHomeserver("http://matrix.example.org")).toBeNull();
+    expect(resolveMatrixHomeserver("not-a-url")).toBeNull();
+  });
+});
 
 describe("normalizeHomeserverUrl", () => {
   it("normalizes an HTTPS homeserver origin", () => {
