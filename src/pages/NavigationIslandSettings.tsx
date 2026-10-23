@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router";
 import {
   ArrowDown,
@@ -128,13 +128,13 @@ export default function NavigationIslandSettings() {
           </div>
 
           <div
-            className="mx-auto mt-4 grid h-[48px] grid-cols-4 overflow-hidden rounded-full border p-1"
+            className="tcy-island mx-auto mt-4 grid h-[48px] grid-cols-4 overflow-hidden rounded-full border p-1"
             style={{
               width: `min(${preferences.width}px, 100%)`,
-              background: "var(--tcy-header)",
-              borderColor: "var(--tcy-line-strong)",
-              backdropFilter: "blur(18px) saturate(1.35)",
-              WebkitBackdropFilter: "blur(18px) saturate(1.35)",
+              background: "var(--tcy-selected-header)",
+              borderColor: "var(--tcy-selected-glass-line)",
+              backdropFilter: "blur(34px) saturate(1.85)",
+              WebkitBackdropFilter: "blur(34px) saturate(1.85)",
             }}
           >
             {orderedTabs.map((tab) => {
@@ -148,10 +148,7 @@ export default function NavigationIslandSettings() {
                   title={tab.label}
                 >
                   {active && (
-                    <span
-                      className="absolute inset-0 rounded-full"
-                      style={{ background: "color-mix(in srgb, var(--tcy-selected-accent) 15%, transparent)" }}
-                    />
+                    <span className="tcy-tab-orb absolute inset-0 rounded-full" />
                   )}
                   <Icon className="relative z-[1]" size={17} strokeWidth={active ? 2.4 : 1.8} />
                 </div>
@@ -187,8 +184,14 @@ export default function NavigationIslandSettings() {
               ...preferences,
               width: Number(event.currentTarget.value),
             })}
-            className="w-full cursor-pointer"
-            style={{ accentColor: "var(--tcy-selected-accent)" }}
+            className="tcy-navigation-width-range w-full cursor-pointer"
+            style={{
+              accentColor: "var(--tcy-selected-accent)",
+              "--range-progress": `${Math.round(
+                ((preferences.width - MIN_NAVIGATION_ISLAND_WIDTH) /
+                  (MAX_NAVIGATION_ISLAND_WIDTH - MIN_NAVIGATION_ISLAND_WIDTH)) * 100,
+              )}%`,
+            } as CSSProperties}
           />
           <div className="mt-1 flex justify-between text-[10px] tcy-faint">
             <span>Компактный</span>
