@@ -282,6 +282,41 @@ export const messagesRouter = createRouter({
       return { items: await hydrate(page, ctx.user.id), hasMore };
     }),
 
+  /**
+   * Lightweight attachment index for the chat profile gallery.
+   * Unlike messages.list, it skips sender/reply/reaction/poll/view hydration.
+   */
+  media: authedQuery
+    .input(z.object({
+      chatId: z.number(),
+      limit: z.number().int().min(1).max(100).default(60),
+    }))
+    .query(async ({ ctx, input }) => {
+      const member = await getMembership(input.chatId, ctx.user.id);
+      if (!member) throw new TRPCError({ code: "FORBIDDEN" });
+
+      const rows = await getDb()
+        .select({
+          id: messages.id,
+          kind: messages.kind,
+          attachmentKey: messages.attachmentKey,
+          attachmentName: messages.attachmentName,
+          attachmentSize: messages.attachmentSize,
+          deletedAt: messages.deletedAt,
+        })
+        .from(messages)
+        .where(and(
+          eq(messages.chatId, input.chatId),
+          inArray(messages.kind, ["image", "file", "voice"]),
+          sql`${messages.deletedAt} IS NULL`,
+          sql`${messages.attachmentKey} IS NOT NULL`,
+        ))
+        .orderBy(desc(messages.id))
+        .limit(input.limit);
+
+      return { items: rows, hasMore: rows.length === input.limit };
+    }),
+
   /** Record one view per signed-in account for posts that become visible in a channel. */
   markChannelViews: authedQuery
     .input(z.object({
