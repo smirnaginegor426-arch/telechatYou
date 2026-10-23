@@ -1390,3 +1390,172 @@ html[data-theme="dark"] .tcy-onboarding-illustration {
 #root .tcy-chat-list-scroll:has(> .tcy-chat-item-swipe-container) > .divide-y > div:only-child > .tcy-chat-item-swipe-container {
   border-radius: 8px 8px 32px 32px !important;
 }
+
+
+/* iOS-inspired liquid-glass finish for the navigation island. */
+#root .tcy-main-nav .tcy-island,
+#root .tcy-settings-page .tcy-island {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.17) 0%, rgba(255,255,255,.055) 32%, rgba(255,255,255,.018) 66%, rgba(255,255,255,.085) 100%),
+    radial-gradient(125% 155% at 0% 0%, rgba(255,255,255,.15), transparent 48%),
+    var(--tcy-selected-header) !important;
+  border-color: color-mix(in srgb, var(--tcy-selected-glass-line) 65%, rgba(255,255,255,.58)) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(1.9) contrast(1.035);
+  backdrop-filter: blur(34px) saturate(1.9) contrast(1.035);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255,255,255,.30),
+    inset 0 -1px 0 rgba(255,255,255,.075),
+    inset 0 0 0 1px rgba(255,255,255,.035),
+    0 9px 24px -10px rgba(0,0,0,.30),
+    0 18px 42px -24px color-mix(in srgb, var(--tcy-selected-accent) 38%, transparent);
+}
+
+#root .tcy-main-nav .tcy-island::before,
+#root .tcy-settings-page .tcy-island::before {
+  background:
+    radial-gradient(90% 135% at 5% -8%, rgba(255,255,255,.27), transparent 55%),
+    radial-gradient(80% 130% at 100% 115%, color-mix(in srgb, var(--tcy-selected-accent) 17%, transparent), transparent 62%),
+    linear-gradient(125deg, rgba(255,255,255,.09), transparent 38%, transparent 68%, rgba(255,255,255,.055));
+  opacity: .95;
+  animation: tcy-liquid-glass-glint 9s ease-in-out infinite alternate;
+}
+
+#root .tcy-main-nav .tcy-island::after,
+#root .tcy-settings-page .tcy-island::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: 0;
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: inherit;
+  box-shadow: inset 0 -5px 12px rgba(255,255,255,.025);
+  pointer-events: none;
+}
+
+#root .tcy-main-nav .tcy-tab-orb,
+#root .tcy-settings-page .tcy-tab-orb {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.24), rgba(255,255,255,.055) 44%, color-mix(in srgb, var(--tcy-selected-accent) 12%, transparent)),
+    color-mix(in srgb, var(--tcy-selected-accent) 13%, transparent);
+  border: 1px solid rgba(255,255,255,.27);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+  backdrop-filter: blur(22px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),
+    inset 0 -1px 0 rgba(255,255,255,.07),
+    0 4px 18px -8px color-mix(in srgb, var(--tcy-selected-accent) 48%, transparent);
+}
+
+/* Glass slider used to resize the island: frosted track + glossy liquid thumb. */
+#root .tcy-navigation-width-range {
+  --range-progress: 50%;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: block;
+  height: 30px !important;
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--tcy-selected-glass-line) 70%, rgba(255,255,255,.50)) !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.15), rgba(255,255,255,.025) 48%, rgba(255,255,255,.08)),
+    color-mix(in srgb, var(--tcy-selected-header) 76%, transparent) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  backdrop-filter: blur(22px) saturate(1.7);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -2px 4px rgba(0,0,0,.12),
+    0 4px 14px -8px rgba(0,0,0,.3);
+  touch-action: pan-y;
+  transition: border-color 220ms ease, box-shadow 220ms ease, filter 220ms ease;
+}
+
+#root .tcy-navigation-width-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.13);
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--tcy-selected-accent) 74%, white 26%) 0%,
+      color-mix(in srgb, var(--tcy-selected-accent) 56%, white 44%) var(--range-progress),
+      rgba(255,255,255,.11) var(--range-progress),
+      rgba(255,255,255,.075) 100%);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.18), 0 1px 0 rgba(255,255,255,.16);
+}
+
+#root .tcy-navigation-width-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 19px;
+  height: 19px;
+  margin-top: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.78);
+  background:
+    radial-gradient(circle at 29% 22%, rgba(255,255,255,.98) 0%, rgba(255,255,255,.70) 17%, transparent 43%),
+    linear-gradient(145deg, color-mix(in srgb, var(--tcy-selected-accent) 42%, white), color-mix(in srgb, var(--tcy-selected-accent) 78%, rgba(255,255,255,.12)) 58%, var(--tcy-selected-accent-deep));
+  box-shadow:
+    inset 0 1.5px 1px rgba(255,255,255,.75),
+    inset 0 -2px 3px rgba(20,25,45,.20),
+    0 2px 7px rgba(0,0,0,.22),
+    0 0 0 3px color-mix(in srgb, var(--tcy-selected-accent) 13%, transparent);
+  transition: box-shadow 180ms ease, filter 180ms ease;
+}
+
+#root .tcy-navigation-width-range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.13);
+  background: rgba(255,255,255,.10);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.18), 0 1px 0 rgba(255,255,255,.16);
+}
+
+#root .tcy-navigation-width-range::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--tcy-selected-accent) 74%, white 26%),
+    color-mix(in srgb, var(--tcy-selected-accent) 56%, white 44%));
+  border: 1px solid rgba(255,255,255,.13);
+}
+
+#root .tcy-navigation-width-range::-moz-range-thumb {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.78);
+  background:
+    radial-gradient(circle at 29% 22%, rgba(255,255,255,.98) 0%, rgba(255,255,255,.70) 17%, transparent 43%),
+    linear-gradient(145deg, color-mix(in srgb, var(--tcy-selected-accent) 42%, white), color-mix(in srgb, var(--tcy-selected-accent) 78%, rgba(255,255,255,.12)) 58%, var(--tcy-selected-accent-deep));
+  box-shadow:
+    inset 0 1.5px 1px rgba(255,255,255,.75),
+    inset 0 -2px 3px rgba(20,25,45,.20),
+    0 2px 7px rgba(0,0,0,.22),
+    0 0 0 3px color-mix(in srgb, var(--tcy-selected-accent) 13%, transparent);
+}
+
+#root .tcy-navigation-width-range:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--tcy-selected-accent) 65%, white);
+  outline-offset: 4px;
+}
+
+#root .tcy-navigation-width-range:hover::-webkit-slider-thumb,
+#root .tcy-navigation-width-range:active::-webkit-slider-thumb {
+  filter: brightness(1.06);
+  box-shadow:
+    inset 0 1.5px 1px rgba(255,255,255,.82),
+    inset 0 -2px 3px rgba(20,25,45,.18),
+    0 3px 9px rgba(0,0,0,.23),
+    0 0 0 4px color-mix(in srgb, var(--tcy-selected-accent) 16%, transparent);
+}
+
+@keyframes tcy-liquid-glass-glint {
+  from { opacity: .70; }
+  to { opacity: .98; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #root .tcy-main-nav .tcy-island::before,
+  #root .tcy-settings-page .tcy-island::before {
+    animation: none !important;
+  }
+}
