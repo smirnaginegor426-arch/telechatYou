@@ -12,6 +12,7 @@ const TESTERS = [
  * UI release access is based on numeric account IDs, not mutable usernames.
  */
 export const PRIVATE_EXPERIMENTAL_USERS = [
+  { username: "delover", userId: 848007 },
   { username: "teste", userId: 1633623 },
   { username: "artemizzz", userId: 848009 },
   { username: "asasa", userId: 5750238 },
