@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useHeartbeat } from "@/hooks/useHeartbeat";
 import { trpc } from "@/providers/trpc";
 import { TabBar } from "@/components/TabBar";
+import { IncomingCallNotice } from "@/components/IncomingCallNotice";
 import { AccountCollectionsSync } from "@/components/AccountCollectionsSync";
 import { CustomLanguageBridge } from "@/components/CustomLanguageBridge";
 import { Logo } from "@/components/Logo";
@@ -171,6 +172,7 @@ useEffect(() => {
   return (
     <div className={`relative h-full tcy-authed-layout ${desktopHome ? "tcy-authed-layout--desktop-home" : desktopChat ? "tcy-authed-layout--desktop-chat" : ""}`}>
       <AccountCollectionsSync />
+      <IncomingCallNotice />
       {desktopInbox && (
         <aside className="tcy-desktop-chat-sidebar">
           <Chats desktopPanel />
