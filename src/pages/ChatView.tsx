@@ -28,6 +28,7 @@ import { Avatar } from "@/components/Avatar";
 import { TesterBadge } from "@/components/TesterBadge";
 import { isTesterUsername } from "@/lib/testers";
 import { Composer } from "@/components/Composer";
+import { CallWidget } from "@/components/CallWidget";
 import { BottomSheet } from "@/components/BottomSheet";
 import { MessageBubble, ReplyPreviewBar } from "@/components/MessageBubble";
 import { ChannelCommentsSheet } from "@/components/ChannelCommentsSheet";
@@ -719,6 +720,13 @@ export default function ChatView() {
               )}
             </div>
           </button>
+          <CallWidget
+            chatId={chatId}
+            myId={myId}
+            peerId={peer?.userId}
+            peerName={title}
+            enabled={!!chat && chat.type === "direct" && !isFavoritesChat && !!peer && peer.userId !== myId}
+          />
           <button
             onClick={() => navigate(`/chat/${chatId}/info`)}
             className="tcy-press tcy-glass-surface flex h-10 w-10 shrink-0 items-center justify-center rounded-full tcy-dim"
