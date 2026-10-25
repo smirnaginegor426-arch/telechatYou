@@ -6,7 +6,6 @@ import {
   PhoneOff,
   Video,
   VideoOff,
-  X,
 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
 
@@ -383,11 +382,6 @@ export function CallWidget({ chatId, myId, peerId, peerName, enabled }: Props) {
                 <div className="truncate text-[15px] font-extrabold tcy-text">{peerName}</div>
                 <div className="mt-0.5 text-[12px] tcy-dim">{headline}</div>
               </div>
-              {!incoming && (
-                <button type="button" onClick={closePanel} title="Свернуть звонок" aria-label="Свернуть окно звонка" className="flex h-9 w-9 items-center justify-center rounded-full tcy-glass-surface tcy-dim">
-                  <X size={17} />
-                </button>
-              )}
             </div>
 
             {callKind === "video" && !terminal && (
