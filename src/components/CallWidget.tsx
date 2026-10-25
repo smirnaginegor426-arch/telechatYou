@@ -352,7 +352,7 @@ export function CallWidget({ chatId, myId, peerId, peerName, enabled }: Props) {
           title="Аудиозвонок"
           aria-label="Начать аудиозвонок"
           onClick={() => void startCall("audio")}
-          disabled={busy || !!activeCall}
+          disabled={busy || !!activeCall || activeCallId !== null}
           className="tcy-press tcy-glass-surface flex h-9 w-9 shrink-0 items-center justify-center rounded-full tcy-dim disabled:opacity-40"
         >
           <Phone size={17} />
@@ -399,14 +399,17 @@ export function CallWidget({ chatId, myId, peerId, peerName, enabled }: Props) {
                   <button type="button" onClick={closePanel} className="mt-5 rounded-full px-6 py-2.5 text-[13px] font-extrabold tcy-text tcy-glass-surface">Закрыть</button>
                 </div>
               ) : incoming ? (
-                <div className="flex items-center justify-center gap-5 py-2">
+                <>
+                  {error && <div role="alert" className="mb-3 text-center text-[12px] font-semibold text-[#e5484d]">{error}</div>}
+                  <div className="flex items-center justify-center gap-5 py-2">
                   <button type="button" disabled={busy} onClick={() => void endCall("reject")} className="flex h-14 w-14 items-center justify-center rounded-full bg-[#e5484d] text-white disabled:opacity-50" aria-label="Отклонить звонок" title="Отклонить">
                     <PhoneOff size={22} />
                   </button>
                   <button type="button" disabled={busy} onClick={() => void acceptCall()} className="flex h-14 w-14 items-center justify-center rounded-full text-white disabled:opacity-50" style={{ background: "var(--tcy-accent)" }} aria-label="Принять звонок" title="Принять">
                     {callKind === "video" ? <Video size={22} /> : <Phone size={22} />}
                   </button>
-                </div>
+                  </div>
+                </>
               ) : (
                 <>
                   <div className="text-center text-[12px] tcy-dim">
