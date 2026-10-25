@@ -453,3 +453,45 @@ export const userBlocks = mysqlTable(
 );
 
 export type UserBlock = typeof userBlocks.$inferSelect;
+
+
+/** Short-lived WebRTC signaling metadata for direct voice/video calls. Media stays peer-to-peer. */
+export const callSessions = mysqlTable(
+  "call_sessions",
+  {
+    id: serial("id").primaryKey(),
+    chatId: bigint("chatId", { mode: "number", unsigned: true }).notNull(),
+    callerId: bigint("callerId", { mode: "number", unsigned: true }).notNull(),
+    calleeId: bigint("calleeId", { mode: "number", unsigned: true }).notNull(),
+    callType: mysqlEnum("callType", ["audio", "video"]).notNull(),
+    status: mysqlEnum("status", ["ringing", "accepted", "rejected", "ended", "missed"]).default("ringing").notNull(),
+    offerSdp: longtext("offerSdp").notNull(),
+    answerSdp: longtext("answerSdp"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+    endedAt: timestamp("endedAt"),
+  },
+  (t) => ({
+    chatStatusIdx: index("call_sessions_chat_status_idx").on(t.chatId, t.status),
+    callerStatusIdx: index("call_sessions_caller_status_idx").on(t.callerId, t.status),
+    calleeStatusIdx: index("call_sessions_callee_status_idx").on(t.calleeId, t.status),
+  }),
+);
+
+export const callSignals = mysqlTable(
+  "call_signals",
+  {
+    id: serial("id").primaryKey(),
+    callId: bigint("callId", { mode: "number", unsigned: true }).notNull(),
+    senderId: bigint("senderId", { mode: "number", unsigned: true }).notNull(),
+    payload: text("payload").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => ({
+    callSignalIdx: index("call_signals_call_id_idx").on(t.callId, t.id),
+    senderIdx: index("call_signals_sender_idx").on(t.callId, t.senderId),
+  }),
+);
+
+export type CallSession = typeof callSessions.$inferSelect;
+export type CallSignal = typeof callSignals.$inferSelect;
