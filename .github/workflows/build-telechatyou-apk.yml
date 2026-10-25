@@ -1,4 +1,4 @@
-name: Build TeleChatYou Android APK
+name: Build and publish TeleChatYou V2.0 APK
 
 on:
   workflow_dispatch:
@@ -47,24 +47,25 @@ jobs:
         working-directory: android
         run: gradle --no-daemon --stacktrace assembleDebug
 
-      - name: Prepare Alpha release APK
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk TeleChatYouAlpha.apk
+      - name: Prepare public V2.0 APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk TeleChatYou.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: TeleChatYou-APK
+          name: TeleChatYou-V2.0-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
 
-      - name: Publish Alpha APK to GitHub Release
+      - name: Publish public V2.0 APK to GitHub Release
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0-alpha
-          name: TeleChat You V2.0 Alpha
-          prerelease: true
-          files: TeleChatYouAlpha.apk
+          tag_name: v2.0
+          name: TeleChat You V2.0
+          prerelease: false
+          make_latest: true
+          files: TeleChatYou.apk
           overwrite_files: true
           fail_on_unmatched_files: true
