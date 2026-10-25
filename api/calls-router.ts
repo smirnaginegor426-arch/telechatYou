@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, lt, ne, or } from "drizzle-orm";
+import { and, eq, gt, lt, ne, or } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { callSessions, callSignals, chats, userBlocks } from "@db/schema";
