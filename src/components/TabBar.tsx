@@ -14,10 +14,10 @@ import {
 } from "@/lib/navigation-island-preferences";
 
 const tabs = [
-  { to: "/", label: "Чаты", plushEmoji: "💌" },
-  { to: "/contacts", label: "Люди", plushLabel: "Друзья", plushEmoji: "🐰" },
-  { to: "/profile", label: "Профиль", plushEmoji: "🐱" },
-  { to: "/settings", label: "Настройки", plushEmoji: "🌈" },
+  { to: "/", label: "Чаты" },
+  { to: "/contacts", label: "Люди", plushLabel: "Друзья" },
+  { to: "/profile", label: "Профиль" },
+  { to: "/settings", label: "Настройки" },
 ];
 
 type Gesture = {
@@ -186,7 +186,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
         }}
       >
         <div className="grid grid-cols-4 h-[54px]">
-          {orderedTabs.map(({ to, label, plushLabel, plushEmoji }) => {
+          {orderedTabs.map(({ to, label, plushLabel }) => {
             const active = activeTo === to;
             const highlighted = dragTarget ? dragTarget === to : active;
             const displayLabel = isPrivateTester ? (plushLabel ?? label) : label;
@@ -225,12 +225,12 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                 )}
                 <span className="tcy-tab-icon-wrap relative z-[1] flex h-10 items-center justify-center pointer-events-none">
                   <motion.span
-                    animate={{ scale: highlighted ? (isPrivateTester ? 1.12 : 1.04) : 1, y: highlighted ? -1 : 0, rotate: isPrivateTester && highlighted ? [0, -3, 3, 0] : 0 }}
+                    animate={{ scale: highlighted ? (isPrivateTester ? 1.12 : 1.04) : 1, y: highlighted ? -1 : 0, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 210, damping: 28, mass: 0.95 }}
-                    className={isPrivateTester ? "tcy-tab-emoji" : "inline-flex items-center justify-center"}
+                    className="inline-flex items-center justify-center"
                     aria-hidden="true"
                   >
-                    {isPrivateTester ? plushEmoji : <NavigationIcon to={to} size={23} />}
+                    <NavigationIcon to={to} size={23} />
                   </motion.span>
                   {to === "/" && unreadTotal > 0 && (
                     <motion.span

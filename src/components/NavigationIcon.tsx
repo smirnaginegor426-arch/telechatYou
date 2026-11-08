@@ -1,7 +1,5 @@
-import type { NavigationTabId } from "@/lib/navigation-island-preferences";
-
 type NavigationIconProps = {
-  to: NavigationTabId;
+  to: string;
   size?: number;
 };
 
