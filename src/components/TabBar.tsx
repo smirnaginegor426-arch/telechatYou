@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLocation, useNavigate } from "react-router";
-import { MessageCircle, Users, UserRound, Settings2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import { NavigationIcon } from "@/components/NavigationIcon";
 import { useTesterMode } from "@/hooks/useTesterMode";
 import { cn } from "@/lib/utils";
 import { useDeviceMode } from "@/hooks/useDeviceMode";
@@ -13,10 +14,10 @@ import {
 } from "@/lib/navigation-island-preferences";
 
 const tabs = [
-  { to: "/", label: "Чаты", icon: MessageCircle, plushEmoji: "💌" },
-  { to: "/contacts", label: "Люди", plushLabel: "Друзья", icon: Users, plushEmoji: "🐰" },
-  { to: "/profile", label: "Профиль", icon: UserRound, plushEmoji: "🐱" },
-  { to: "/settings", label: "Настройки", icon: Settings2, plushEmoji: "🌈" },
+  { to: "/", label: "Чаты", plushEmoji: "💌" },
+  { to: "/contacts", label: "Люди", plushLabel: "Друзья", plushEmoji: "🐰" },
+  { to: "/profile", label: "Профиль", plushEmoji: "🐱" },
+  { to: "/settings", label: "Настройки", plushEmoji: "🌈" },
 ];
 
 type Gesture = {
@@ -185,7 +186,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
         }}
       >
         <div className="grid grid-cols-4 h-[54px]">
-          {orderedTabs.map(({ to, label, plushLabel, icon: Icon, plushEmoji }) => {
+          {orderedTabs.map(({ to, label, plushLabel, plushEmoji }) => {
             const active = activeTo === to;
             const highlighted = dragTarget ? dragTarget === to : active;
             const displayLabel = isPrivateTester ? (plushLabel ?? label) : label;
@@ -229,7 +230,7 @@ export function TabBar({ unreadTotal = 0 }: { unreadTotal?: number }) {
                     className={isPrivateTester ? "tcy-tab-emoji" : "inline-flex items-center justify-center"}
                     aria-hidden="true"
                   >
-                    {isPrivateTester ? plushEmoji : <Icon size={23} strokeWidth={highlighted ? 2.35 : 1.8} />}
+                    {isPrivateTester ? plushEmoji : <NavigationIcon to={to} size={23} />}
                   </motion.span>
                   {to === "/" && unreadTotal > 0 && (
                     <motion.span

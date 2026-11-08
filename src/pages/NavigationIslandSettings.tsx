@@ -4,12 +4,9 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
-  MessageCircle,
   RotateCcw,
-  Settings2,
-  UserRound,
-  Users,
 } from "lucide-react";
+import { NavigationIcon } from "@/components/NavigationIcon";
 import {
   DEFAULT_NAVIGATION_ISLAND_PREFERENCES,
   MAX_NAVIGATION_ISLAND_WIDTH,
@@ -20,13 +17,6 @@ import {
   type NavigationIslandPreferences,
   type NavigationTabId,
 } from "@/lib/navigation-island-preferences";
-
-function getTabIcon(to: NavigationTabId) {
-  if (to === "/") return MessageCircle;
-  if (to === "/contacts") return Users;
-  if (to === "/profile") return UserRound;
-  return Settings2;
-}
 
 export default function NavigationIslandSettings() {
   const navigate = useNavigate();
@@ -138,7 +128,6 @@ export default function NavigationIslandSettings() {
             }}
           >
             {orderedTabs.map((tab) => {
-              const Icon = getTabIcon(tab.to);
               const active = tab.to === "/";
               return (
                 <div
@@ -150,7 +139,7 @@ export default function NavigationIslandSettings() {
                   {active && (
                     <span className="tcy-tab-orb absolute inset-0 rounded-full" />
                   )}
-                  <Icon className="relative z-[1]" size={17} strokeWidth={active ? 2.4 : 1.8} />
+                  <NavigationIcon to={tab.to} size={17} />
                 </div>
               );
             })}
@@ -206,14 +195,13 @@ export default function NavigationIslandSettings() {
           </div>
           <div className="space-y-1.5">
             {orderedTabs.map((tab, index) => {
-              const Icon = getTabIcon(tab.to);
               return (
                 <div
                   key={tab.to}
                   className="flex items-center gap-2.5 rounded-[14px] px-2.5 py-2"
                   style={{ background: "var(--tcy-card-strong)" }}
                 >
-                  <Icon size={17} className="shrink-0 tcy-accent" />
+                  <NavigationIcon to={tab.to} size={17} />
                   <span className="min-w-0 flex-1 text-[12.5px] font-semibold tcy-text">{tab.label}</span>
                   <button
                     type="button"

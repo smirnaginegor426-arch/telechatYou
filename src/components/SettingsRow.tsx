@@ -2,6 +2,44 @@ import type { CSSProperties, ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const SETTINGS_ICON_COLORS: Record<string, string> = {
+  "Внешний вид": "#A78BFA",
+  "Уведомления": "#F59E0B",
+  "Почта для восстановления": "#38BDF8",
+  "Безопасность аккаунта": "#D97757",
+  "Сквозное шифрование": "#2DD4BF",
+  "Приватность": "#F472B6",
+  "Чаты и медиа": "#FB923C",
+  "Данные": "#60A5FA",
+  "Сезонное": "#C084FC",
+  "О приложении": "#94A3B8",
+  "Тема": "#FBBF24",
+  "Акцент": "#B794F4",
+  "Шрифт": "#67E8F9",
+  "Обои": "#E879A8",
+  "Остров Навигации": "#34D399",
+  "Превью сообщений": "#93C5FD",
+  "Звук": "#F97316",
+  "Почта аккаунта": "#60A5FA",
+  "Создать пароль": "#EAB308",
+  "Сменить пароль": "#EAB308",
+  "Резервный секрет": "#D946EF",
+  "Статус «в сети»": "#4ADE80",
+  "Время последнего визита": "#14B8A6",
+  "Отчёты о прочтении": "#FB7185",
+  "Enter отправляет": "#E879F9",
+  "Сжимать фото": "#FCA5A5",
+  "Подтверждать отправку": "#A3E635",
+  "Стикеры": "#F0ABFC",
+  "Автозагрузка медиа": "#818CF8",
+  "Хранилище": "#06B6D4",
+  "Мой язык": "#C08457",
+  "Halloween": "#F973A8",
+  "Системное обновление": "#22D3EE",
+  "О TeleChatYou": "#A1A1AA",
+};
+
+
 export function SettingsRow({
   icon,
   title,
@@ -19,15 +57,16 @@ export function SettingsRow({
   danger?: boolean;
   style?: CSSProperties;
 }) {
+  const iconColor = SETTINGS_ICON_COLORS[title] ?? "var(--tcy-selected-accent)";
   const content = (
     <>
       <span
         className="tcy-settings-item-icon flex items-center justify-center shrink-0"
         style={{
           background: danger
-            ? "color-mix(in srgb, var(--tcy-danger) 14%, transparent)"
-            : "color-mix(in srgb, var(--tcy-selected-accent) 24%, transparent)",
-          color: danger ? "var(--tcy-danger)" : "var(--tcy-selected-accent)",
+            ? "color-mix(in srgb, var(--tcy-danger) 16%, transparent)"
+            : `color-mix(in srgb, ${iconColor} 19%, transparent)`,
+          color: danger ? "var(--tcy-danger)" : iconColor,
         }}
       >
         {icon}
