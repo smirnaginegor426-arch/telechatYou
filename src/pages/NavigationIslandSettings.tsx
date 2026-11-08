@@ -82,7 +82,7 @@ export default function NavigationIslandSettings() {
               className="flex h-9 w-9 items-center justify-center rounded-full"
               style={{ background: "var(--tcy-card-strong)", color: "var(--tcy-selected-accent)" }}
             >
-              <MessageCircle size={17} />
+              <NavigationIcon to="/" size={17} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[13px] font-extrabold tcy-text">Чаты</p>
