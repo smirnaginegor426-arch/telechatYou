@@ -34,18 +34,21 @@ import android.webkit.WebResourceResponse;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+import java.util.ArrayList;
+import java.util.List;
 import android.net.http.SslError;
 
 public class MainActivity extends Activity {
     private static final String START_URL = "https://telechatyou-1.onrender.com/?tcyAndroidApp=1&tcyBuild=alpha-v2";
     private static final String ALLOWED_HOST = "telechatyou-1.onrender.com";
     private static final int FILE_CHOOSER_REQUEST = 4101;
-    private static final int MICROPHONE_REQUEST = 4102;
+    private static final int MEDIA_PERMISSION_REQUEST = 4102;
 
     private WebView webView;
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> pendingFileCallback;
     private PermissionRequest pendingWebPermissionRequest;
+    private String[] pendingWebPermissionResources = new String[0];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -225,37 +228,67 @@ public class MainActivity extends Activity {
             request.deny();
             return;
         }
+
         boolean requestsAudio = false;
+        boolean requestsVideo = false;
         for (String resource : request.getResources()) {
-            if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) {
-                requestsAudio = true;
-            }
+            if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource)) requestsAudio = true;
+            if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource)) requestsVideo = true;
         }
-        if (!requestsAudio) {
+        if (!requestsAudio && !requestsVideo) {
             request.deny();
             return;
         }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M
-                || checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+
+        List<String> webResources = new ArrayList<>();
+        List<String> missingAndroidPermissions = new ArrayList<>();
+        if (requestsAudio) {
+            webResources.add(PermissionRequest.RESOURCE_AUDIO_CAPTURE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                missingAndroidPermissions.add(Manifest.permission.RECORD_AUDIO);
+            }
+        }
+        if (requestsVideo) {
+            webResources.add(PermissionRequest.RESOURCE_VIDEO_CAPTURE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                    && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                missingAndroidPermissions.add(Manifest.permission.CAMERA);
+            }
+        }
+
+        if (missingAndroidPermissions.isEmpty()) {
+            request.grant(webResources.toArray(new String[0]));
         } else {
+            // Grant WebView media resources only for our own HTTPS host.
             pendingWebPermissionRequest = request;
-            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MICROPHONE_REQUEST);
+            pendingWebPermissionResources = webResources.toArray(new String[0]);
+            requestPermissions(missingAndroidPermissions.toArray(new String[0]), MEDIA_PERMISSION_REQUEST);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == MICROPHONE_REQUEST && pendingWebPermissionRequest != null) {
-            PermissionRequest request = pendingWebPermissionRequest;
-            pendingWebPermissionRequest = null;
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
-            } else {
-                request.deny();
-                Toast.makeText(this, "Доступ к микрофону не разрешён.", Toast.LENGTH_SHORT).show();
+        if (requestCode != MEDIA_PERMISSION_REQUEST || pendingWebPermissionRequest == null) return;
+
+        PermissionRequest request = pendingWebPermissionRequest;
+        String[] webResources = pendingWebPermissionResources;
+        pendingWebPermissionRequest = null;
+        pendingWebPermissionResources = new String[0];
+
+        boolean allGranted = grantResults.length > 0;
+        for (int result : grantResults) {
+            if (result != PackageManager.PERMISSION_GRANTED) {
+                allGranted = false;
+                break;
             }
+        }
+        if (allGranted) {
+            request.grant(webResources);
+        } else {
+            request.deny();
+            Toast.makeText(this, "Доступ к микрофону или камере не разрешён.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -352,6 +385,7 @@ public class MainActivity extends Activity {
         if (pendingWebPermissionRequest != null) {
             pendingWebPermissionRequest.deny();
             pendingWebPermissionRequest = null;
+            pendingWebPermissionResources = new String[0];
         }
         if (webView != null) {
             webView.stopLoading();

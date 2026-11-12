@@ -18,6 +18,7 @@ import { ensureUserBlocksSchema } from "./lib/user-blocks-schema";
 import { ensureEmailVerificationSchema } from "./lib/email-verification-schema";
 import { emailDeliveryConfigSummary, isEmailDeliveryConfigured } from "./lib/email-service";
 import { ensureAlphaAccessKeySchema, redeemAlphaAccessKey } from "./lib/alpha-access";
+import { ensureCallsSchema } from "./lib/calls-schema";
 import { assertRateLimit } from "./lib/rate-limit";
 import { canReadFileKey } from "./lib/file-access";
 
@@ -358,6 +359,7 @@ if (env.isProduction) {
   await ensureUserBlocksSchema();
   await ensureEmailVerificationSchema();
   await ensureAlphaAccessKeySchema();
+  await ensureCallsSchema();
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
   serveStaticFiles(app);

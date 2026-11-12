@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - halloween-theme-tester-848013
+      - feature/webrtc-calls-mvp
     paths:
       - "android/**"
       - ".github/workflows/build-telechatyou-apk.yml"
